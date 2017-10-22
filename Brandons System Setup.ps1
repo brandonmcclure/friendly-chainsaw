@@ -100,25 +100,9 @@ if ($alluserProfile -eq $true){
     "Update-Help" | Add-Content -Path $ProfileDir32, $profileDir64
 }
 
-
-#Setup the Module path to our custom modules, and load Logger so we can log stuff
-if (!($env:PSModulePath -Like "*;'+$($scriptPaths)+'\Modules\*")){
-        $env:PSModulePath = $env:PSModulePath + ";'+$($scriptPaths)+'\Modules\"
-}
-if (!($env:PSModulePath -Like "*;'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\*")){
-        $env:PSModulePath = $env:PSModulePath + ";'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\"
-
-}
-
-'
-    if (!($env:PSModulePath -Like "*;'+$($scriptPaths)+'\Modules\*")){
-        $env:PSModulePath = $env:PSModulePath + ";'+$($scriptPaths)+'\Modules\"
-}
-if (!($env:PSModulePath -Like "*;'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\*")){
-        $env:PSModulePath = $env:PSModulePath + ";'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\"
-
-}
-' | Add-Content -Path $ProfileDir32, $profileDir64
+Install-Module FC_Log
+Install-Module FC_Git
+Install-Module FC_Core
 
 $validModules = @("FC_Log","FC_Git","FC_Core")
 if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))){
