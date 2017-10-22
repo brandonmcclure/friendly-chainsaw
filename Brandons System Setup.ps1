@@ -1,31 +1,69 @@
 ﻿<#
     .Synopsis
-      This script is designed to setup the powershell profile based on the various system configurations that we use. Specifically I use this on my laptop and development VM to ensure consistent settings. 
+      This script was initially written to setup the powershell profile on my systems at work. At some point this will be split into a more general use system setup script and and Install-FC script. Right now it makes some assumptions on how your Powershell environment works.  
     .DESCRIPTION
-        Sets the $env:PSModulePath variable to to T drive unc path for our deployed modules. Loads the BrandonLib module proactivly (I use it all the time!) and adds a item in the Add-On menu of the ISE which lets you easily sign your scripts. 
+        This script works by modifiyng the $profile for all users, or the user running the script. I have always used this for all users, all hosts. So I am unsure how well this approach would work with indiviudal profiles. 
+
+        
     .PARAMETER scriptPaths
-        The location of your Modules directory. This is useful for me as I can switch between the published modules on the T drive, and my local copy for doing development. This needs to be the directory directly above your module directory IE C:\PowerShell not C:\PowerShell\Modules
+        Optional
+        Default: $null
+
+        If specified, this is the location your shell will default to, and $env:PSModulePath will be modified as part of your profile code to look for module in a subdirectory called "modules"
+
+        My general philosophy
+        Instead of installing the modules to each client, it is more useful in my environment to publish the modules to a network share that everyone can read, only our CI account can write to.
+        This setup script modifies $env:PSModulePath in the profile (so for each PS Session. I found this to be more stable than attmepting to edit the PSModule path globally, primarally because it was difficult to switch between development modules and production modules on my workstation, but also due to the risk of breaking the variable. 
+
     .alluserProfile
-        Defaults to true
-        Sets up the all user profile. If set to false it will setup the user profile. 
+        Optional
+        Defaults: true
+
+        Sets up the all user profile. If set to false it will setup the user profile. (The user profile is not tested)
     .PARAMETER updateHelp
+        Optional
+        Default: false
+
         Adds the command "Update-Help" to the profile. Not recomended as it currently runs in the foreground. 
     .PARAMETER installPoshGit
+        Optional
+        Default: false
+
         Installs the PoshGit module using PowerShellGet. There are .net dependencies with this, but is highly recomended if you use command line git often. 
         See their github page for more info: https://github.com/dahlbyk/posh-git
     .PARAMETER installGitFetchJob
+        Optional
+        Default: false
+
         Experimental. Installs a powershell scheduled job that performs a git fetch --all for all repos under a given subdirectory. Hardcoded to my folder structure ATM. 
     .PARAMETER installISEScriptSignAddOn
+        Optional
+        Default: false
+
         Adds a add-on to the powershell ISE that allows you to sign your script with one click. Highly recomended.
+	.PARAMETER installCommunityExtensions
+        Optional
+        Default: false
+
+        Installs the Powershell Cimmunity Extensions. Recomended.
+        
+        https://github.com/Pscx/Pscx	
+    .PARAMETER ModulesToImportInProfile
+        Optional
+        Default: @("FC_Log","FC_Git","FC_Core")	
+        
+        An array of modules to import as part of the profile code. These will be imported for every shell							 
     
     #>
 [CmdletBinding(SupportsShouldProcess=$true)]  #This line lets us use the -Verbose switch, and then some. See Get-Help CmdletBinding
 param([switch] $updateHelp = $false
 ,[switch] $alluserProfile = $true
-,[string] $scriptPaths = "\\dhdcdept1\dept\Epic Program\Reporting Team\Builds\Powershell Scripts"
+,[string] $scriptPaths = $null
 ,[switch] $installPoshGit = $false
 ,[switch] $installGitFetchJob = $false
-,[Switch] $installISEScriptSignAddOn = $false)
+,[Switch] $installISEScriptSignAddOn = $false
+,[Switch] $installCommunityExtensions = $false
+,[string[]] $ModulesToImportInProfile = @("FC_Log","FC_Git","FC_Core"))
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")){
     Write-Error "Please rerun this script as an admin" -ErrorAction Stop
@@ -64,6 +102,14 @@ if ($alluserProfile -eq $true){
 
 
 #Setup the Module path to our custom modules, and load Logger so we can log stuff
+if (!($env:PSModulePath -Like "*;'+$($scriptPaths)+'\Modules\*")){
+        $env:PSModulePath = $env:PSModulePath + ";'+$($scriptPaths)+'\Modules\"
+}
+if (!($env:PSModulePath -Like "*;'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\*")){
+        $env:PSModulePath = $env:PSModulePath + ";'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\"
+
+}
+
 '
     if (!($env:PSModulePath -Like "*;'+$($scriptPaths)+'\Modules\*")){
         $env:PSModulePath = $env:PSModulePath + ";'+$($scriptPaths)+'\Modules\"
@@ -72,15 +118,33 @@ if (!($env:PSModulePath -Like "*;'+$($env:USERPROFILE)+'\Documents\WindowsPowerS
         $env:PSModulePath = $env:PSModulePath + ";'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\"
 
 }
-Import-Module Logger' | Add-Content -Path $ProfileDir32, $profileDir64
+' | Add-Content -Path $ProfileDir32, $profileDir64
+
+$validModules = @("FC_Log","FC_Git","FC_Core")
+if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))){
+    foreach ($module in $ModulesToImportInProfile){
+        if ($module -in $validModules){
+            "Import-Module $module" | Add-Content  -Path $ProfileDir32, $profileDir64
+        }
+        else{
+            Write-Warning "$module is not a valid modulename"
+        }
+    }
+}
 
 if ($installPoshGit){
     PowerShellGet\Install-Module posh-git -Scope CurrentUser -Force
 '
-Import-Module Posh-git' | Add-Content -Path $ProfileDir32, $profileDir64
+Import-Module Posh-git
+' | Add-Content -Path $ProfileDir32, $profileDir64
 }
 
-"Set-Location ""$scriptPaths""" | Add-Content -Path $ProfileDir32, $profileDir64
+if ($installCommunityExtensions){
+    Install-Module Pscx
+}								 
+"
+Set-Location ""$scriptPaths""
+" | Add-Content -Path $ProfileDir32, $profileDir64
 
 #Create a scheduled job (see about_scheduledjobs) that will run my script that fetches remote branch information for all my git repos at 2am (+ or - 1 hour) every day
 IF ($installGitFetchJob){
