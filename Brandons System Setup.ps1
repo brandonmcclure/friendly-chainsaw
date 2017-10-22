@@ -17,7 +17,15 @@
         Experimental. Installs a powershell scheduled job that performs a git fetch --all for all repos under a given subdirectory. Hardcoded to my folder structure ATM. 
     .PARAMETER installISEScriptSignAddOn
         Adds a add-on to the powershell ISE that allows you to sign your script with one click. Highly recomended.
-    
+	.PARAMETER installCommunityExtensions
+        Installs the Powershell Cimmunity Extensions. Recomended.
+        
+        https://github.com/Pscx/Pscx									 
+    .PARAMETER  $ModulesToImportInProfile
+		Optional
+		Default: @("FC_Log","FC_Git","FC_Mod")
+
+		Adds import-module statements to your profile to load the module for each PS session
     #>
 [CmdletBinding(SupportsShouldProcess=$true)]  #This line lets us use the -Verbose switch, and then some. See Get-Help CmdletBinding
 param([switch] $updateHelp = $false
@@ -25,7 +33,9 @@ param([switch] $updateHelp = $false
 ,[string] $scriptPaths = "\\dhdcdept1\dept\Epic Program\Reporting Team\Builds\Powershell Scripts"
 ,[switch] $installPoshGit = $false
 ,[switch] $installGitFetchJob = $false
-,[Switch] $installISEScriptSignAddOn = $false)
+,[Switch] $installISEScriptSignAddOn = $false
+,[Switch] $installCommunityExtensions = $false
+,[string[]] $ModulesToImportInProfile = @("FC_Log","FC_Git","FC_Mod"))
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")){
     Write-Error "Please rerun this script as an admin" -ErrorAction Stop
@@ -64,6 +74,14 @@ if ($alluserProfile -eq $true){
 
 
 #Setup the Module path to our custom modules, and load Logger so we can log stuff
+if (!($env:PSModulePath -Like "*;'+$($scriptPaths)+'\Modules\*")){
+        $env:PSModulePath = $env:PSModulePath + ";'+$($scriptPaths)+'\Modules\"
+}
+if (!($env:PSModulePath -Like "*;'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\*")){
+        $env:PSModulePath = $env:PSModulePath + ";'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\"
+
+}
+
 '
     if (!($env:PSModulePath -Like "*;'+$($scriptPaths)+'\Modules\*")){
         $env:PSModulePath = $env:PSModulePath + ";'+$($scriptPaths)+'\Modules\"
@@ -72,7 +90,19 @@ if (!($env:PSModulePath -Like "*;'+$($env:USERPROFILE)+'\Documents\WindowsPowerS
         $env:PSModulePath = $env:PSModulePath + ";'+$($env:USERPROFILE)+'\Documents\WindowsPowerShell\Modules\"
 
 }
-Import-Module Logger' | Add-Content -Path $ProfileDir32, $profileDir64
+' | Add-Content -Path $ProfileDir32, $profileDir64
+
+$validModules = @("FC_Log","FC_Git","FC_mod")
+if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))){
+    foreach ($module in $ModulesToImportInProfile){
+        if ($module -in $validModules){
+            "Import-Module $module" | Add-Content  -Path $ProfileDir32, $profileDir64
+        }
+        else{
+            Write-Warning "$module is not a valid modulename"
+        }
+    }
+}
 
 if ($installPoshGit){
     PowerShellGet\Install-Module posh-git -Scope CurrentUser -Force
@@ -80,6 +110,9 @@ if ($installPoshGit){
 Import-Module Posh-git' | Add-Content -Path $ProfileDir32, $profileDir64
 }
 
+if ($installCommunityExtensions){
+    Install-Module Pscx
+}								 
 "Set-Location ""$scriptPaths""" | Add-Content -Path $ProfileDir32, $profileDir64
 
 #Create a scheduled job (see about_scheduledjobs) that will run my script that fetches remote branch information for all my git repos at 2am (+ or - 1 hour) every day

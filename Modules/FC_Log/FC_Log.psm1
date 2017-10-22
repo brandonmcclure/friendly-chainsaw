@@ -7,6 +7,163 @@ $script:logTargetConsole = 1
 $script:logTargetFile = 0
 $script:logTargetWinEvent = 0
 
+$script:logFormattingOptions = @{"PrefixCallingFunction" = 0; "AutoTabCallsFromFunctions" = 0} 
+
+function Get-CallerPreference{
+    <#
+    .Synopsis
+       Fetches "Preference" variable values from the caller's scope.
+    .DESCRIPTION
+       Script module functions do not automatically inherit their caller's variables, but they can be
+       obtained through the $PSCmdlet variable in Advanced Functions.  This function is a helper function
+       for any script module Advanced Function; by passing in the values of $ExecutionContext.SessionState
+       and $PSCmdlet, Get-CallerPreference will set the caller's preference variables locally.
+    .PARAMETER Cmdlet
+       The $PSCmdlet object from a script module Advanced Function.
+    .PARAMETER SessionState
+       The $ExecutionContext.SessionState object from a script module Advanced Function.  This is how the
+       Get-CallerPreference function sets variables in its callers' scope, even if that caller is in a different
+       script module.
+    .PARAMETER Name
+       Optional array of parameter names to retrieve from the caller's scope.  Default is to retrieve all
+       Preference variables as defined in the about_Preference_Variables help file (as of PowerShell 4.0)
+       This parameter may also specify names of variables that are not in the about_Preference_Variables
+       help file, and the function will retrieve and set those as well.
+    .EXAMPLE
+       Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+
+       Imports the default PowerShell preference variables from the caller into the local scope.
+    .EXAMPLE
+       Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState -Name 'ErrorActionPreference','SomeOtherVariable'
+
+       Imports only the ErrorActionPreference and SomeOtherVariable variables into the local scope.
+    .EXAMPLE
+       'ErrorActionPreference','SomeOtherVariable' | Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+
+       Same as Example 2, but sends variable names to the Name parameter via pipeline input.
+    .INPUTS
+       String
+    .OUTPUTS
+       None.  This function does not produce pipeline output.
+    .LINK
+       about_Preference_Variables
+    #>
+
+    [CmdletBinding(DefaultParameterSetName = 'AllVariables')]
+    param (
+        [Parameter(Mandatory = $true)]
+        [ValidateScript({ $_.GetType().FullName -eq 'System.Management.Automation.PSScriptCmdlet' })]
+        $Cmdlet,
+
+        [Parameter(Mandatory = $true)]
+        [System.Management.Automation.SessionState]
+        $SessionState,
+
+        [Parameter(ParameterSetName = 'Filtered', ValueFromPipeline = $true)]
+        [string[]]
+        $Name
+    )
+
+    begin
+    {
+        $filterHash = @{}
+    }
+    
+    process
+    {
+        if ($null -ne $Name)
+        {
+            foreach ($string in $Name)
+            {
+                $filterHash[$string] = $true
+            }
+        }
+    }
+
+    end
+    {
+        # List of preference variables taken from the about_Preference_Variables help file in PowerShell version 4.0
+
+        $vars = @{
+            'ErrorView' = $null
+            'FormatEnumerationLimit' = $null
+            'LogCommandHealthEvent' = $null
+            'LogCommandLifecycleEvent' = $null
+            'LogEngineHealthEvent' = $null
+            'LogEngineLifecycleEvent' = $null
+            'LogProviderHealthEvent' = $null
+            'LogProviderLifecycleEvent' = $null
+            'MaximumAliasCount' = $null
+            'MaximumDriveCount' = $null
+            'MaximumErrorCount' = $null
+            'MaximumFunctionCount' = $null
+            'MaximumHistoryCount' = $null
+            'MaximumVariableCount' = $null
+            'OFS' = $null
+            'OutputEncoding' = $null
+            'ProgressPreference' = $null
+            'PSDefaultParameterValues' = $null
+            'PSEmailServer' = $null
+            'PSModuleAutoLoadingPreference' = $null
+            'PSSessionApplicationName' = $null
+            'PSSessionConfigurationName' = $null
+            'PSSessionOption' = $null
+
+            'ErrorActionPreference' = 'ErrorAction'
+            'DebugPreference' = 'Debug'
+            'ConfirmPreference' = 'Confirm'
+            'WhatIfPreference' = 'WhatIf'
+            'VerbosePreference' = 'Verbose'
+            'WarningPreference' = 'WarningAction'
+        }
+
+
+        foreach ($entry in $vars.GetEnumerator())
+        {
+            if (([string]::IsNullOrEmpty($entry.Value) -or -not $Cmdlet.MyInvocation.BoundParameters.ContainsKey($entry.Value)) -and
+                ($PSCmdlet.ParameterSetName -eq 'AllVariables' -or $filterHash.ContainsKey($entry.Name)))
+            {
+                $variable = $Cmdlet.SessionState.PSVariable.Get($entry.Key)
+                
+                if ($null -ne $variable)
+                {
+                    if ($SessionState -eq $ExecutionContext.SessionState)
+                    {
+                        Set-Variable -Scope 1 -Name $variable.Name -Value $variable.Value -Force -Confirm:$false -WhatIf:$false
+                    }
+                    else
+                    {
+                        $SessionState.PSVariable.Set($variable.Name, $variable.Value)
+                    }
+                }
+            }
+        }
+
+        if ($PSCmdlet.ParameterSetName -eq 'Filtered')
+        {
+            foreach ($varName in $filterHash.Keys)
+            {
+                if (-not $vars.ContainsKey($varName))
+                {
+                    $variable = $Cmdlet.SessionState.PSVariable.Get($varName)
+                
+                    if ($null -ne $variable)
+                    {
+                        if ($SessionState -eq $ExecutionContext.SessionState)
+                        {
+                            Set-Variable -Scope 1 -Name $variable.Name -Value $variable.Value -Force -Confirm:$false -WhatIf:$false
+                        }
+                        else
+                        {
+                            $SessionState.PSVariable.Set($variable.Name, $variable.Value)
+                        }
+                    }
+                }
+            }
+        }
+
+    } # end
+} Export-ModuleMember -Function Get-CallerPreference
 function Set-logTargetWinEvent{
     <#
     .Synopsis
@@ -48,14 +205,22 @@ function Set-LogLevel {
 
         Set-LogLevel $logLevel
     #>
-	Param([Parameter(Position=0)][ValidateScript({		 
+Param([Parameter(Position=0, ParameterSetName="string")][ValidateScript({		 
 		 $script:logLevelOptions.ContainsKey($_)
 		})]
-		[string] $level)
+		[string] $levelStr,
+        [Parameter(Position=0, ParameterSetName="int")][ValidateScript({		 
+		 $script:logLevelOptions.ContainsValue($_)
+		})]
+		[int] $levelInt)
 		
 	Try{
-        if (!([string]::IsNullOrEmpty($level))){
-		    $script:LogLevel = $script:logLevelOptions[$level]
+        if (!([string]::IsNullOrEmpty($levelStr))){
+		    $script:LogLevel = $script:logLevelOptions[$levelStr]
+        }
+        else
+        {
+            $script:LogLevel = $levelInt
         }
 	}
 	Catch{
@@ -75,29 +240,19 @@ function Get-LogLevel {
         $key.name
     }
 }export-modulemember -Function Get-LogLevel
-function Set-logTargetFileDir{
-<#
-    .Synopsis
-      Set the direcotry the log file will be created in if you turn on the write to file for the logger
-    .PARAMETER directory
-        The path to the directory you want the log to be created in. Will try to create the directory if it does not exist.    
-    .EXAMPLE
-        Set-logTargetFileDir "C:\temp"
-    #>
-   Param([Parameter(Position=0)]$directory)
-   $script:logTargetFileDir = "$($MyInvocation.PSScriptRoot)\$directory"
-    if (!(Test-Path $script:logTargetFileDir)){
-            Write-Log "$script:logTargetFileDir does not exist. Creating it"
-            mkdir $script:logTargetFileDir
-        }
-}export-modulemember -Function Set-LogTargetFileDir
-function Get-logTargetFileDir{
-<#
-    .Synopsis
-      returns the direcotry the log files will be created in.
-    #>
-    $script:logTargetFileDir
-}export-modulemember -Function Get-logTargetFileDir
+function Get-LogFormattingOptions{
+    $script:logFormattingOptions
+}export-modulemember -Function Get-LogFormattingOptions
+function Set-LogFormattingOptions{
+    param([int] $PrefixCallingFunction = -1,[int] $AutoTabCallsFromFunctions = -1)
+
+    if ($PrefixCallingFunction -eq 1 -or $PrefixCallingFunction -eq 0){
+        $script:logFormattingOptions['PrefixCallingFunction'] = $PrefixCallingFunction
+    }
+    if ($AutoTabCallsFromFunctions -eq 1 -or $AutoTabCallsFromFunctions -eq 0){
+        $script:logFormattingOptions['AutoTabCallsFromFunctions'] = $AutoTabCallsFromFunctions
+    }
+}export-modulemember -Function Set-LogFormattingOptions
 function Write-Log{
 <#
     .Synopsis
@@ -133,7 +288,9 @@ function Write-Log{
 	param( 
 		[Parameter(ValueFromPipeline=$True, Position=0)] [string] $Message = "", 
 		[Parameter(Position=1)][ValidateSet("Debug", "Info" , "Warning" , "Error", "Disable")][string] $EventLevel = "Info", 
-		[Parameter(Position=3)][int] $eventID = 10
+		[Parameter(Position=2)][int] $eventID = 10,
+        [Parameter(Position=3)][int] $tabLevel = 0
+		    
 		)
         
 		if ($script:LogLevel -eq 100){
@@ -142,10 +299,28 @@ function Write-Log{
 		$messageLevel = $script:logLevelOptions[$EventLevel]
 	    #Set the Verbose preference to the value in the calling script
 	    Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
-	
+   
+        $tabs = ''
+        if ($script:logFormattingOptions['AutoTabCallsFromFunctions'] -eq 1){
+            $callingFunction = (Get-PSCallStack | Select-Object FunctionName -Skip 1 -First 1).FunctionName | where {$_ -ne '<ScriptBlock>'} 
+            if (!([string]::IsNullOrEmpty($callingFunction))){
+                $tabLevel ++
+            }
+        }
+        for ($i=1;$i -le $tabLevel| where {$_ -ne 0}; $i++ ){
+            $tabs = $tabs+'     '
+        }
+              
+        
 	#Debug Messages
 	if ($messageLevel -eq 0 -and $script:LogLevel -eq 0){
-		$FormatMessage = "[DEBUG] $Message"
+        if ($script:logFormattingOptions['PrefixCallingFunction'] = 1 -and !([string]::IsNullOrEmpty($callingFunction))){
+            $FormatMessage = "$tabs[$callingFunction][DEBUG] $Message"
+        }
+        else{
+		    $FormatMessage = "$tabs[DEBUG] $Message"
+        }
+
         if ($DebugPreference -eq "Inquire" -or $DebugPreference -eq "Continue"){
             Write-Debug "$Message"
         }
@@ -155,14 +330,19 @@ function Write-Log{
 		if ($script:logTargetWinEvent -eq 1){
 			Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
 			}
-        if ($script:logTargetFile -eq 1){
-            
-            Add-Content -Value $FormatMessage -Path "$script:logTargetFileDir\$script:logTargetFileName"
-        }
+										 
+			
+																										
+		 
 	}
 	#Info Messages
 	elseif($messageLevel -eq 10 -and $script:LogLevel -le 10){
-		$FormatMessage = "$Message"
+        if ($script:logFormattingOptions['PrefixCallingFunction'] = 1 -and !([string]::IsNullOrEmpty($callingFunction))){
+            $FormatMessage = "$tabs[$callingFunction] $Message"
+        }
+        else{
+		    $FormatMessage = "$tabs$Message"
+        }
         if ($VerbosePreference -eq 'Continue'){
 		    Write-Verbose "$FormatMessage"
         }
@@ -172,30 +352,40 @@ function Write-Log{
 		if ($script:logTargetWinEvent -eq 1){
 			Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
 			}
-        if ($script:logTargetFile -eq 1){ 
-            Add-Content -Value $FormatMessage -Path "$script:logTargetFileDir\$script:logTargetFileName"
-        }
+										  
+																										
+		 
 	}
 	#Warning Messages
 	elseif ($messageLevel -eq 20 -and $script:LogLevel -le 20){
-		$FormatMessage = "[WARNING] $Message"
+        if ($script:logFormattingOptions['PrefixCallingFunction'] = 1 -and !([string]::IsNullOrEmpty($callingFunction))){
+            $FormatMessage = "$tabs[$callingFunction][WARNING] $Message"
+        }
+        else{
+		    $FormatMessage = "$tabs[WARNING] $Message"
+        }
 		Write-Warning "$Message"
 		if ($script:logTargetWinEvent -eq 1){
 			Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Warning" -EventId $eventID -Message "$FormatMessage"
 			}
-        if ($script:logTargetFile -eq 1){
-            Add-Content -Value $FormatMessage -Path "$script:logTargetFileDir\$script:logTargetFileName"
-        }
+										 
+																										
+		 
 	}
 	#Error Messages
 	elseif ($messageLevel -eq 30 -and $script:LogLevel -le 30){
-		$FormatMessage = "$Message"
+        if ($script:logFormattingOptions['PrefixCallingFunction'] = 1 -and !([string]::IsNullOrEmpty($callingFunction))){
+            $FormatMessage = "$tabs[$callingFunction] $Message"
+        }
+        else{
+		    $FormatMessage = "$tabs$Message"
+        }
 		Write-Error "$FormatMessage"
 		if ($script:logTargetWinEvent -eq 1){
 			Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Error" -EventId $eventID -Message "$FormatMessage"
 			}
-        if ($script:logTargetFile -eq 1){
-            Add-Content -Value $FormatMessage -Path "$script:logTargetFileDir\$script:logTargetFileName"
-        }
+										 
+																										
+		 
 	}
 }export-modulemember -function Write-Log
