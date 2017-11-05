@@ -34,20 +34,21 @@ Function Invoke-TortoiseGit{
 param([Parameter(position=0)] $cmd,
 [Parameter(position=1)] $path
 )
-    $tGitPath = 'C:\Program Files\TortoiseGit\bin\TortoiseGitProc.exe'
+        $tGitPath = 'TortoiseGitProc.exe'
     
-    if ([string]::IsNullOrEmpty($cmd)){
-        & $tGitPath /command:help /path:.
-    }
-    else{
-        if ([string]::IsNullOrEmpty($path)){
-            & $tGitPath /command:$cmd /path:.
+        if ([string]::IsNullOrEmpty($cmd)){
+            & $tGitPath /command:help /path:.
         }
         else{
-            Write-log "Path: $path" Debug
-            & $tGitPath /command:$cmd /path:$path
+            if ([string]::IsNullOrEmpty($path)){
+                & $tGitPath /command:$cmd /path:.
+            }
+            else{
+                Write-log "Path: $path" Debug
+                & $tGitPath /command:$cmd /path:$path
+            }
         }
-    }
+
 
 }Export-ModuleMember -Function Invoke-TortoiseGit -Alias tGit
 function Get-GitBranchesToDelete{

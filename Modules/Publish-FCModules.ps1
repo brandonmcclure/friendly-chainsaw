@@ -1,9 +1,18 @@
+[CmdletBinding(SupportsShouldProcess=$true)]
+param(
+	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
+    [parameter(Mandatory=$true)][string] $moduleName = $null
+    ,[parameter(Mandatory=$true)][string]$moduleDescription = $null
+    ,[string] $moduleAuthor = "Brandon McClure"
+    )
 $version = $null
-$moduleName = 'FC_Log'
-$ManifestPath = ".\Modules\$moduleName\$moduleName.psd1"
-$ModulePath = ".\Modules\$moduleName\$moduleName.psm1"
-Remove-Variable moduleHashHistory
-$moduleHashHistory = Import-Clixml -Path 'E:\Collect It\moduleHashHistory.xml'
+$hashFilePath = "moduleHashHistory.xml"
+$ManifestPath = ".\$moduleName\$moduleName.psd1"
+$ModulePath = ".\$moduleName\$moduleName.psm1"
+
+
+Remove-Variable moduleHashHistory -ErrorAction Ignore
+$moduleHashHistory = Import-Clixml -Path $hashFilePath
 
 if($version -eq $null){
     $currModuleHash = Get-FileHash -Path $ModulePath -Algorithm SHA256
@@ -16,5 +25,5 @@ if($version -eq $null){
     }
 }
 
-Export-Clixml -InputObject $moduleHashHistory -Path 'E:\Collect It\moduleHashHistory.xml'
-New-ModuleManifest -Path $path -Author "Brandon McClure" -Description "Logging utility"
+Export-Clixml -InputObject $moduleHashHistory -Path $hashFilePath
+New-ModuleManifest -Path $ManifestPath -Author $moduleAuthor -Description $moduleDescription -FunctionsToExport "*"

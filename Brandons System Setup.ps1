@@ -100,9 +100,9 @@ if ($alluserProfile -eq $true){
     "Update-Help" | Add-Content -Path $ProfileDir32, $profileDir64
 }
 
-Install-Module FC_Log
-Install-Module FC_Git
-Install-Module FC_Core
+Install-Module FC_Log -Scope AllUsers
+Install-Module FC_Git -Scope AllUsers
+Install-Module FC_Core -Scope AllUsers
 
 $validModules = @("FC_Log","FC_Git","FC_Core")
 if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))){
