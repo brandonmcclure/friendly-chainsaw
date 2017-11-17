@@ -240,6 +240,7 @@ param([Parameter(position=0)][string] $path = $null
 Write-Verbose "Current Location: $(Get-Location)"
 if (!([string]::IsNullOrEmpty($path))){
     
+    $path = $path -replace "\\","/"
     #This is crappy code... I was getting an error when I tried to parameterize this to allow you to specify what branch you want to get the last commit from. The error was :Path $path exists on disk but not in the index. 
     #When I outputted the call I am making, I was able to execute it on the command line just fine. Come find out the parameter that was located where "master" or "head" are is what was causing it. For the meantime, this works for my purposes. 
     #If theuser specifies, then get the commit from master. If not, get the commit of the current branch (HEAD)
