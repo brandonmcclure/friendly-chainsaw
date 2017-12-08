@@ -190,12 +190,12 @@ Function Get-GitLastCommit{
     .Synopsis
       Returns the full SHA1 commit hash for the most recent commit of the current branch
     .DESCRIPTION
-      A slightly longer description,
+      Will return an empty string if there is an error. 
     .PARAMETER path
         Optional
         Default: Null
 
-        The path to the folder or file that you want to get the most recent commit from. 
+        The path to the folder or file that you want to get the most recent commit from. Needs to be relative to the root of the repository. 
 
     .PARAMETER masterBranch
         Optional
@@ -238,31 +238,55 @@ param([Parameter(position=0)][string] $path = $null
 )
 
 Write-Verbose "Current Location: $(Get-Location)"
-if (!([string]::IsNullOrEmpty($path))){
+$oldErrorAction = $ErrorActionPreference
+$ErrorActionPreference = "Stop"
+try{
+    if (!([string]::IsNullOrEmpty($path))){
     
-    $path = $path -replace "\\","/"
-    #This is crappy code... I was getting an error when I tried to parameterize this to allow you to specify what branch you want to get the last commit from. The error was :Path $path exists on disk but not in the index. 
-    #When I outputted the call I am making, I was able to execute it on the command line just fine. Come find out the parameter that was located where "master" or "head" are is what was causing it. For the meantime, this works for my purposes. 
-    #If theuser specifies, then get the commit from master. If not, get the commit of the current branch (HEAD)
-    if ($masterBranch){
-        Write-Verbose "git rev-parse master:""$path"""
-        $gitLogOutput = & git rev-parse master:'"'$path'"'
+        $path = $path -replace "\\","/"
+        #This is crappy code... I was getting an error when I tried to parameterize this to allow you to specify what branch you want to get the last commit from. The error was :Path $path exists on disk but not in the index. 
+        #When I outputted the call I am making, I was able to execute it on the command line just fine. Come find out the parameter that was located where "master" or "head" are is what was causing it. For the meantime, this works for my purposes. 
+        #If theuser specifies, then get the commit from master. If not, get the commit of the current branch (HEAD)
+        if ($masterBranch){
+            Write-Verbose "git rev-parse master:""$path"""
+            $gitLogOutput = & git rev-parse master:'"'$path'"'
+        }
+        else{
+            Write-Verbose "git rev-parse head:""$path"""
+            $gitLogOutput = & git rev-parse head:'"'$path'"'
+        }
     }
     else{
-        Write-Verbose "git rev-parse head:""$path"""
-        $gitLogOutput = & git rev-parse head:'"'$path'"'
-    }
-}
-else{
-    if ($masterBranch){
-        Write-Verbose "git rev-parse master"
-        $gitLogOutput = & git rev-parse master
-    }
-    else{
-        Write-Verbose "git rev-parse HEAD"
-        $gitLogOutput = & git rev-parse HEAD
-    }
+        if ($masterBranch){
+            Write-Verbose "git rev-parse master"
+            $gitLogOutput = & git rev-parse master
+        }
+        else{
+            Write-Verbose "git rev-parse HEAD"
+            $gitLogOutput = & git rev-parse HEAD
+        }
     
+    }
 }
+catch{
+    $gitLogOutput = ''
+}
+$ErrorActionPreference = $oldErrorAction
 Write-Output $gitLogOutput
 }Export-Modulemember -Function Get-GitLastCommit
+Function Get-GitBranchesWithChange{
+param([string] $filePath)
+
+$oldLocation = Get-Location
+try{
+    Set-Location (Split-Path $filePath)
+    $lastMasterCommit = Get-GitLastCommit -path $filePath -masterBranch
+    $a = get-location
+    git for-each-ref --format="%(refname:short)" refs/heads | where {$_ -ne "master"}
+    $x = 0
+}
+catch{
+    Set-Location $oldLocation
+}
+Set-Location $oldLocation
+}Export-ModuleMember -Function Get-GitBranchesWithChange
