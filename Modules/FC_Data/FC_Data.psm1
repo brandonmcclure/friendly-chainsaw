@@ -1822,3 +1822,27 @@ param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Dis
         }
     } 
 } Export-ModuleMember -Function Import-FlatFileToSQLServer
+function Invoke-SqlAgentJobSync{
+<#
+    .Synopsis
+      Executes a SQL server agent job
+    #>
+param (
+ [string] $instancename = $null,
+ [string] $jobname = $null
+)
+
+$db = "MSDB"
+$sqlConnection = new-object System.Data.SqlClient.SqlConnection 
+$sqlConnection.ConnectionString = 'server=' + $instancename + ';integrated security=TRUE;database=' + $db 
+$sqlConnection.Open() 
+$sqlCommand = new-object System.Data.SqlClient.SqlCommand 
+$sqlCommand.CommandTimeout = 120 
+$sqlCommand.Connection = $sqlConnection 
+$sqlQuery = "exec dbo.sp_start_job $jobname"
+Write-Log "sqlQuery: $sqlQuery" Debug
+$sqlCommand.CommandText= $sqlQuery
+Write-Host "Executing Job => $jobname..." 
+$result = $sqlCommand.ExecuteNonQuery() 
+$sqlConnection.Close()
+} Export-ModuleMember -Function Invoke-SqlAgentJobSynch
