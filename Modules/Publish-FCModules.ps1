@@ -1,21 +1,32 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
-    [parameter(Mandatory=$true)][string] $moduleName = $null
-    ,[parameter(Mandatory=$true)][string]$moduleDescription = $null
+    [parameter(Mandatory=$false)][string] $moduleName = 'FC_Log'#$null
+    ,[parameter(Mandatory=$false)][string]$moduleDescription = 'Logging utility for my PS scripts. for when -Verbose and -Debug just dont cut it' #$null
     ,[string] $moduleAuthor = "Brandon McClure"
+    ,[switch] $forceExport = $true
     )
-$version = $null
-$moduleVersion = $null
-$moduleName = 'FC_Log'
-$ManifestPath = ".\Modules\$moduleName\$moduleName.psd1"
-$ModulePath = ".\Modules\$moduleName\$moduleName.psm1"
-Remove-Variable moduleHashHistory
-$moduleHashHistory = @()
-$moduleHashHistory += Import-Clixml -Path '.\modules\moduleHashHistory.xml'
-$previousHash = $moduleHashHistory | where moduleName -eq $moduleName
 
-$currModule = New-Object System.Object
+if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
+Set-LogLevel $logLevel
+
+try{
+    $version = $null
+    $moduleVersion = $null
+    $ManifestPath = ".\Modules\$moduleName\$moduleName.psd1"
+    $ModulePath = ".\Modules\$moduleName\$moduleName.psm1"
+    $moduleHashHistoryPath = '.\modules\moduleHashHistory.xml'
+    Remove-Variable moduleHashHistory,previousHash,functionsToExport -ErrorAction Ignore
+    $moduleHashHistory = @()
+    if (!(Test-Path $moduleHashHistoryPath)){
+        Write-Log "The history file could not be found at $moduleHashHistoryPath, creating a new one" Warning
+    }
+    else{
+        $moduleHashHistory += Import-Clixml -Path $moduleHashHistoryPath
+    }
+    $previousHash = $moduleHashHistory | where moduleName -eq $moduleName
+
+    $currModule = New-Object System.Object
 
 
     $currModuleHash = Get-FileHash -Path $ModulePath -Algorithm SHA256
@@ -28,11 +39,17 @@ $currModule = New-Object System.Object
     $currModule | Add-Member -Type NoteProperty -name ModuleMinorMinorVersion -Value "0"
     $currModule | Add-Member -Type NoteProperty -name ModuleVersion -Value "$($currModule.ModuleMajorVersion).$($currModule.ModuleMinorVersion).$($currModule.ModuleMinorMinorVersion)"
     $currModule | Add-Member -Type NoteProperty -name PSVersion -Value "4.0"
-    $currModule | Add-Member -Type NoteProperty -name requiredModules -Value @('ModuleName=”FC_Core”')
-    $currModule | Add-Member -Type NoteProperty -name NestedModules -Value @('ModuleName=”FC_Core”')
+    $currModule | Add-Member -Type NoteProperty -name requiredModules -Value @()
+    $currModule | Add-Member -Type NoteProperty -name NestedModules -Value @()
 
-    $export = 0
+    if ($forceExport){
+        $export = 1
+    }
+    else{
+        $export = 0
+    }
     if ($previousHash -eq $null){
+        Write-Log "Previous hash does not exist for this module, setting the version to 1.0.0" Debug
         $export = 1
         $currModule.ModuleMinorMinorVersion = 0
         $currModule.ModuleMinorVersion = 0
@@ -40,6 +57,7 @@ $currModule = New-Object System.Object
         $currModule.ModuleVersion = "$($currModule.ModuleMajorVersion).$($currModule.ModuleMinorVersion).$($currModule.ModuleMinorMinorVersion)"
     }
     elseif($previousHash.HashValue -ne $currModule.HashValue){
+        Write-Log "Previous hash does not match the current hash. Incrementing the minor minor version. Previous version: $($previousHash.ModuleVersion)" Debug
         $export = 1
         $currModule.ModuleMinorMinorVersion = $previousHash.ModuleMinorMinorVersion + 1
         $currModule.ModuleMinorVersion = $previousHash.ModuleMinorVersion
@@ -47,14 +65,37 @@ $currModule = New-Object System.Object
         $currModule.ModuleVersion = "$($currModule.ModuleMajorVersion).$($currModule.ModuleMinorVersion).$($currModule.ModuleMinorMinorVersion)"
     }
     
+    
     if ($export -eq 1){
-        Write-Host "Saving hash history, and creating the manifest"
+        #Get functions to export
+        $functionsToExport = @()
+        $moduleCode = Get-Content $ModulePath #| foreach { if ($_ -like "*Export-ModuleMember*"){$functionsToExport += $_} }
+        [string]$regex = '.+Export-ModuleMember +-Function ([a-z-]+)'
+        $myMatches = [regex]::Match($moduleCode,$regex)
+        $myMatches.Groups[1].Value
+        foreach ($m in $($myMatches.Groups)){
+            Write-Log "$m"
+        }
+        foreach ($a in $functionsToExport){ $b = $a  | Select-String -Pattern "-Function "
+Write-Log "$a | $b" }
+        Write-Log "Saving hash history, creating the manifest, and testing."
+        $moduleHashHistory = $moduleHashHistory | where {$_.ModuleName -ne $moduleName }
         $moduleHashHistory += $currModule
 
-        Export-Clixml -InputObject $moduleHashHistory -Path '.\modules\moduleHashHistory.xml'
-        New-ModuleManifest -Path $ManifestPath -Author "Brandon McClure" -Description "Logging utility" -ModuleVersion $currModule.ModuleVersion -PowerShellVersion $currModule.PSVersion -RequiredModules $currModule.requiredModules -NestedModules $currModule.nestedModules
-        Test-ModuleManifest -Path $ManifestPath -Verbose
+        Export-Clixml -InputObject $moduleHashHistory -Path $moduleHashHistoryPath
+        
+        New-ModuleManifest -Path $ManifestPath -Author $moduleAuthor -Description $moduleDescription -ModuleVersion $currModule.ModuleVersion -PowerShellVersion $currModule.PSVersion -RequiredModules $currModule.requiredModules -NestedModules $currModule.nestedModules -FunctionsToExport "@(*)"| Out-Null
+        Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop
+        Write-Log "Module manifest creation/testing complete"
     }
-
-Export-Clixml -InputObject $moduleHashHistory -Path $hashFilePath
-New-ModuleManifest -Path $ManifestPath -Author $moduleAuthor -Description $moduleDescription -FunctionsToExport "*"
+    else{
+        Write-Log "No changes were detected in the module file. Skipping manifest creation"
+        return
+    }
+}
+catch{
+    $ex = $_.Exception
+    $errorLine = $_.InvocationInfo.ScriptLineNumber
+    $errorMessage = $ex.Message 
+    Write-Log "Error detected at line $errorLine, Error message: $errorMessage" Error -ErrorAction Stop
+}
