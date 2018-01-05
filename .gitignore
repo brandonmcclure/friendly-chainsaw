@@ -191,3 +191,5 @@ ModelManifest.xml
 /Cube Scripts/logs
 /.vs
 logs
+*.nupkg
+*.nuspec
