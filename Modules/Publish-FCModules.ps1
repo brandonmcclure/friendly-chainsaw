@@ -9,7 +9,7 @@ param(
 
 if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
 Set-LogLevel $logLevel
-
+$origLocation = Get-Location
 try{
     $version = $null
     $moduleVersion = $null
@@ -79,23 +79,39 @@ try{
         foreach ($a in $functionsToExport){ $b = $a  | Select-String -Pattern "-Function "
 Write-Log "$a | $b" }
         Write-Log "Saving hash history, creating the manifest, and testing."
+        $functionsToExport = 'Write-Log'
         $moduleHashHistory = $moduleHashHistory | where {$_.ModuleName -ne $moduleName }
         $moduleHashHistory += $currModule
 
         Export-Clixml -InputObject $moduleHashHistory -Path $moduleHashHistoryPath
         
-        New-ModuleManifest -Path $ManifestPath -Author $moduleAuthor -Description $moduleDescription -ModuleVersion $currModule.ModuleVersion -PowerShellVersion $currModule.PSVersion -RequiredModules $currModule.requiredModules -NestedModules $currModule.nestedModules -FunctionsToExport "@(*)"| Out-Null
+        New-ModuleManifest -Path $ManifestPath -Author $moduleAuthor -Description $moduleDescription -RootModule $moduleName -ModuleVersion $currModule.ModuleVersion -PowerShellVersion $currModule.PSVersion -RequiredModules $currModule.requiredModules -NestedModules $currModule.nestedModules | Out-Null
         Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop
         Write-Log "Module manifest creation/testing complete"
     }
     else{
         Write-Log "No changes were detected in the module file. Skipping manifest creation"
+        Set-Location $origLocation
         return
-    }
+   }
+
+    Set-Location ".\Modules\$moduleName"
+    Write-Log "Creating the nuget package"
+    #https://roadtoalm.com/2017/05/02/using-vsts-package-management-as-a-private-powershell-gallery/#comments
+    nuget spec $moduleName -Force
+
+    [string]$nugetHack = Get-Content "$moduleName.nuspec"
+    $a = $nugetHack.replace("1.0.0" ,"$($currModule.ModuleVersion)") 
+$a | Set-Content "$moduleName.nuspec" -Force
+    nuget pack
 }
 catch{
     $ex = $_.Exception
     $errorLine = $_.InvocationInfo.ScriptLineNumber
     $errorMessage = $ex.Message 
+
+    Set-Location $origLocation
     Write-Log "Error detected at line $errorLine, Error message: $errorMessage" Error -ErrorAction Stop
 }
+
+Set-Location $origLocation
