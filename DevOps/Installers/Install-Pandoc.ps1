@@ -18,27 +18,11 @@ Set-LogLevel $logLevel
 Set-logTargetWinEvent $winEventLog
 Set-LogFormattingOptions -PrefixCallingFunction 1 -AutoTabCallsFromFunctions 1
 
-try{
-    $releasePath = Get-GitHubRelease -repo "jgm/pandoc" -fileFormat "pandoc-0-windows.msi" -tag $specifiedTag
-    Write-Log "The pandoc installer was downloaded into $releasePath"
-    Write-Log "Running the installer"
-    $output = Start-MyProcess -EXEPath "msiexec.exe" -options "/I $releasePath /quiet /norestart"
+Write-Log "$PSCommandPath started at: [$([DateTime]::Now)]" Debug
 
-    if ($($output.stderr) -ne ""){
-            Write-Log "$($output.stderr)" Warning
-            Write-Log "There was an error in the stderr stream. See above warning for the error text" Error -ErrorAction Stop
-        }
-    elseif ($($output.stdout) -ne ""){
-            Write-Log "$($output.stdout)" Debug
-            if ($($output.stdout) -contains "error"){
-    
-                Write-Log "There was a Error detected in the stdout from " Error -ErrorAction Stop
-            }
-        }
-    elseif ($($output.ExitCode -ne 0)){
-        Write-Log "The pandoc installer returned $($output.ExitCode)." Error -ErrorAction Stop
-    }
-    Write-Log "The pandoc installer appears to have completed succesfully"
+try{
+    choco install pandoc -y
+    choco install miktex -y
 }
 catch{
     $ex = $_.Exception
