@@ -69,8 +69,12 @@ if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]
     Write-Error "Please rerun this script as an admin" -ErrorAction Stop
 }
 
-if (![System.Diagnostics.EventLog]::SourceExists("Cogito - Powershell Scripts")){
-    New-EventLog -LogName Application -Source "Cogito - Powershell Scripts"
+if (![System.Diagnostics.EventLog]::SourceExists("FC Powershell Scripts")){
+    Write-Host "Creating Windows Event log source named: FC Powershell Scripts"
+    New-EventLog -LogName Application -Source "FC Powershell Scripts"
+}
+else{
+    Write-Host "Windows Event log already exists for source: FC Powershell Scripts"
 }
 
 
@@ -100,9 +104,9 @@ if ($alluserProfile -eq $true){
     "Update-Help" | Add-Content -Path $ProfileDir32, $profileDir64
 }
 
-Install-Module FC_Log -Scope AllUsers
-Install-Module FC_Git -Scope AllUsers
-Install-Module FC_Core -Scope AllUsers
+#Install-Module FC_Log -Scope AllUsers
+#Install-Module FC_Git -Scope AllUsers
+#Install-Module FC_Core -Scope AllUsers
 
 $validModules = @("FC_Log","FC_Git","FC_Core")
 if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))){

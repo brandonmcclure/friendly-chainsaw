@@ -40,10 +40,11 @@
         else {throw 'A valid code-signing certificate could not be found!'} 
     }
 }export-modulemember -function Set-ScriptSignature
+
 function Start-MyProcess {
 <#
     .Synopsis
-      Wraps up a call to execute a program using System.Diagnostics.Process. This allows us to redirect the stdout and stderr streams for better error handling. Specifcially this is used for quite a few MS utilities in our TFS build deploy, as the utilities will usually throw warnings instead of terminating errors. 
+      Wraps up a call to execute a program using System.Diagnostics.Process. This allows us to redirect the stdout and stderr streams for better error handling. Specifcially this is used for quite a few MS utilities in our TFS build/deploy, as the utilities will usually throw warnings instead of terminating errors and we need to parse stdout to determine if there was an actuall error. 
     .DESCRIPTION
        
     .EXAMPLE
@@ -65,16 +66,23 @@ function Start-MyProcess {
             Write-Log "There was an error of some type. See warning above for more info" Error
         }
     .OUTPUTS
-        A object with 2 properties, stdout and stderr. these are text streams that conatian output from the process. Generally if (stderr -eq $null) then there was some sort of error. You need to ensure that you parse these values for any error text you are looking for 
+        A object with 3 properties, stdout, stderr, and ExitCode. stdout and stderr are text streams that conatian output from the process. Generally if (stderr -eq $null) then there was some sort of error. You can also parse stdout to find errors, or check the ExitCode for non-success
        
     #>
 [CmdletBinding()]
 	param( 
 		[Parameter(ValueFromPipeline=$True, Position=0)] [string] $EXEPath
 ,[string] $options
+,[Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Warning"
 		)
-    Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+																					   
 
+    Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+    $currentLogLevel = Get-LogLevel
+    if ([string]::IsNullOrEmpty($logLevel)){
+        $logLevel = "Warning"
+    }
+    Set-LogLevel $logLevel
     $EXE = $EXEPath.Substring($EXEPath.LastIndexOf("\")+1,$EXEPath.Length-$EXEPath.LastIndexOf("\")-1)
     $pinfo = New-Object System.Diagnostics.ProcessStartInfo
     $pinfo.FileName = "`"$EXEPath`""
@@ -94,6 +102,7 @@ function Start-MyProcess {
         $process.Start() | Out-Null
     }
     catch{
+        Write-Log "****Process errors****" Warning
         Write-Log "$($_.Exception.ToString())"  Warning
         Write-Log "Error calling $EXE. See previous warning(s) for error text. Try running the script with a lower logLevel variable to collect more troubleshooting information. Aborting script" Error -ErrorAction Stop
         
@@ -106,6 +115,7 @@ function Start-MyProcess {
     }
     Write-Log "$EXE has completed."
 
+    Set-LogLevel $currentLogLevel
     # get output from stdout and stderr
     $stdout = $process.StandardOutput.ReadToEnd()
     $stderr = $process.StandardError.ReadToEnd()
@@ -113,6 +123,7 @@ function Start-MyProcess {
     $stdOutput = New-Object -TypeName PSObject
     $stdOutput | Add-Member –MemberType NoteProperty –Name stderr –Value $stderr
     $stdOutput | Add-Member –MemberType NoteProperty –Name stdout –Value $stdout
+    $stdOutput | Add-Member -MemberType NoteProperty -Name exitCode -value $process.ExitCode
 
     return $stdOutput
 }export-modulemember -Function Start-MyProcess
@@ -250,3 +261,48 @@ foreach ($dir in $subDirs){
 
 cd $origDirectory
 }Export-modulemember -Function Invoke-GitFetchForSubDirectories
+Function Register-PSRepositoryFix {
+<#
+    .Synopsis
+      This function is used as a workaround for an apparent bug when registering a PSRepository that uses an SSL endpoint. See https://stackoverflow.com/questions/35296482/invalid-web-uri-error-on-register-psrepository/35296483
+    .LINK
+       Source - https://stackoverflow.com/questions/35296482/invalid-web-uri-error-on-register-psrepository/35296483
+    #>
+    [CmdletBinding()]
+    Param (
+        [Parameter(Mandatory=$true)]
+        [String]
+        $Name,
+
+        [Parameter(Mandatory=$true)]
+        [Uri]
+        $SourceLocation,
+
+        [ValidateSet('Trusted', 'Untrusted')]
+        $InstallationPolicy = 'Trusted'
+    )
+
+    $ErrorActionPreference = 'Stop'
+
+    Try {
+        Write-Verbose 'Trying to register via ​Register-PSRepository'
+        ​Register-PSRepository -Name $Name -SourceLocation $SourceLocation -InstallationPolicy $InstallationPolicy
+        Write-Verbose 'Registered via Register-PSRepository'
+    } Catch {
+        Write-Verbose 'Register-PSRepository failed, registering via workaround'
+
+        # Adding PSRepository directly to file
+        Register-PSRepository -name $Name -SourceLocation $env:TEMP -InstallationPolicy $InstallationPolicy
+        $PSRepositoriesXmlPath = "$env:LOCALAPPDATA\Microsoft\Windows\PowerShell\PowerShellGet\PSRepositories.xml"
+        $repos = Import-Clixml -Path $PSRepositoriesXmlPath
+        $repos[$Name].SourceLocation = $SourceLocation.AbsoluteUri
+        $repos[$Name].PublishLocation = (New-Object -TypeName Uri -ArgumentList $SourceLocation, 'package/').AbsoluteUri
+        $repos[$Name].ScriptSourceLocation = ''
+        $repos[$Name].ScriptPublishLocation = ''
+        $repos | Export-Clixml -Path $PSRepositoriesXmlPath
+
+        # Reloading PSRepository list
+        Set-PSRepository -Name PSGallery -InstallationPolicy Untrusted
+        Write-Verbose 'Registered via workaround'
+    }
+}Export-Modulemember -Function Register-PSRepositoryFix 
