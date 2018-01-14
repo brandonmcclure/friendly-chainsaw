@@ -290,3 +290,9 @@ catch{
 }
 Set-Location $oldLocation
 }Export-ModuleMember -Function Get-GitBranchesWithChange
+Function Get-GitBranch{
+Write-Log "$(Get-Location)" Warning
+$a = git branch
+
+write-output $a | where $_.substring(0,1) = '*'
+}Export-ModuleMember -Function Get-GitBranch

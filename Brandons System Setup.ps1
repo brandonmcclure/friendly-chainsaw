@@ -63,6 +63,7 @@ param([switch] $updateHelp = $false
 ,[switch] $installGitFetchJob = $false
 ,[Switch] $installISEScriptSignAddOn = $false
 ,[Switch] $installCommunityExtensions = $false
+,[switch] $installChocolatey = $false
 ,[string[]] $ModulesToImportInProfile = @("FC_Log","FC_Git","FC_Core"))
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")){
@@ -121,7 +122,7 @@ if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))){
 }
 
 if ($installPoshGit){
-    PowerShellGet\Install-Module posh-git -Scope CurrentUser -Force
+    PowerShellGet\Install-Module posh-git -Scope AllUsers -Force
 '
 Import-Module Posh-git
 ' | Add-Content -Path $ProfileDir32, $profileDir64
@@ -156,5 +157,9 @@ if ($installISEScriptSignAddOn){
         $psISE.CurrentPowerShellTab.AddOnsMenu.submenus.add("Sign Script", {Set-ScriptSignature},$null) | Out-Null
     }
     '| Add-Content -Path $ProfileDir32, $profileDir64
+}
+
+if ($installChocolatey){
+    iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
 }
  
