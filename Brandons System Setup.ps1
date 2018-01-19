@@ -9,11 +9,7 @@
         Optional
         Default: $null
 
-        If specified, this is the location your shell will default to, and $env:PSModulePath will be modified as part of your profile code to look for module in a subdirectory called "modules"
-
-        My general philosophy
-        Instead of installing the modules to each client, it is more useful in my environment to publish the modules to a network share that everyone can read, only our CI account can write to.
-        This setup script modifies $env:PSModulePath in the profile (so for each PS Session. I found this to be more stable than attmepting to edit the PSModule path globally, primarally because it was difficult to switch between development modules and production modules on my workstation, but also due to the risk of breaking the variable. 
+        If specified, this is the location your shell will default to
 
     .alluserProfile
         Optional
@@ -53,7 +49,32 @@
         Default: @("FC_Log","FC_Git","FC_Core")	
         
         An array of modules to import as part of the profile code. These will be imported for every shell							 
-    
+    .PARAMETER quickDirectories
+        Optional
+        Default: $null
+
+        A hash table of paths to make changeing my location easier.
+
+
+        Run this script with a hash table of paths like this:
+
+            -quickDirectories = @{myGit = 'C:\TFS\Misc Developer Files\Brandon McClure'}
+
+        Then to quickly switch to that directory: 
+            Set-Location $myDirs.myGit
+    .PARAMETER notepadPlusPlusPath
+        Optional
+        Default: "C:\Program Files (x86)\Notepad++\notepad++.exe"
+
+        If the specified path is valid, creates an alias in your profile to the exe. Alias is npp
+
+        to open a file using the alias:
+
+        npp path\to\file
+    .PARAMETER moduleDirs
+        Optional
+        Default: $null
+        A list of paths that will be added to $env:PSModulePath
     #>
 [CmdletBinding(SupportsShouldProcess=$true)]  #This line lets us use the -Verbose switch, and then some. See Get-Help CmdletBinding
 param([switch] $updateHelp = $false
@@ -64,7 +85,11 @@ param([switch] $updateHelp = $false
 ,[Switch] $installISEScriptSignAddOn = $false
 ,[Switch] $installCommunityExtensions = $false
 ,[switch] $installChocolatey = $false
-,[string[]] $ModulesToImportInProfile = @("FC_Log","FC_Git","FC_Core"))
+,[string[]] $ModulesToImportInProfile = @("FC_Log","FC_Git","FC_Core")
+, $quickDirectories = $null
+, [string] $moduleDirs = $null
+, [string] $notepadPlusPlusPath = "C:\Program Files (x86)\Notepad++\notepad++.exe"
+)
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")){
     Write-Error "Please rerun this script as an admin" -ErrorAction Stop
@@ -109,6 +134,12 @@ if ($alluserProfile -eq $true){
 #Install-Module FC_Git -Scope AllUsers
 #Install-Module FC_Core -Scope AllUsers
 
+foreach ($dir in $moduleDirs){
+    'if (!($env:PSModulePath -Like "*;'+$dir+'\*")){
+                $env:PSModulePath = $env:PSModulePath + ";'+$dir+';"
+    }' | Add-Content -Path $ProfileDir32, $profileDir64
+}
+
 $validModules = @("FC_Log","FC_Git","FC_Core")
 if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))){
     foreach ($module in $ModulesToImportInProfile){
@@ -142,6 +173,28 @@ IF ($installGitFetchJob){
     }
 }
 
+if ($installChocolatey){
+    iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+}
+
+if (!([string]::IsNullOrEmpty($quickDirectories))){
+    $output = '$myDirs = @{
+    '
+
+    foreach ($key in $quickDirectories.Keys){
+        $output += "$key = '$($quickDirectories.Item($key))'
+        "
+    }
+    $output += "}
+"
+    $output | Add-Content $ProfileDir32, $profileDir64
+}
+
+if (Test-Path $notepadPlusPlusPath){
+    Write-Verbose "Creating an alias for notepad ++"
+    "New-Alias npp '$notepadPlusPlusPath'" | Add-Content $ProfileDir32, $profileDir64
+}
+
 if ($installISEScriptSignAddOn){
     #One of the functions in BrandonLib is a script I got from the internet that will sign your currently loaded script in the ISE with your code signing certificate. Very handy to have in your ISE add-ons menu
     '
@@ -158,8 +211,3 @@ if ($installISEScriptSignAddOn){
     }
     '| Add-Content -Path $ProfileDir32, $profileDir64
 }
-
-if ($installChocolatey){
-    iex ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
-}
- 
