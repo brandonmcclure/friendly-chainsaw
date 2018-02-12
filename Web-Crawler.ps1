@@ -35,10 +35,11 @@ if (!(test-PAth $outputDirectory)){
 function Invoke-WebRequest_FC{
 param([string]$Uri =$null
 ,[string] $OutFile = $null
-,[switch] $PassThru = $false)
+,[switch] $PassThru = $false
+,[switch] $crawl = $false)
 
 $linkFile = "$($OutFile)_Links.clxml"
-
+Write-Log "Requesting page: $Uri"
 if (!(Test-Path  $OutFile)){
     Write-Log "Data is not cached, sending new request to $Uri." Debug
     Write-Log  "Response will be written to: $OutFile" Debug
@@ -48,9 +49,10 @@ if (!(Test-Path  $OutFile)){
         $responseTimer.Stop()
         $responseTime = $responseTimer.ElapsedMilliseconds
         Write-Log "web response took $responseTime milliseconds" Debug
+        $links = $results.Links | Select href -ExpandProperty href
         Export-Clixml -InputObject $links -Path $linkFile
 
-        Write-Output (Get-Content $OutFile )
+        $results = Get-Content $OutFile
     }
     else{
         $responseTimer = [system.diagnostics.stopwatch]::startNew()
@@ -58,9 +60,14 @@ if (!(Test-Path  $OutFile)){
         $responseTimer.Stop()
         $responseTime = $responseTimer.ElapsedMilliseconds
         Write-Log "web response took $responseTime milliseconds" Debug
+        $links = $results.Links | Select href -ExpandProperty href
         Export-Clixml -InputObject $links -Path $linkFile
-        Write-Output $null
+        $results = $null
     }
+    $obj = New-Object -TypeName psobject
+    $obj | Add-Member -type NoteProperty -Name 'index' -Value $index
+    $obj | Add-Member -Type NoteProperty -Name 'ElapsedTime' -Value $responseTimer.ElapsedMilliseconds
+    $responseTimes += $obj
 }
 elseif( $(Get-ChildItem $OutFile).LastWriteTime -le (Get-Date).AddDays($cacheDays)){
     Write-Log "Refreashing local cache. File path: $OutFile" Debug
@@ -75,7 +82,7 @@ elseif( $(Get-ChildItem $OutFile).LastWriteTime -le (Get-Date).AddDays($cacheDay
 
         $links = $results.Links | Select href -ExpandProperty href
         Export-Clixml -InputObject $links -Path $linkFile
-        Write-Output (Get-Content $OutFile )
+        $results = Get-Content $OutFile
     }
     else{
         $responseTimer = [system.diagnostics.stopwatch]::startNew()
@@ -83,16 +90,67 @@ elseif( $(Get-ChildItem $OutFile).LastWriteTime -le (Get-Date).AddDays($cacheDay
         $responseTimer.Stop()
         $responseTime = $responseTimer.ElapsedMilliseconds
         Write-Log "web response took $responseTime milliseconds" Debug
+        $links = $results.Links | Select href -ExpandProperty href
         Export-Clixml -InputObject $links -Path $linkFile
-        Write-Output $null
+        $results = $null
     }
+    $obj = New-Object -TypeName psobject
+    $obj | Add-Member -type NoteProperty -Name 'index' -Value $index
+    $obj | Add-Member -Type NoteProperty -Name 'ElapsedTime' -Value $responseTime
+    $responseTimes += $obj
 }
 else{
-    Write-Log "Locally cached result last updated at $($(Get-ChildItem $OutFile).LastWriteTime)" Debug 
-    Write-Output (Get-Content $OutFile)
+    Write-Log "Locally cached result last updated at $($(Get-ChildItem $OutFile).LastWriteTime)"  
+    $links = Import-Clixml -Path $linkFile
+    $results = Get-Content $OutFile
 
 }
 
+$Script:responseTimes = $Script:responseTimes | Where {$_.index -lt (Measure-Object -InputObject $Script:responseTimes -Maximum)-20}
+
+if ($crawl){
+	$index = 0
+    while( $index -lt $links.Count){
+        $currLink = $links[$index]
+        
+        $url = "$uri/$currLink"
+        Write-Log "Checking out link $currLink AT $url"
+        $outFilePath = "$outputDirectory$currLink"
+        if ($currLink -in $Script:gatheredLinks){
+            Write-Log "Already reviewed"
+        }
+        elseif($currLink -in $robotExclusions){
+            Write-Log "Skipping $currLink due to robots.txt" Warning
+        }
+        elseif($currLink.Substring(0,4) -eq 'http'){
+            Write-Log "Current link outside of scope" Warning
+        }
+        else{
+            $Script:gatheredLinks += $currLink
+            $responseTimer = [system.diagnostics.stopwatch]::startNew()
+            $incResponse = Invoke-WebRequest_FC -Uri $url -OutFile $OutFile -crawl
+            
+            $responseTimer.Stop()
+            $incLinks = Import-Clixml "$($outFilePath)_Links.clxml"
+            
+
+        }
+        $links.Remove($currLink)
+        
+
+        $index++
+
+
+        
+        if ($requestTimeoutActiveValue-lt $requestTimeoutBase){
+            $requestTimeoutActiveValue = $requestTimeoutBase
+        }
+        sleep $requestTimeoutActiveValue
+
+    }
+}
+
+Write-Output $results
 }
 function Invoke-WebCrawl{
 param($url,$outFilePath,$outputDirectory,$robotExclusions)
@@ -121,14 +179,11 @@ param($url,$outFilePath,$outputDirectory,$robotExclusions)
             
             $responseTimer.Stop()
             $incLinks = Import-Clixml "$($outFilePath)_Links.clxml"
-            $obj = New-Object -TypeName psobject
-            $obj | Add-Member -type NoteProperty -Name 'index' -Value $index
-            $obj | Add-Member -Type NoteProperty -Name 'ElapsedTime' -Value $responseTimer.ElapsedMilliseconds
-            $responseTimes += $obj
+            
 
         }
         $currLinks.Remove($currLink)
-        $responseTimes = $responseTimes | Where {$_.index -lt $index-20}
+        
 
         $index++
 
@@ -145,7 +200,7 @@ param($url,$outFilePath,$outputDirectory,$robotExclusions)
 if ($ssl){ $header = 'https'}else{$header ='http'}
 
 $Script:gatheredLinks = @() 
-$responseTimes = @()
+$Script:responseTimes = @()
 $robotsURL = "$($header)://www.$domain/robots.txt"
 $robotExclusions = @()
 try{
@@ -170,12 +225,12 @@ catch{
 }
 $url = "$($header)://www.$domain$baseURL"
 
-$curName = Split-Path $baseURL -Leaf
-$outFilePath = "$outputDirectory\$curName.html"
+$curName = 'index'
+$outFilePath = "$outputDirectory$curName.html"
 #TODO: Persist a dictionary of the local resource and it's last update time to reduce redeundant requests. 
 Write-Log "requesting from $url" Debug
 
-Invoke-WebCrawl -url $url -outFilePath $outFilePath -outputDirectory $outputDirectory -robotExclusions $robotExclusions
+Invoke-WebRequest_FC -Uri $url -outFile $outFilePath -crawl
 
 $x = 0;
 #TODO: Use the responseTime to alter the $requestTimeout up or down
