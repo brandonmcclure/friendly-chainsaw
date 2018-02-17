@@ -75,6 +75,8 @@
         Optional
         Default: $null
         A list of paths that will be added to $env:PSModulePath
+    .EXAMPLE
+        & '.\Brandons System Setup.ps1' -alluserProfile -scriptPaths C:\source\github\friendly-chainsaw -installPoshGit -installISEScriptSignAddOn -installCommunityExtensions -installChocolatey -quickDirectories @{myGit = 'C:\source\TFS\Caboodle\Misc Developer Files\Brandon McClure'; caboodle = 'C:\source\TFS\Caboodle' } -moduleDirs @('C:\source\github\friendly-chainsaw\Modules\';'C:\source\TFS\Caboodle\Powershell Scripts\Modules\')
     #>
 [CmdletBinding(SupportsShouldProcess=$true)]  #This line lets us use the -Verbose switch, and then some. See Get-Help CmdletBinding
 param([switch] $updateHelp = $false
@@ -87,7 +89,7 @@ param([switch] $updateHelp = $false
 ,[switch] $installChocolatey = $false
 ,[string[]] $ModulesToImportInProfile = @("FC_Log","FC_Git","FC_Core")
 , $quickDirectories = $null
-, [string] $moduleDirs = $null
+, [string[]] $moduleDirs = $null
 , [string] $notepadPlusPlusPath = "C:\Program Files (x86)\Notepad++\notepad++.exe"
 )
 
@@ -134,10 +136,12 @@ if ($alluserProfile -eq $true){
 #Install-Module FC_Git -Scope AllUsers
 #Install-Module FC_Core -Scope AllUsers
 
-foreach ($dir in $moduleDirs){
-    'if (!($env:PSModulePath -Like "*;'+$dir+'\*")){
-                $env:PSModulePath = $env:PSModulePath + ";'+$dir+';"
-    }' | Add-Content -Path $ProfileDir32, $profileDir64
+if (!([string]::IsNullOrEmpty($moduleDirs))){
+    foreach ($dir in $moduleDirs){
+        'if (!($env:PSModulePath -Like "*;'+$dir+'\*")){
+                    $env:PSModulePath = $env:PSModulePath + ";'+$dir+';"
+        }' | Add-Content -Path $ProfileDir32, $profileDir64
+    }
 }
 
 $validModules = @("FC_Log","FC_Git","FC_Core")
@@ -161,11 +165,13 @@ Import-Module Posh-git
 
 if ($installCommunityExtensions){
     Install-Module Pscx
-}								 
-"
-Set-Location ""$scriptPaths""
-" | Add-Content -Path $ProfileDir32, $profileDir64
+}
 
+if (!([string]::IsNullOrEmpty($scriptPaths))){								 
+    "
+    Set-Location ""$scriptPaths""
+    " | Add-Content -Path $ProfileDir32, $profileDir64
+}
 #Create a scheduled job (see about_scheduledjobs) that will run my script that fetches remote branch information for all my git repos at 2am (+ or - 1 hour) every day
 IF ($installGitFetchJob){
     if (!(Get-ScheduledJob -Name "Fetch branches for Git repos")){
