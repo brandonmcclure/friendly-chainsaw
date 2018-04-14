@@ -91,6 +91,7 @@ param([switch] $updateHelp = $false
 , $quickDirectories = $null
 , [string[]] $moduleDirs = $null
 , [string] $notepadPlusPlusPath = "C:\Program Files (x86)\Notepad++\notepad++.exe"
+, [string] $otherStuffToAdd = $null
 )
 
 if (!([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")){
@@ -216,4 +217,8 @@ if ($installISEScriptSignAddOn){
         $psISE.CurrentPowerShellTab.AddOnsMenu.submenus.add("Sign Script", {Set-ScriptSignature},$null) | Out-Null
     }
     '| Add-Content -Path $ProfileDir32, $profileDir64
+}
+
+if (![string]::IsNullOrEmpty($otherStuffToAdd)){
+    $otherStuffToAdd | Add-Content -Path $ProfileDir32, $profileDir64
 }
