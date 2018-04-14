@@ -868,114 +868,6 @@ $running = Get-MyJobs -state 'Running'
         $false
     }
 }Export-ModuleMember -function Start-MySQLQueryJob
-function Query-Clarity{
-    <#
-    .Synopsis
-        Wrapper for Invoke-SQLCmd cmdlt which has some error handling, server name resolution, and optional local caching. 
-    .DESCRIPTION
-      The local caching does not clean up files, so we will want to delete them manually, and of course use the utmost caution/discretion when working with any PHI. 
-
-    .PARAMETER Environment
-        What clarity environment do you want to query? This drives the server that will be used, and the database name. Valid options:"POC","TST","PRD","RELVAL"
-    .PARAMETER query
-        The sql query to execute
-    .PARAMETER CustomDB
-        A switch that when specified, changes the DB name to Clarity_Custom_$Environment. Since our Custom/RPT databases are on the same servers you could also use fully qualified object names in your query to access objects in custom. 
-     .PARAMETER CacheResultsLocally
-        A switch that when specified will locally cache data to speed up subsequent queries
-    .PARAMETER cacheDir
-        A directory that the xml files that store the cached data will be stored in. Default is C:\temp
-        YOU NEED TO CLEAN THESE FILES UP YOUR SELF!!!
-    .PARAMETER cacheDays
-        A integer that specifies how old a file can be before the local cache is refreashed. Default is -1 (1 day old) 
-
-        Set this to a positive number to force a refreash of the local cache. 
-
-    .EXAMPLE
-        Run a basic query, and return an array of DataRows. 
-
-        $results = "select * from dbo.Report_desc" | Query-Clarity POC
-     .EXAMPLE
-        Store a copy of the data locally to speed up any other queries. 
-        The local cache will be located: C:\temp\$serverName$DatabaseName_$queryHash
-        ie: (EPWCOGSQL01Clarity_POC_145868016216295781216920420294223571441041221777622495882505022372121155874110212)
-
-        the function will use this cache object until it is older than 1 day. 
-         
-        $results = "select * from dbo.Report_desc" | Query-Clarity POC -CacheResultsLocally
-    .EXAMPLE
-        Store a copy of the data locally to speed up any other queries. Overriding defaults to use the local cache for longer than 1 day, and use a different directory
-
-        -cacheDir is where the XML files will be created. Specifing it overrides the default directory of C:\temp\ 
-        -cacheDays will refreash the local cache if it is older than 5 days. 
-         
-        $results = "select * from dbo.Report_desc" | Query-Clarity POC -CacheResultsLocally -cacheDir C:\myDir\ -cacheDays -5
-    .EXAMPLE
-        Store a copy of the data locally to speed up any other queries. Forces a re-cache of the local data
-
-        Specify any number greater than 0 to -cacheDays.
-         
-        $results = "select * from dbo.Report_desc" | Query-Clarity POC -CacheResultsLocally -cacheDays 1
-
-    .INPUTS
-       A sql command
-    .OUTPUTS
-       A array of System.Data.DataRow. 
-       The DataRow objects will have Properties that corespond to the columns returned by your data set.  
-    #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(position=0)][ValidateSet("POC","TST","PRD","RELVAL")][string]$Environment = $null
-,[Parameter(position=1,ValueFromPipeline)][string] $query = $null
-,[Parameter(position=2)][switch] $CustomDB = $false
-,[Parameter(position=3,ParameterSetName = "cache")][switch] $CacheResultsLocally = $false
-,[Parameter(ParameterSetName = "cache")][string] $cacheDir = "C:\temp\"
-,[Parameter(ParameterSetName = "cache")][int] $cacheDays = -1
-)
-
-$serverName = Get-ClarityServerFromEnv $Environment
-if ([string]::IsNullOrEmpty($serverName)){
-    Write-Log "Please use a valid environment, or update the Get-ClarityServerFromEnv function in the DataAccess module." Debug
-    Write-Log "Could not identify which server to use for the $Environment environment." Error -ErrorAction Stop
-}
-if ($CustomDB -eq $true) {
-    $dbName = "Clarity_Custom_$Environment" 
-}
-else{
-    $dbName = "Clarity_$Environment" 
-}
-
-
-$queryStartTime = [System.Diagnostics.Stopwatch]::StartNew()
-if ($CacheResultsLocally){
-    Import-Module BrandonLib
-    $queryHash = Get-StringHash $query
-    $fqPath = "$cacheDir$serverName$($dbName)_$queryHash.xml"
-    #$cacheFile = Get-ChildItem $fqPath
-    if (!(Test-Path  $fqPath)){
-        Write-Log "Data is not cached, loading cache. File path: $fqPath" Debug
-        $results = Invoke-Sqlcmd -ServerInstance $serverName -Database $dbName -Query $query
-        $results | Export-Clixml -Path $fqPath
-    }
-    elseif( $(Get-ChildItem $fqPath).LastWriteTime -le (Get-Date).AddDays($cacheDays)){
-        Write-Log "Refreashing local cache. File path: $fqPath" Debug
-        Remove-item $fqPath
-        $results = Invoke-Sqlcmd -ServerInstance $serverName -Database $dbName -Query $query
-        $results | Export-Clixml -Path $fqPath
-    }
-    else{
-        Write-Log "Using local cache. File path: $fqPath" Debug
-        $results = Import-Clixml $fqPath
-    }
-}
-#Invoke-Sqlcmd
-else{
-    $results = Invoke-Sqlcmd -ServerInstance $serverName -Database $dbName -Query $query
-}
-$elapsedTime = $queryStartTime.ElapsedMilliseconds
-Write-Log "Query took: $elapsedTime miliseconds" Debug
-$results
-
-}Export-ModuleMember -function Query-Clarity
 function Query-SqlWithCache{
     <#
     .Synopsis
@@ -1076,8 +968,7 @@ param([String] $instanceName = $null
 ,[string][ValidateSet("CogitoASTrace_Basic", "CogitoASTrace_Verbose")] $TraceType = "CogitoASTrace_Basic"
 )
 
-Import-Module BrandonLib
-Import-Module DataAccess -Force 3> $null # 3>$null Supress the verb warning we get with this module
+Import-Module FC_Log, FC_Core -Force -DisableNameChecking
 
 if ([string]::IsNullOrEmpty($instanceName)){
     Write-Log "Please pass a instance name to the instanceName parameter" Error -ErrorAction Stop
@@ -1360,10 +1251,10 @@ param([string] $XEventTraceName = "CogitoASTrace"
 ,[switch] $AttemptToRestartTrace = $true)
 
 
-Import-Module BrandonLib
+Import-Module FC_Log
 
-$clarityServer = "EPWCLCLRSQL"
-$clarityDatabase = "CLARITY_CUSTOM_PRD"
+$clarityServer = ""
+$clarityDatabase = ""
 
 
 Try{
@@ -1481,7 +1372,7 @@ $QueryCount = Invoke-Sqlcmd $sql -ServerInstance $clarityServer -Database $clari
             Checkout the excel file that surfaces the Extended Event tabular model <a href=""file:///T:\Epic%20Program\Reporting%20Team\Tabular%20Powerpivot%20Models\Extended%20Events%20Viewer.xlsx"">here</a>
             "
 
-Send-MailMessage -To "brandon.mcclure@dhha.org" -from "brandon.mcclure@dhha.org" -Subject "SSAS Instance Health" -Body $emailBody -BodyAsHtml -SmtpServer "dhsmtpinternal"
+Send-MailMessage -To "" -from "" -Subject "SSAS Instance Health" -Body $emailBody -BodyAsHtml -SmtpServer "dhsmtpinternal"
 
 }Export-ModuleMember -Function Get-SSASServerStatus
 function Get-Type { 
