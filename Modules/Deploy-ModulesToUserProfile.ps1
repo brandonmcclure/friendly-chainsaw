@@ -14,8 +14,7 @@ param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Dis
 
 if ($computers -eq $null){
     $destDir = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"
-
-    Copy-Item -Path .\* -Destination $destDir -Force -Recurse -Exclude "*.ps1","*.xml"
+    Copy-Item -Path .\Modules\* -Destination $destDir -Force -Recurse -Exclude "*.ps1","*.xml"
 }
 else{
     foreach($pc in $computers){
@@ -25,8 +24,8 @@ else{
             if (!(test-path $destDir)){
                 mkdir $destDir
             }
-            Copy-Item -Path .\* -Destination $destDir -Force -Recurse -Exclude "*.ps1","*.xml" 
-        }
+            Copy-Item -Path .\* -Destination $destDir -Force -Recurse -Exclude "*.ps1","*.xml"  -WhatIf
+        } -wha
         else{
             foreach ($user in $users){
                 $destDir = "\\$pc\C$\Users\$user\Documents\WindowsPowerShell\Modules"
