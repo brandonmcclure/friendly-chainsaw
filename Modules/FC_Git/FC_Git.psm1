@@ -51,7 +51,7 @@ param([Parameter(position=0)] $cmd,
 
 
 }Export-ModuleMember -Function Invoke-TortoiseGit -Alias tGit
-function Get-GitBranchesToDelete{
+function Get-GitRemoteRefsToDelete{
 <#
     .Synopsis
       Identifies which local git branches do not have a valid upstream branch. It does this by calling git fetch -p --dry-run
@@ -66,7 +66,7 @@ function Get-GitBranchesToDelete{
 
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
-param([string]$gitfetchOutputPath = "C:\temp\gitFetchOutput.txt"
+param([string]$gitfetchOutputPath = "$env:TEMP\gitFetchOutput.txt"
 ,[string] $remoteName = "origin")
 
 Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
@@ -92,8 +92,8 @@ foreach ($line in Get-Content $gitfetchOutputPath){
     $outBranches += $branchName
 }
 
-$outBranches
-}export-modulemember -Function Get-GitBranchesToDelete
+Write-Output $outBranches
+}export-modulemember -Function Get-GitRemoteRefsToDelete
 Function Get-GitBranchesComparedToRemote{
 <#
     .Synopsis
@@ -291,8 +291,25 @@ catch{
 Set-Location $oldLocation
 }Export-ModuleMember -Function Get-GitBranchesWithChange
 Function Get-GitBranch{
-Write-Log "$(Get-Location)" Warning
-$a = git branch
+Write-Log "Current location: $(Get-Location)" Debug
 
-write-output $a | where $_.substring(0,1) = '*'
+if (!([string]::IsNullOrEmpty($env:BUILD_SOURCEBRANCHNAME))){
+    Write-Log "Running inside a TFS build/release, returning the TFS varaible: BUILD_SOURCEBRANCHNAME" Debug
+    Write-Output $env:BUILD_SOURCEBRANCHNAME
+}
+else{
+    $a = @()
+    $a = & git branch
+
+    Write-Log "Value of git command: $a" Debug
+
+    if ([string]::IsNullOrEmpty($a)){
+        Write-Output ""
+    }
+    else{
+        $output = $a | where {$_.substring(0,1) -eq '*'}
+        $length = $output.length
+        write-output ($output.substring(2,$length-2))
+    }
+}
 }Export-ModuleMember -Function Get-GitBranch
