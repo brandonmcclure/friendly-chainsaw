@@ -9,8 +9,8 @@
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Info"
 ,[switch] $winEventLog
-,[string[]] $computers = $null
-,[string[]] $users = $null)
+,[string[]] $computers = "vwehstfsbld01"
+,[string[]] $users = "ehstfsservice")
 
 if ($computers -eq $null){
     $destDir = "$env:USERPROFILE\Documents\WindowsPowerShell\Modules"

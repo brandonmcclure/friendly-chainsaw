@@ -1,8 +1,8 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
-    [parameter(Mandatory=$false)][string] $moduleName = 'FC_Log'#$null
-    ,[parameter(Mandatory=$false)][string]$moduleDescription = 'Logging utility for my PS scripts. for when -Verbose and -Debug just dont cut it' #$null
+    [parameter(Mandatory=$false)][string] $moduleName = 'FC_Git'#$null
+    ,[parameter(Mandatory=$false)][string]$moduleDescription = 'Functions for working with git' #$null
     ,[string] $moduleAuthor = "Brandon McClure"
     ,[switch] $forceExport = $true
     )
