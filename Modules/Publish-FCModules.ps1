@@ -1,10 +1,10 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
-    [parameter(Mandatory=$false)][string] $moduleName = 'FC_Git'#$null
-    ,[parameter(Mandatory=$false)][string]$moduleDescription = 'Functions for working with git' #$null
+    [parameter(Mandatory=$false)][string] $moduleName = $null
+    ,[parameter(Mandatory=$false)][string]$moduleDescription = $null
     ,[string] $moduleAuthor = "Brandon McClure"
-    ,[switch] $forceExport = $true
+    ,[switch] $forceExport
     )
 
 if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
@@ -13,9 +13,9 @@ $origLocation = Get-Location
 try{
     $version = $null
     $moduleVersion = $null
-    $ManifestPath = ".\Modules\$moduleName\$moduleName.psd1"
-    $ModulePath = ".\Modules\$moduleName\$moduleName.psm1"
-    $moduleHashHistoryPath = '.\modules\moduleHashHistory.xml'
+    $ManifestPath = ".\$moduleName\$moduleName.psd1"
+    $ModulePath = ".\$moduleName\$moduleName.psm1"
+    $moduleHashHistoryPath = '.\moduleHashHistory.xml'
     Remove-Variable moduleHashHistory,previousHash,functionsToExport -ErrorAction Ignore
     $moduleHashHistory = @()
     if (!(Test-Path $moduleHashHistoryPath)){
@@ -80,7 +80,8 @@ try{
 Write-Log "$a | $b" }
         Write-Log "Saving hash history, creating the manifest, and testing."
         $functionsToExport = 'Write-Log'
-        $moduleHashHistory = $moduleHashHistory | where {$_.ModuleName -ne $moduleName }
+        $moduleHashHistory = @()
+        $moduleHashHistory += $moduleHashHistory | where {$_.ModuleName -ne $moduleName }
         $moduleHashHistory += $currModule
 
         Export-Clixml -InputObject $moduleHashHistory -Path $moduleHashHistoryPath
@@ -95,7 +96,7 @@ Write-Log "$a | $b" }
         return
    }
 
-    Set-Location ".\Modules\$moduleName"
+    Set-Location ".\$moduleName"
     Write-Log "Creating the nuget package"
     #https://roadtoalm.com/2017/05/02/using-vsts-package-management-as-a-private-powershell-gallery/#comments
     nuget spec $moduleName -Force
