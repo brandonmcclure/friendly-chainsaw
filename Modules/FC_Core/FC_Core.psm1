@@ -74,6 +74,8 @@ function Start-MyProcess {
 		[Parameter(ValueFromPipeline=$True, Position=0)] [string] $EXEPath
 ,[string] $options
 ,[Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Warning"
+,[switch] $async
+,[int] $sleepTimer = 5
 		)
 																					   
 
@@ -113,25 +115,31 @@ function Start-MyProcess {
         Write-Log "Error calling $EXE. See previous warning(s) for error text. Try running the script with a lower logLevel variable to collect more troubleshooting information. Aborting script" Error -ErrorAction Stop
         
     }
+    
+    if (!$async){
+        if (!$process.HasExited) {
+            # Wait a while for the process to exitn 
+	        Write-Log "$EXE is not done, let's wait 5 more seconds"
+	        sleep -Seconds $sleepTimer
+        }
+        Write-Log "$EXE has completed."
+        # get output from stdout and stderr
+        $stdout = $process.StandardOutput.ReadToEnd()
+        $stderr = $process.StandardError.ReadToEnd()
 
-    if (!$process.HasExited) {
-        # Wait a while for the process to exit
-	    Write-Log "$EXE is not done, let's wait 5 more seconds"
-	    sleep -Seconds 5
+        $stdOutput = New-Object -TypeName PSObject
+        $stdOutput | Add-Member –MemberType NoteProperty –Name stderr –Value $stderr
+        $stdOutput | Add-Member –MemberType NoteProperty –Name stdout –Value $stdout
+        $stdOutput | Add-Member -MemberType NoteProperty -Name exitCode -value $process.ExitCode
+
+        $returnVal = $stdOutput
     }
-    Write-Log "$EXE has completed."
+    else{
+        $returnVal = $process
+    }
 
     Set-LogLevel $currentLogLevel
-    # get output from stdout and stderr
-    $stdout = $process.StandardOutput.ReadToEnd()
-    $stderr = $process.StandardError.ReadToEnd()
-
-    $stdOutput = New-Object -TypeName PSObject
-    $stdOutput | Add-Member –MemberType NoteProperty –Name stderr –Value $stderr
-    $stdOutput | Add-Member –MemberType NoteProperty –Name stdout –Value $stdout
-    $stdOutput | Add-Member -MemberType NoteProperty -Name exitCode -value $process.ExitCode
-
-    return $stdOutput
+    return $returnVal
 }export-modulemember -Function Start-MyProcess
 function Get-GitBranchesToDelete{
 <#
