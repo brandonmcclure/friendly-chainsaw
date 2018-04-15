@@ -76,6 +76,7 @@ function Start-MyProcess {
 ,[Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Warning"
 ,[switch] $async
 ,[int] $sleepTimer = 5
+,[string]$workingDir
 		)
 																					   
 
