@@ -16,18 +16,34 @@ param(
 	[ValidateNotNullOrEmpty()][string] $logLevel = "Info",
 	[int] $loopDelay = 5,
 	[string] $filterMask = $null,
-	[string] $gitRemote = $null
+	[string] $gitRemote = $null,
+[switch] $winEventLog
 	)
 #region Basic script init
-	Import-Module FC_Log, FC_Core -ErrorAction Stop
+	Import-Module FC_Log, FC_Core, FC_Data -DisableNameChecking -Force -ErrorAction Stop
 
-	Set-LogLevel $logLevel
-	Get-Location | Push-Location
+	if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
+Set-LogLevel $logLevel
+Set-logTargetWinEvent $winEventLog
+    $origLocation = Get-Location
 #endregion
+Write-Log "Testing the event log"
+Start-Job -ScriptBlock{
+param([string] $path,	[int] $loopDelay,	[string] $filterMask,	[string] $gitRemote,[switch] $winEventLog	)
+
+    	Import-Module FC_Log, FC_Core, FC_Data -DisableNameChecking -Force -ErrorAction Stop
+
+	if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
+Set-LogLevel $logLevel
+Set-logTargetWinEvent $winEventLog
 try{
+    if (!(Test-Path $path)){
+        mkdir $path | Out-Null
+    }
+    Set-Location $path -ErrorAction Stop
+    
 	Write-Log "$PSCommandPath started at: [$([DateTime]::Now)]" Debug
 
-    Set-Location $path
     #Clone a git repo if $path is not a valid git repo
     if (!(Test-Path "$($path)\.git")){
 	    if ([string]::IsNullOrEmpty($gitRemote)){
@@ -47,6 +63,9 @@ try{
 	    & git commit -m "[$([DateTime]::Now)] - Auto Initial Commit"
     }
 
+    if (!(Test-Path "$($path)\.git")){
+        Write-Log "Error creating or cloning the repo into $path." Error -ErrorAction Stop
+    }
     #Main loop
     Write-Log "Starting the endless loop"
     while (1 -eq 1){
@@ -72,15 +91,23 @@ try{
 }
 finally{
     Write-Log "Loop has ended."
+    Write-Log "Current location: $(Get-Location), origLocation: $origLocation" Warning
 
     if ([string]::IsNullOrEmpty($gitRemote)){
 	    Write-Log "Bypassing git push due to null gitRemote value" Debug
     }
     else{
-	    & git push origin master
+        Write-Log "Pushing to remote, hopefully it works" Debug
+        #I can't use a standard run invocation using & like I do elsewhere because the output is in stderr and causes the finally block to choke. 
+        # By using Start-MyProcess I can call git, and then return both stderr and stdout in a PSObject to be inspected later. Currently I just assume it was succesfull, but ideally there would be some error checking here. 
+        $result = Start-MyProcess -EXEPath git -options "push origin master" 
     }
-
-    Pop-Location | Set-Location
+    
+    Set-Location $origLocation
     Write-Log "$PSCommandPath ended at: [$([DateTime]::Now)]" Debug
 }
+} -ArgumentList ($path,$loopDelay,$filterMask,$gitRemote,$winEventLog) -Name "$(Get-JobPrefix)AutoGit"
+sleep 5
 
+
+Get-MyJobs | Remove-Job -Force

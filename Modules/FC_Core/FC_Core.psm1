@@ -89,6 +89,12 @@ function Start-MyProcess {
     $pinfo.Arguments = "$options"
     $pinfo.UseShellExecute = $false
     $pinfo.CreateNoWindow = $true
+    if ([string]::IsNullOrEmpty($workingDir)){
+        $pinfo.WorkingDirectory = Get-Location
+    }
+    else{
+        $pinfo.WorkingDirectory = $workingDir
+    }
     $pinfo.RedirectStandardOutput = $true
     $pinfo.RedirectStandardError = $true
 
