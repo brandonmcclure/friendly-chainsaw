@@ -7,7 +7,7 @@ $script:logTargetConsole = 1
 $script:logTargetFile = 0
 $script:logTargetWinEvent = 0
 
-$script:logFormattingOptions = @{"PrefixCallingFunction" = 0; "AutoTabCallsFromFunctions" = 0} 
+$script:logFormattingOptions = @{"PrefixCallingFunction" = 0; "AutoTabCallsFromFunctions" = 0; "PrefixTimestamp" = 0} 
 
 function Get-CallerPreference{
     <#
@@ -244,13 +244,16 @@ function Get-LogFormattingOptions{
     $script:logFormattingOptions
 }export-modulemember -Function Get-LogFormattingOptions
 function Set-LogFormattingOptions{
-    param([int] $PrefixCallingFunction = -1,[int] $AutoTabCallsFromFunctions = -1)
+    param([int] $PrefixCallingFunction = -1,[int] $AutoTabCallsFromFunctions = -1,[int] $PrefixTimestamp = -1)
 
     if ($PrefixCallingFunction -eq 1 -or $PrefixCallingFunction -eq 0){
         $script:logFormattingOptions['PrefixCallingFunction'] = $PrefixCallingFunction
     }
     if ($AutoTabCallsFromFunctions -eq 1 -or $AutoTabCallsFromFunctions -eq 0){
         $script:logFormattingOptions['AutoTabCallsFromFunctions'] = $AutoTabCallsFromFunctions
+    }
+    if ($PrefixTimestamp -eq 1 -or $PrefixTimestamp -eq 0){
+        $script:logFormattingOptions['PrefixTimestamp'] = $PrefixTimestamp
     }
 }export-modulemember -Function Set-LogFormattingOptions
 function Write-Log{
@@ -310,15 +313,20 @@ function Write-Log{
         for ($i=1;$i -le $tabLevel| where {$_ -ne 0}; $i++ ){
             $tabs = $tabs+'     '
         }
+
+        $timeStamp = ''
+        if ($script:logFormattingOptions['PrefixTimestamp'] -eq 1){
+            $timeStamp = "$(Get-Date) - "
+        }
               
         
 	#Debug Messages
 	if ($messageLevel -eq 0 -and $script:LogLevel -eq 0){
         if ($script:logFormattingOptions['PrefixCallingFunction'] = 1 -and !([string]::IsNullOrEmpty($callingFunction))){
-            $FormatMessage = "$tabs[$callingFunction][DEBUG] $Message"
+            $FormatMessage = "$tabs$timeStamp[$callingFunction][DEBUG] $Message"
         }
         else{
-		    $FormatMessage = "$tabs[DEBUG] $Message"
+		    $FormatMessage = "$tabs$timeStamp[DEBUG] $Message"
         }
 
         if ($DebugPreference -eq "Inquire" -or $DebugPreference -eq "Continue"){
@@ -338,10 +346,10 @@ function Write-Log{
 	#Info Messages
 	elseif($messageLevel -eq 10 -and $script:LogLevel -le 10){
         if ($script:logFormattingOptions['PrefixCallingFunction'] = 1 -and !([string]::IsNullOrEmpty($callingFunction))){
-            $FormatMessage = "$tabs[$callingFunction] $Message"
+            $FormatMessage = "$tabs$timeStamp[$callingFunction] $Message"
         }
         else{
-		    $FormatMessage = "$tabs$Message"
+		    $FormatMessage = "$tabs$timeStamp$Message"
         }
         if ($VerbosePreference -eq 'Continue'){
 		    Write-Verbose "$FormatMessage"
@@ -359,10 +367,10 @@ function Write-Log{
 	#Warning Messages
 	elseif ($messageLevel -eq 20 -and $script:LogLevel -le 20){
         if ($script:logFormattingOptions['PrefixCallingFunction'] = 1 -and !([string]::IsNullOrEmpty($callingFunction))){
-            $FormatMessage = "$tabs[$callingFunction][WARNING] $Message"
+            $FormatMessage = "$tabs$timeStamp[$callingFunction][WARNING] $Message"
         }
         else{
-		    $FormatMessage = "$tabs[WARNING] $Message"
+		    $FormatMessage = "$tabs$timeStamp[WARNING] $Message"
         }
 		Write-Warning "$Message"
 		if ($script:logTargetWinEvent -eq 1){
@@ -375,10 +383,10 @@ function Write-Log{
 	#Error Messages
 	elseif ($messageLevel -eq 30 -and $script:LogLevel -le 30){
         if ($script:logFormattingOptions['PrefixCallingFunction'] = 1 -and !([string]::IsNullOrEmpty($callingFunction))){
-            $FormatMessage = "$tabs[$callingFunction] $Message"
+            $FormatMessage = "$tabs$timeStamp[$callingFunction] $Message"
         }
         else{
-		    $FormatMessage = "$tabs$Message"
+		    $FormatMessage = "$tabs$timeStamp$Message"
         }
 		Write-Error "$FormatMessage"
 		if ($script:logTargetWinEvent -eq 1){
