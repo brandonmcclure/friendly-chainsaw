@@ -1,4 +1,24 @@
 ﻿function Open-CrystalReport{
+<#
+    .Synopsis
+      Opens a Crystal Report file (.rpt) and passes it through the pipeline as part of a 
+    .DESCRIPTION
+      A slightly longer description,
+    .PARAMETER logLevel
+        explain your parameters here. Create a new .PARAMETER line for each parameter,
+       
+    .EXAMPLE
+        THis example runs the script with a change to the logLevel parameter.
+
+        .Template.ps1 -logLevel Debug
+
+    .INPUTS
+       A file path to a report file to load
+    .OUTPUTS
+       A CrystalDecisions.CrystalReports.Engine.ReportDocument object
+    .LINK
+       www.google.com
+    #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline,position=0)][string]  $pathToReport = $null)
 

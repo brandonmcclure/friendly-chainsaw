@@ -1,30 +1,34 @@
 ﻿Function Close-CrystalReport{
 <#
     .Synopsis
-      Please give your script a brief Synopsis,
-    .DESCRIPTION
-      A slightly longer description,
-    .PARAMETER logLevel
-        explain your parameters here. Create a new .PARAMETER line for each parameter,
+      Saves and closes a Crystal Report object. Use Open-CrystalReport to create a Crystal Report object from an existing .rpt file. 
+    .PARAMETER report
+        A crystal Report object of the type: CrystalDecisions.CrystalReports.Engine.ReportDocument. 
        
     .EXAMPLE
-        THis example runs the script with a change to the logLevel parameter.
+        Opens all .rpt files in C:\reportsFromVendor and all subdirectories, writes some sumamry info to the log, and then saves/closes the report
 
-        .Template.ps1 -logLevel Debug
+        Get-ChildItem C:\reportsFromVendor -recurse | where {$_.Extension -eq 'rpt'} | Open-CrystalReport | foreach {
+    Write-Log "$($_.SummaryInfo.ReportTitle)" 
+    Write-Log "$($_.SummaryInfo.ReportAuthor)"
+    Write-Log "$($_.SummaryInfo.ReportComments)"
+    Write-Log "$($_.SummaryInfo.ReportSubject)"
+    Write-Output $_
+    } |  Close-CrystalReport
+
 
     .INPUTS
-       What sort of pipeline inputdoes this expect?
+       a Crystal Report object fo the type: CrystalDecisions.CrystalReports.Engine.ReportDocument 
     .OUTPUTS
-       What sort of pipeline output does this output?
-    .LINK
-       www.google.com
+       Nothing. This should be used at the end of your Crystal Reports pipeline
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(ValueFromPipeline,position=0)][CrystalDecisions.CrystalReports.Engine.ReportDocument]  $report =$null)
+param([Parameter(ValueFromPipeline,position=0)] $report =$null)
 
 if ($report -eq $null){
     Write-Log "Please pass a crystal report into the function" Error -ErrorAction Stop
 }
+
 Write-Log "Saving the report to: $($report.FilePath)" Debug
 $report.SaveAs($report.FilePath)
 Write-Log "Disposing of the report object" Debug
