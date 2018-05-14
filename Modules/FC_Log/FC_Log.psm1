@@ -372,7 +372,7 @@ function Write-Log{
         else{
 		    $FormatMessage = "$tabs$timeStamp[WARNING] $Message"
         }
-		Write-Warning "$Message"
+		Write-Warning "$FormatMessage"
 		if ($script:logTargetWinEvent -eq 1){
 			Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Warning" -EventId $eventID -Message "$FormatMessage"
 			}
