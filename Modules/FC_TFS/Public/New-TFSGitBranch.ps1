@@ -36,7 +36,7 @@ try{
 catch{
     Set-Location $oldLocation
 }
-finaly{
+finally{
     Set-Location $oldLocation
 }
 

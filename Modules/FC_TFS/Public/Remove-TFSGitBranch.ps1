@@ -23,6 +23,21 @@
 param([string] $branchName
 ,[string] $remoteName = 'origin')
 
-& git push $remoteName --delete $branchName
+$oldLocation = Get-Location
+try{
+    Set-Location $script:TFSlocalAutoGitRepo
+    $result = Start-MyProcess -EXEPath 'git' -options "branch -D $branchName"
+    Write-Log $result.stderr
+    Write-Log $result.stdout
+
+    $result = Start-MyProcess -EXEPath 'git' -options "push $remoteName --delete $branchName"
+    Write-Log $result.stderr
+    Write-Log $result.stdout
+}
+catch{
+}
+finally{
+    Set-Location $oldLocation
+}
 
 } Export-ModuleMember -Function Remove-TFSGitBranch
