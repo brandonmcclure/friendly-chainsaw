@@ -23,7 +23,7 @@
 param([string] $projectName)
 
 $BaseTFSURL = Get-TFSRestURL
-$action = "/projecthistory?api-version=$($Global:apiVersion)" 
+$action = "/projecthistory?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
 $response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json").value

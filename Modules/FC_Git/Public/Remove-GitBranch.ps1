@@ -1,4 +1,4 @@
-﻿function Remove-TFSGitBranch{
+﻿function Remove-GitBranch{
 <#
     .Synopsis
       Please give your script a brief Synopsis,
@@ -20,12 +20,20 @@
        www.google.com
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
-param([string] $branchName
-,[string] $remoteName = 'origin')
+param([string] $branchName,
+  [Parameter(ParameterSetName='path')][string] $repoPath,
+  [Parameter(ParameterSetName='name')][string] $repoName,
+[string] $remoteName = 'origin')
 
+if ([string]::IsNullOrEmpty($repoPath) -and [string]::IsNullOrEmpty($repoName)){
+    Write-Log "please pass either the -repoPath or repoName parameters" Error
+}
+elseif([string]::IsNullOrEmpty($repoPath)){
+    Write-Log "Please pass a valid repo path to $repoPath" Error -ErrorAction Stop
+}
 $oldLocation = Get-Location
 try{
-    Set-Location $script:TFSlocalAutoGitRepo
+    Set-Location $repoPath
     $result = Start-MyProcess -EXEPath 'git' -options "branch -D $branchName"
     Write-Log $result.stderr
     Write-Log $result.stdout
@@ -40,4 +48,4 @@ finally{
     Set-Location $oldLocation
 }
 
-} Export-ModuleMember -Function Remove-TFSGitBranch
+} Export-ModuleMember -Function Remove-GitBranch

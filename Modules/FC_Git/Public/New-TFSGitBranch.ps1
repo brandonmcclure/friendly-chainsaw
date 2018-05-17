@@ -1,4 +1,4 @@
-﻿function Set-TFSLocalAutoRepoPath{
+﻿function New-GitBranch{
 <#
     .Synopsis
       Please give your script a brief Synopsis,
@@ -20,11 +20,24 @@
        www.google.com
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(ValueFromPipeline)][string] $localAutoRepoPath)
+param([string] $branchName)
 
-if ([String]::IsNullOrEmpty($localAutoRepoPath)){
-    Write-Log "Please pass a localAutoRepoPath" Error -ErrorAction Stop
+$oldLocation = Get-Location
+try{
+    Set-Location $script:TFSlocalAutoGitRepo
+    if ((Get-GitBranch) -ne 'master'){
+        Sync-TFSLocalAutoRepo
+    }
+
+    & git checkout -b $branchName
+    & git push --set-upstream origin $branchName
+
+}
+catch{
+    Set-Location $oldLocation
+}
+finally{
+    Set-Location $oldLocation
 }
 
-$script:TFSlocalAutoGitRepo = $localAutoRepoPath
-} Export-ModuleMember -Function Set-TFSLocalAutoRepoPath
+} Export-ModuleMember -Function New-TFSGitBranch

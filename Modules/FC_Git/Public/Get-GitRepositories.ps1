@@ -1,4 +1,4 @@
-﻿function Sync-TFSLocalAutoRepo{
+﻿function Get-GitRepositories{
 <#
     .Synopsis
       Please give your script a brief Synopsis,
@@ -22,21 +22,6 @@
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param()
 
-$oldLocation = Get-Location
-try{
-    Set-Location $script:TFSlocalAutoGitRepo
-    if ((Get-GitBranch) -ne 'master'){
-        Start-MyProcess -EXEPath 'git' -options 'checkout master'
-    }
 
-    & git fetch
-    & git pull
-
-}
-catch{
-    Set-Location $oldLocation
-}
-finally{
-    Set-Location $oldLocation
-}
-} Export-ModuleMember -Function Sync-TFSLocalAutoRepo
+Write-Output $global:GitRepositories
+} Export-ModuleMember -Function Get-GitRepositories
