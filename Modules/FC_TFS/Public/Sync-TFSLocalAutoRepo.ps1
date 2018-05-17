@@ -26,7 +26,7 @@ $oldLocation = Get-Location
 try{
     Set-Location $script:TFSlocalAutoGitRepo
     if ((Get-GitBranch) -ne 'master'){
-        & git checkout master
+        Start-MyProcess -EXEPath 'git' -options 'checkout master'
     }
 
     & git fetch

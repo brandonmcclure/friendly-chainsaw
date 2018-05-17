@@ -33,9 +33,11 @@ $BaseTFSURL = Get-TFSRestURL
 $action = "/git/repositories/$($repositoryID)/pullRequests?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
+$outputObj = New-Object PSObject
+$outputObj | Add-Member -Type NoteProperty -Name repository -Value $pipelineInput.Repository
 
 try{
-$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Post -ContentType "application/json" -Body $requestBody
+$response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Post -ContentType "application/json" -Body $requestBody).Value
 }
 catch{
     $ex = $_.Exception
@@ -51,6 +53,8 @@ catch{
     $msg = $ex.Message
     Write-Log "Error in script $scriptName at line $line, error message: $msg" Warning
 }
-write-Output $response.Value
+#This does not actually return anything useful
+$outputObj | Add-Member -Type NoteProperty -Name PullRequests -Value $response
+Write-Output $outputObj
 
 } Export-ModuleMember -Function New-TFSPullRequest
