@@ -1,3 +1,4 @@
+$global:GitRepositories = @()
 Function Invoke-TortoiseGit{
 <#
     .SYNOPSIS
