@@ -1,0 +1,5 @@
+{
+"Author":"Brandon McClure",
+"Description":"Logging framework that allows you to format messages, write to the event log at run time, and return more or less verbose information",
+"PSVersion":"4.0"
+}
