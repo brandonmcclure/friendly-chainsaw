@@ -6,11 +6,19 @@ All the modules and scripts use my logging framework and a few other core functi
 # Getting Started
 ## Slower/Better/Less up to date
 
-Use [PSGallery](https://www.powershellgallery.com/) to install and update your local modules. I don't have CI setup for publishing here, so you will not get the latest features. But this is a much better way to install and manage your modules than hacking your `$env:PSModulePath` 
+Use [PSGallery](https://www.powershellgallery.com/) to install and update your local modules. I am working towards CI setup for publishing so there may be some delay in getting the latest versions published, but this is a much better way to install and manage your modules than hacking your `$env:PSModulePath` 
 
+The 2 main modules that you need are:
 * [FC_Log](https://www.powershellgallery.com/packages/FC_Log)
 * [FC_Core](https://www.powershellgallery.com/packages/FC_Core)
+
+The other modules are independant of each other.
 * [FC_Git](https://www.powershellgallery.com/packages/FC_Git)
+* [FC_Data](https://www.powershellgallery.com/packages/FC_Data)
+* [FC_MicrosoftGraph](https://www.powershellgallery.com/packages/FC_MicrosoftGraph)
+* [FC_Misc](https://www.powershellgallery.com/packages/FC_Misc)
+* [FC_SysAdmin](https://www.powershellgallery.com/packages/FC_SysAdmin)
+* [FC_TFS](https://www.powershellgallery.com/packages/FC_TFS)
 
 ## Quickest/most up to date
 
