@@ -516,6 +516,8 @@ Write-Output $job
 
 }Export-ModuleMember -Function Invoke-AutoGit
 
+Write-Verbose "Importing Functions" 
+ 
 # Import everything in sub folders folder 
 foreach ( $folder in @( 'private', 'public', 'classes' ) ) 
 { 

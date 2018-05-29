@@ -1,0 +1,5 @@
+{
+"Author":"Brandon McClure",
+"Description":"Functions to interact with background jobs, sql server, excel and other general data stuff",
+"PSVersion":"4.0"
+}
