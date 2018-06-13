@@ -643,7 +643,7 @@ function Get-JoinedObjectValueHashes{
     .LINK
        www.google.com
     #>
-param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = $null, [PSObject] $obj, [string] $joinPrefix, [string] $PrimaryKey, [switch] $writeProgress)
+param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = $null, [PSObject] $obj, [string] $joinPrefix, [string] $PrimaryKey, [switch] $writeProgress,[string]$ValueColumnName)
     
     $oldLogLevel = Get-LogLevel
     if (!([string]::IsNullOrEmpty($logLevel))){Set-LogLevel $logLevel}
@@ -663,44 +663,41 @@ param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Dis
     foreach ($record in $obj){
         $outputObject = New-Object System.Object
         $outputObject | Add-Member -Type NoteProperty -Name 'RecordPK' -Value $record.$PrimaryKey
-        $outputObject | Add-Member -Type NoteProperty -Name 'NotMatchedJSON' -Value ""
+        $outputObject | Add-Member -Type NoteProperty -Name 'LeftValue' -Value ""
+        $outputObject | Add-Member -Type NoteProperty -Name 'LeftHashValue' -Value ""
+        $outputObject | Add-Member -Type NoteProperty -Name 'RightValue' -Value ""
+        $outputObject | Add-Member -Type NoteProperty -Name 'RightHashValue' -Value ""
+        $outputObject | Add-Member -Type NoteProperty -Name 'HashNotEquel' -Value 0
 
-        foreach ($member in $leftMembers.Name){
-            Write-log "Hashing the values for the $member member." Debug
+        foreach ($member in $leftMembers.Name | where {$_ -in $ValueColumnName}){
+            Write-log "Hashing the values for the $member member." Info
             Write-Log "record.member $record.$member" Debug
-            $NotMatchedJSON = "{"
+
             #Hash the values on the left side
             if ([string]::IsNullOrEmpty($($record.$member))){
-                $hashValue = ''
+                $hashValue = 'NULL'
             }
             else{
-                $leftHashValue = Get-StringHash -inputString $($record.$member) -ErrorAction SilentlyContinue 
+                $outputObject.LeftHashValue = Get-StringHash -inputString $($record.$member) -ErrorAction SilentlyContinue
+                $outputObject.LeftValue = $($record.$member)
             }
 
             #hash values on the right and compare
             $rightMemberName = "$joinPrefix$member"
 
-            if ([string]::IsNullOrEmpty($record.$rightMemberName)){
-                $hashValue = ''
+            if ([string]::IsNullOrEmpty($($record.$rightMemberName))){
+                $hashValue = 'NULL'
             }
             else{
-                $rightHashValue = Get-StringHash -inputString $record.$rightMemberName -ErrorAction SilentlyContinue 
+                $outputObject.RightHashValue = Get-StringHash -inputString $($record.$rightMemberName) -ErrorAction SilentlyContinue 
+                $outputObject.RightValue = $($record.$rightMemberName)
             }
 
-            if ($leftHashValue -ne $rightHashValue){
-                if ($NotMatchedJSON -ne "{"){
-                    $NotMatchedJSON += ",""LeftPrimaryKey"":""$record.$PrimaryKey"",""RightPrimaryKey"":""$record.$joinPrefix$PrimaryKey"",""$($member)"":""$($record.$member)"",""$rightMemberName"":""$($record.$rightMemberName)"""
-                }
-                else{
-                    $NotMatchedJSON +=  """LeftPrimaryKey"":""$record.$PrimaryKey"",""RightPrimaryKey"":""$record.$joinPrefix$PrimaryKey"",""$($member)"":""$($record.$member)"",""$rightMemberName"":""$($record.$rightMemberName)"""
-                }
-            }
-        
-        $NotMatchedJSON += "}"
-        $outputObject.NotMatchedJSON = $NotMatchedJSON
-        $outputValue += $outputObject
+            if ($outputObject.LeftHashValue -ne $outputObject.RightHashValue){
+                $outputObject.HashNotEquel = 1
+            }        
         }
-
+        $outputValue += $outputObject
         if ($writeProgress){
             $counter++
             $pctComplete = ($counter/$totalRecords*100)
@@ -709,6 +706,7 @@ param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Dis
         }
     Set-LogLevel $oldLogLevel
     return $outputValue
+
 }export-modulemember -function Get-JoinedObjectValueHashes
 function Compare-JoinedObjectMembers{
 <#
@@ -868,75 +866,6 @@ $running = Get-MyJobs -state 'Running'
         $false
     }
 }Export-ModuleMember -function Start-MySQLQueryJob
-function Query-SqlWithCache{
-    <#
-    .Synopsis
-        Wrapper for Invoke-SQLCmd cmdlt which has some error handling, server name resolution, and optional local caching. 
-    .PARAMETER query
-        The sql query to execute
-     .PARAMETER CacheResultsLocally
-        A switch that when specified will locally cache data to speed up subsequent queries
-    .PARAMETER cacheDir
-        A directory that the xml files that store the cached data will be stored in. Default is C:\temp
-        YOU NEED TO CLEAN THESE FILES UP YOUR SELF!!!
-    .PARAMETER cacheDays
-        A integer that specifies how old a file can be before the local cache is refreashed. Default is -1 (1 day old) 
-
-        Set this to a positive number to force a refreash of the local cache. 
-
-     .EXAMPLE
-        Store a copy of the data locally to speed up any other queries. 
-        The local cache will be located: C:\temp\$serverName$DatabaseName_$queryHash
-        ie: (ServerDatabase_145868016216295781216920420294223571441041221777622495882505022372121155874110212)
-
-        the function will use this cache object until it is older than 1 day. 
-         
-    .INPUTS
-       A sql command
-    .OUTPUTS
-       A array of System.Data.DataRow. 
-       The DataRow objects will have Properties that corespond to the columns returned by your data set.  
-    #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Warning",[string] $ServerInstance
-,[string] $Database
-,[Parameter(position=1,ValueFromPipeline)][string] $query = $null
-,[string] $cacheDir = "$env:Temp\Friendly_Chainsaw"
-,[int] $cacheDays = -1
-)
-$currentLogLevel = Get-LogLevel
-if (!([string]::IsNullOrEmpty($logLevel))){
-        Set-LogLevel $logLevel
-    }
-    
-Write-Log "ServerName : $ServerInstance" Debug
-Write-Log "Database: $Database" Debug
-
-$queryStartTime = [System.Diagnostics.Stopwatch]::StartNew()
-Import-Module BrandonLib
-$queryHash = Get-StringHash $query
-$fqPath = "$cacheDir$ServerInstance$($Database)_$queryHash.xml"
-if (!(Test-Path  $fqPath)){
-    Write-Log "Data is not cached, loading cache. File path: $fqPath" Debug
-    $results = Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
-    $results | Export-Clixml -Path $fqPath
-}
-elseif( $(Get-ChildItem $fqPath).LastWriteTime -le (Get-Date).AddDays($cacheDays)){
-    Write-Log "Refreashing local cache. File path: $fqPath" Debug
-    Remove-item $fqPath
-    $results = Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
-    $results | Export-Clixml -Path $fqPath
-}
-else{
-    Write-Log "Using local cache. File path: $fqPath" Debug
-    $results = Import-Clixml $fqPath
-}
-$elapsedTime = $queryStartTime.ElapsedMilliseconds
-Write-Log "Query took: $elapsedTime miliseconds" Debug
-Set-LogLevel $currentLogLevel
-$results
-
-}Export-ModuleMember -function Query-SqlWithCache
 function Get-Type { 
     param($type) 
  
