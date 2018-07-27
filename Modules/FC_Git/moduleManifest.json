@@ -1,0 +1,5 @@
+{
+"Author":"Brandon McClure",
+"Description":"Automate your git workflow by getting git information in a PS friendly way and initiating an automatic git commit job for a repo",
+"PSVersion":"4.0"
+}

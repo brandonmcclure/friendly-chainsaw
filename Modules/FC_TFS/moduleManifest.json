@@ -1,0 +1,5 @@
+{
+"Author":"Brandon McClure",
+"Description":"Contains functions to interact with TFS Rest API",
+"PSVersion":"4.0"
+}
