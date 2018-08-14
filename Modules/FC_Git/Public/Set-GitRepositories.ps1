@@ -20,7 +20,8 @@
        www.google.com
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(ValueFromPipeline)][string] $localRepoPath)
+param([Parameter(ValueFromPipeline)][string] $localRepoPath
+,[string] $repoName = $null)
 
 if ([String]::IsNullOrEmpty($localRepoPath)){
     Write-Log "Please pass a localAutoRepoPath" Error -ErrorAction Stop
@@ -28,13 +29,19 @@ if ([String]::IsNullOrEmpty($localRepoPath)){
 if (!(Test-Path $localRepoPath)){
     Write-Log "$localRepoPath is not a valid path" Error -ErrorAction Stop
 }
-if ( $global:GitRepositories.name.Contains($localRepoPath)){
-    Write-Log "$localRepoPath repo is already stored" Warning
-    return
+if ([string]::IsNullOrEmpty($repoName)){
+    $repoName = Split-Path $localRepoPath -Leaf
 }
+#Check if the array has anything in it. If so, check that the name property is unique.
+if (!($Global:GitRepositories.Count -eq 0) ){
+    if ($Global:GitRepositories.name.Contains($repoName) ){
+        Write-Log "$repoName repo is already stored" Warning
+        return
+    }
+}
+
 $repoObj = New-Object -TypeName PSObject
-$repoObj | Add-Member -Type NoteProperty -Name name -Value (Split-Path $localRepoPath -Leaf)
+$repoObj | Add-Member -Type NoteProperty -Name name -Value $repoName
 $repoObj | Add-Member -Type NoteProperty -Name path -Value $localRepoPath
-$global:GitRepositories += $repoObj
-$x = 0;
+$Global:GitRepositories += $repoObj
 } Export-ModuleMember -Function Set-GitRepositories
