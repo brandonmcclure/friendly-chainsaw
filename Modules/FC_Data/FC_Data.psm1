@@ -1,16 +1,16 @@
-[int] $Script:MaxJobs = 15
-[string] $Script:JobPrefix = 'FC_'
-[string] $Script:JobsCompleteFlag = "$($Script:JobPrefix)Complete"
-$script:SSISLogLevels = @{"None" = 0; "Basic" = 1; "Performance" = 2; "Verbose" = 3}
+[int]$Script:MaxJobs = 15
+[string]$Script:JobPrefix = 'FC_'
+[string]$Script:JobsCompleteFlag = "$($Script:JobPrefix)Complete"
+$script:SSISLogLevels = @{ "None" = 0; "Basic" = 1; "Performance" = 2; "Verbose" = 3 }
 
-function Get-JobPrefix{
-    $Script:JobPrefix
-}Export-Modulemember -Function Get-JobPrefix
-function Get-SSISLogLevels{
-    $script:SSISLogLevels
-}Export-ModuleMember -Function Get-SSISLogLevels
-function Import-Excel{
-  param (
+function Get-JobPrefix {
+  $Script:JobPrefix
+} Export-ModuleMember -Function Get-JobPrefix
+function Get-SSISLogLevels {
+  $script:SSISLogLevels
+} Export-ModuleMember -Function Get-SSISLogLevels
+function Import-Excel {
+  param(
     [string]$FileName,
     [string]$WorksheetName,
     [switch]$DisplayProgress = $true
@@ -18,7 +18,7 @@ function Import-Excel{
 
   if ($FileName -eq "") {
     throw "Please provide path to the Excel file"
-    Exit
+    exit
   }
 
   if (-not (Test-Path $FileName)) {
@@ -27,9 +27,9 @@ function Import-Excel{
   }
 
   #$FileName = Resolve-Path $FileName
-  $excel = New-Object -comObject Excel.Application
+  $excel = New-Object -ComObject Excel.Application
   $excel.Visible = $false
-  $workbook = $excel.workbooks.open($FileName)
+  $workbook = $excel.workbooks.Open($FileName)
 
   if (-not $WorksheetName) {
     Write-Warning "Defaulting to the first worksheet in workbook."
@@ -37,44 +37,44 @@ function Import-Excel{
   } else {
     $sheet = $workbook.Sheets.Item($WorksheetName)
   }
-  
+
   if (-not $sheet)
   {
     throw "Unable to open worksheet $WorksheetName"
     exit
   }
-  
+
   $sheetName = $sheet.Name
-  $columns = $sheet.UsedRange.Columns.Count
-  $lines = $sheet.UsedRange.Rows.Count
-  
+  $columns = $sheet.UsedRange.Columns.count
+  $lines = $sheet.UsedRange.Rows.count
+
   Write-Warning "Worksheet $sheetName contains $columns columns and $lines lines of data"
-  
+
   $fields = @()
-  
-  for ($column = 1; $column -le $columns; $column ++) {
-    $fieldName = $sheet.Cells.Item.Invoke(1, $column).Value2
+
+  for ($column = 1; $column -le $columns; $column++) {
+    $fieldName = $sheet.Cells.Item.Invoke(1,$column).Value2
     if ($fieldName -eq $null) {
       $fieldName = "Column" + $column.ToString()
     }
     $fields += $fieldName
   }
-  
+
   $line = 2
-  
-  
-  for ($line = 2; $line -le $lines; $line ++) {
+
+
+  for ($line = 2; $line -le $lines; $line++) {
     $values = New-Object object[] $columns
     for ($column = 1; $column -le $columns; $column++) {
-      $values[$column - 1] = $sheet.Cells.Item.Invoke($line, $column).Value2
-    }  
-  
+      $values[$column - 1] = $sheet.Cells.Item.Invoke($line,$column).Value2
+    }
+
     $row = New-Object psobject
-    $fields | foreach-object -begin {$i = 0} -process {
+    $fields | ForEach-Object -Begin { $i = 0 } -Process {
       $row | Add-Member -MemberType noteproperty -Name $fields[$i] -Value $values[$i]; $i++
     }
     $row
-    $percents = [math]::round((($line/$lines) * 100), 0)
+    $percents = [math]::Round((($line / $lines) * 100),0)
     if ($DisplayProgress) {
       Write-Progress -Activity:"Importing from Excel file $FileName" -Status:"Imported $line of total $lines lines ($percents%)" -PercentComplete:$percents
     }
@@ -82,53 +82,53 @@ function Import-Excel{
   $workbook.Close()
   $excel.Quit()
 } Export-ModuleMember -Function Import-Excel
-Function Export-ExcelToTxt{
-[CmdletBinding(SupportsShouldProcess=$true)] 
-  param (
+function Export-ExcelToTxt {
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param(
     [string]$excelFilePath,
     [string]$WorksheetName,
     [string]$csvLoc
   )
-    $E = New-Object -ComObject Excel.Application
-    $E.Visible = $false
-    $E.DisplayAlerts = $false
-        try{
-            $wb = $E.Workbooks.Open($excelFilePath,"0","True")
-        }
-        catch{
-            Write-Log "$($_.Exception) " Error
-            Write-Log "Error Line: $($_.InvocationInfo.PositionMessage)" Debug
-            Write-Log "Error Opening the workbook at $excelFilePath. See log messages above for more info" Error
-            }
-        try{
-            if (-not $WorksheetName) {
-                Write-Log "No parameter passed to the worksheetName parameter. Defaulting to the first worksheet in workbook." Debug
-                $sheet = $wb.ActiveSheet
-            } else {
-                Write-Log "Attempting to load the $WorksheetName worksheet." Debug
-                $sheet = $wb.Sheets.Item($WorksheetName)
-            }
-  
-            if (-not $sheet){
-                Write-Log "Unable to open worksheet $WorksheetName" Error -ErrorAction Stop
-              }
-                    $n = [io.path]::GetFileNameWithoutExtension($excelFilePath) + "_" + $sheet.Name
-                    $savePath = "$csvLoc\$n.txt"
-                    $sheet.SaveAs("$savePath", 20) #https://msdn.microsoft.com/en-us/library/office/ff198017.aspx
-    
-                $E.Quit()
-                }
-                catch{
-                    $E.Quit()
-                    Write-Log "$($_.Exception) " Error
-                    Write-Log "Error Line: $($_.InvocationInfo.PositionMessage)" Error
-        
-                     Write-Log "Error of some sorts... closing out the Excel workbook" Error -ErrorAction Stop
-         
+  $E = New-Object -ComObject Excel.Application
+  $E.Visible = $false
+  $E.DisplayAlerts = $false
+  try {
+    $wb = $E.workbooks.Open($excelFilePath,"0","True")
+  }
+  catch {
+    Write-Log "$($_.Exception) " Error
+    Write-Log "Error Line: $($_.InvocationInfo.PositionMessage)" Debug
+    Write-Log "Error Opening the workbook at $excelFilePath. See log messages above for more info" Error
+  }
+  try {
+    if (-not $WorksheetName) {
+      Write-Log "No parameter passed to the worksheetName parameter. Defaulting to the first worksheet in workbook." Debug
+      $sheet = $wb.ActiveSheet
+    } else {
+      Write-Log "Attempting to load the $WorksheetName worksheet." Debug
+      $sheet = $wb.Sheets.Item($WorksheetName)
     }
-}Export-ModuleMember -Function Export-ExcelToTxt
-function Join-Object{
-    <#
+
+    if (-not $sheet) {
+      Write-Log "Unable to open worksheet $WorksheetName" Error -ErrorAction Stop
+    }
+    $n = [io.path]::GetFileNameWithoutExtension($excelFilePath) + "_" + $sheet.Name
+    $savePath = "$csvLoc\$n.txt"
+    $sheet.SaveAs("$savePath",20) #https://msdn.microsoft.com/en-us/library/office/ff198017.aspx
+
+    $E.Quit()
+  }
+  catch {
+    $E.Quit()
+    Write-Log "$($_.Exception) " Error
+    Write-Log "Error Line: $($_.InvocationInfo.PositionMessage)" Error
+
+    Write-Log "Error of some sorts... closing out the Excel workbook" Error -ErrorAction Stop
+
+  }
+} Export-ModuleMember -Function Export-ExcelToTxt
+function Join-Object {
+<#
     .SYNOPSIS
         Join data from two sets of objects based on a common value
 
@@ -323,306 +323,306 @@ function Join-Object{
         PowerShell Language
 
     #>
-    [CmdletBinding()]
-    Param
-    (
-        [Parameter(Mandatory=$true,
-                   ValueFromPipeLine = $true)]
-        [object[]] $Left,
+  [CmdletBinding()]
+  param
+  (
+    [Parameter(Mandatory = $true,
+      ValueFromPipeline = $true)]
+    [object[]]$Left,
 
-        # List to join with $Left
-        [Parameter(Mandatory=$true)]
-        [object[]] $Right,
+    # List to join with $Left
+    [Parameter(Mandatory = $true)]
+    [object[]]$Right,
 
-        [Parameter(Mandatory = $true)]
-        [string] $LeftJoinProperty,
+    [Parameter(Mandatory = $true)]
+    [string]$LeftJoinProperty,
 
-        [Parameter(Mandatory = $true)]
-        [string] $RightJoinProperty,
+    [Parameter(Mandatory = $true)]
+    [string]$RightJoinProperty,
 
-        [object[]]$LeftProperties = '*',
+    [object[]]$LeftProperties = '*',
 
-        # Properties from $Right we want in the output.
-        # Like LeftProperties, each can be a plain name, wildcard or hashtable. See the LeftProperties comments.
-        [object[]]$RightProperties = '*',
+    # Properties from $Right we want in the output.
+    # Like LeftProperties, each can be a plain name, wildcard or hashtable. See the LeftProperties comments.
+    [object[]]$RightProperties = '*',
 
-        [validateset( 'AllInLeft', 'OnlyIfInBoth', 'AllInBoth', 'AllInRight')]
-        [Parameter(Mandatory=$false)]
-        [string]$Type = 'AllInLeft',
+    [ValidateSet('AllInLeft','OnlyIfInBoth','AllInBoth','AllInRight')]
+    [Parameter(Mandatory = $false)]
+    [string]$Type = 'AllInLeft',
 
-        [string]$Prefix,
-        [string]$Suffix
-    )
-    Begin
+    [string]$Prefix,
+    [string]$Suffix
+  )
+  begin
+  {
+    function AddItemProperties ($item,$properties,$hash)
     {
-        function AddItemProperties($item, $properties, $hash)
+      if ($null -eq $item)
+      {
+        return
+      }
+
+      foreach ($property in $properties)
+      {
+        $propertyHash = $property -as [hashtable]
+        if ($null -ne $propertyHash)
         {
-            if ($null -eq $item)
+          $hashName = $propertyHash["name"] -as [string]
+          $expression = $propertyHash["expression"] -as [scriptblock]
+
+          $expressionValue = $expression.Invoke($item)[0]
+
+          $hash[$hashName] = $expressionValue
+        }
+        else
+        {
+          foreach ($itemProperty in $item.psobject.Properties)
+          {
+            if ($itemProperty.Name -like $property)
             {
-                return
+              $hash[$itemProperty.Name] = $itemProperty.Value
             }
-
-            foreach($property in $properties)
-            {
-                $propertyHash = $property -as [hashtable]
-                if($null -ne $propertyHash)
-                {
-                    $hashName = $propertyHash["name"] -as [string]         
-                    $expression = $propertyHash["expression"] -as [scriptblock]
-
-                    $expressionValue = $expression.Invoke($item)[0]
-            
-                    $hash[$hashName] = $expressionValue
-                }
-                else
-                {
-                    foreach($itemProperty in $item.psobject.Properties)
-                    {
-                        if ($itemProperty.Name -like $property)
-                        {
-                            $hash[$itemProperty.Name] = $itemProperty.Value
-                        }
-                    }
-                }
-            }
+          }
         }
-
-        function TranslateProperties
-        {
-            [cmdletbinding()]
-            param(
-                [object[]]$Properties,
-                [psobject]$RealObject,
-                [string]$Side)
-
-            foreach($Prop in $Properties)
-            {
-                $propertyHash = $Prop -as [hashtable]
-                if($null -ne $propertyHash)
-                {
-                    $hashName = $propertyHash["name"] -as [string]         
-                    $expression = $propertyHash["expression"] -as [scriptblock]
-
-                    $ScriptString = $expression.tostring()
-                    if($ScriptString -notmatch 'param\(')
-                    {
-                        Write-Verbose "Property '$HashName'`: Adding param(`$_) to scriptblock '$ScriptString'"
-                        $Expression = [ScriptBlock]::Create("param(`$_)`n $ScriptString")
-                    }
-                
-                    $Output = @{Name =$HashName; Expression = $Expression }
-                    Write-Verbose "Found $Side property hash with name $($Output.Name), expression:`n$($Output.Expression | out-string)"
-                    $Output
-                }
-                else
-                {
-                    foreach($ThisProp in $RealObject.psobject.Properties)
-                    {
-                        if ($ThisProp.Name -like $Prop)
-                        {
-                            Write-Verbose "Found $Side property '$($ThisProp.Name)'"
-                            $ThisProp.Name
-                        }
-                    }
-                }
-            }
-        }
-
-        function WriteJoinObjectOutput($leftItem, $rightItem, $leftProperties, $rightProperties)
-        {
-            $properties = @{}
-
-            AddItemProperties $leftItem $leftProperties $properties
-            AddItemProperties $rightItem $rightProperties $properties
-
-            New-Object psobject -Property $properties
-        }
-
-        #Translate variations on calculated properties.  Doing this once shouldn't affect perf too much.
-        foreach($Prop in @($LeftProperties + $RightProperties))
-        {
-            if($Prop -as [hashtable])
-            {
-                foreach($variation in ('n','label','l'))
-                {
-                    if(-not $Prop.ContainsKey('Name') )
-                    {
-                        if($Prop.ContainsKey($variation) )
-                        {
-                            $Prop.Add('Name',$Prop[$Variation])
-                        }
-                    }
-                }
-                if(-not $Prop.ContainsKey('Name') -or $Prop['Name'] -like $null )
-                {
-                    Throw "Property is missing a name`n. This should be in calculated property format, with a Name and an Expression:`n@{Name='Something';Expression={`$_.Something}}`nAffected property:`n$($Prop | out-string)"
-                }
-
-
-                if(-not $Prop.ContainsKey('Expression') )
-                {
-                    if($Prop.ContainsKey('E') )
-                    {
-                        $Prop.Add('Expression',$Prop['E'])
-                    }
-                }
-            
-                if(-not $Prop.ContainsKey('Expression') -or $Prop['Expression'] -like $null )
-                {
-                    Throw "Property is missing an expression`n. This should be in calculated property format, with a Name and an Expression:`n@{Name='Something';Expression={`$_.Something}}`nAffected property:`n$($Prop | out-string)"
-                }
-            }        
-        }
-
-        $leftHash = @{}
-        $rightHash = @{}
-
-        # Hashtable keys can't be null; we'll use any old object reference as a placeholder if needed.
-        $nullKey = New-Object psobject
-        
-        $bound = $PSBoundParameters.keys -contains "InputObject"
-        if(-not $bound)
-        {
-            [System.Collections.ArrayList]$LeftData = @()
-        }
+      }
     }
-    Process
+
+    function TranslateProperties
     {
-        #We pull all the data for comparison later, no streaming
-        if($bound)
+      [CmdletBinding()]
+      param(
+        [object[]]$Properties,
+        [psobject]$RealObject,
+        [string]$Side)
+
+      foreach ($Prop in $Properties)
+      {
+        $propertyHash = $Prop -as [hashtable]
+        if ($null -ne $propertyHash)
         {
-            $LeftData = $Left
+          $hashName = $propertyHash["name"] -as [string]
+          $expression = $propertyHash["expression"] -as [scriptblock]
+
+          $ScriptString = $expression.ToString()
+          if ($ScriptString -notmatch 'param\(')
+          {
+            Write-Verbose "Property '$HashName'`: Adding param(`$_) to scriptblock '$ScriptString'"
+            $Expression = [scriptblock]::Create("param(`$_)`n $ScriptString")
+          }
+
+          $Output = @{ Name = $HashName; Expression = $Expression }
+          Write-Verbose "Found $Side property hash with name $($Output.Name), expression:`n$($Output.Expression | out-string)"
+          $Output
         }
-        Else
+        else
         {
-            foreach($Object in $Left)
+          foreach ($ThisProp in $RealObject.psobject.Properties)
+          {
+            if ($ThisProp.Name -like $Prop)
             {
-                [void]$LeftData.add($Object)
+              Write-Verbose "Found $Side property '$($ThisProp.Name)'"
+              $ThisProp.Name
             }
+          }
         }
+      }
     }
-    End
+
+    function WriteJoinObjectOutput ($leftItem,$rightItem,$leftProperties,$rightProperties)
     {
-        foreach ($item in $Right)
-        {
-            $key = $item.$RightJoinProperty
+      $properties = @{}
 
-            if ($null -eq $key)
-            {
-                $key = $nullKey
-            }
+      AddItemProperties $leftItem $leftProperties $properties
+      AddItemProperties $rightItem $rightProperties $properties
 
-            $bucket = $rightHash[$key]
-
-            if ($null -eq $bucket)
-            {
-                $bucket = New-Object System.Collections.ArrayList
-                $rightHash.Add($key, $bucket)
-            }
-
-            $null = $bucket.Add($item)
-        }
-
-        foreach ($item in $LeftData)
-        {
-            $key = $item.$LeftJoinProperty
-
-            if ($null -eq $key)
-            {
-                $key = $nullKey
-            }
-
-            $bucket = $leftHash[$key]
-
-            if ($null -eq $bucket)
-            {
-                $bucket = New-Object System.Collections.ArrayList
-                $leftHash.Add($key, $bucket)
-            }
-
-            $null = $bucket.Add($item)
-        }
-
-        $LeftProperties = TranslateProperties -Properties $LeftProperties -Side 'Left' -RealObject $LeftData[0]
-        $RightProperties = TranslateProperties -Properties $RightProperties -Side 'Right' -RealObject $Right[0]
-
-        #I prefer ordered output. Left properties first.
-        [string[]]$AllProps = $LeftProperties
-
-        #Handle prefixes, suffixes, and building AllProps with Name only
-        $RightProperties = foreach($RightProp in $RightProperties)
-        {
-            if(-not ($RightProp -as [Hashtable]))
-            {
-                Write-Verbose "Transforming property $RightProp to $Prefix$RightProp$Suffix"
-                @{
-                    Name="$Prefix$RightProp$Suffix"
-                    Expression=[scriptblock]::create("param(`$_) `$_.'$RightProp'")
-                }
-                $AllProps += "$Prefix$RightProp$Suffix"
-            }
-            else
-            {
-                Write-Verbose "Skipping transformation of calculated property with name $($RightProp.Name), expression:`n$($RightProp.Expression | out-string)"
-                $AllProps += [string]$RightProp["Name"]
-                $RightProp
-            }
-        }
-
-        $AllProps = $AllProps | Select -Unique
-
-        Write-Verbose "Combined set of properties: $($AllProps -join ', ')"
-
-        foreach ( $entry in $leftHash.GetEnumerator() )
-        {
-            $key = $entry.Key
-            $leftBucket = $entry.Value
-
-            $rightBucket = $rightHash[$key]
-
-            if ($null -eq $rightBucket)
-            {
-                if ($Type -eq 'AllInLeft' -or $Type -eq 'AllInBoth')
-                {
-                    foreach ($leftItem in $leftBucket)
-                    {
-                        WriteJoinObjectOutput $leftItem $null $LeftProperties $RightProperties | Select $AllProps
-                    }
-                }
-            }
-            else
-            {
-                foreach ($leftItem in $leftBucket)
-                {
-                    foreach ($rightItem in $rightBucket)
-                    {
-                        WriteJoinObjectOutput $leftItem $rightItem $LeftProperties $RightProperties | Select $AllProps
-                    }
-                }
-            }
-        }
-
-        if ($Type -eq 'AllInRight' -or $Type -eq 'AllInBoth')
-        {
-            foreach ($entry in $rightHash.GetEnumerator())
-            {
-                $key = $entry.Key
-                $rightBucket = $entry.Value
-
-                $leftBucket = $leftHash[$key]
-
-                if ($null -eq $leftBucket)
-                {
-                    foreach ($rightItem in $rightBucket)
-                    {
-                        WriteJoinObjectOutput $null $rightItem $LeftProperties $RightProperties | Select $AllProps
-                    }
-                }
-            }
-        }
+      New-Object psobject -Property $properties
     }
-}export-modulemember -function Join-Object
-function Get-JoinedObjectValueHashes{
+
+    #Translate variations on calculated properties.  Doing this once shouldn't affect perf too much.
+    foreach ($Prop in @($LeftProperties + $RightProperties))
+    {
+      if ($Prop -as [hashtable])
+      {
+        foreach ($variation in ('n','label','l'))
+        {
+          if (-not $Prop.ContainsKey('Name'))
+          {
+            if ($Prop.ContainsKey($variation))
+            {
+              $Prop.Add('Name',$Prop[$Variation])
+            }
+          }
+        }
+        if (-not $Prop.ContainsKey('Name') -or $Prop['Name'] -like $null)
+        {
+          throw "Property is missing a name`n. This should be in calculated property format, with a Name and an Expression:`n@{Name='Something';Expression={`$_.Something}}`nAffected property:`n$($Prop | out-string)"
+        }
+
+
+        if (-not $Prop.ContainsKey('Expression'))
+        {
+          if ($Prop.ContainsKey('E'))
+          {
+            $Prop.Add('Expression',$Prop['E'])
+          }
+        }
+
+        if (-not $Prop.ContainsKey('Expression') -or $Prop['Expression'] -like $null)
+        {
+          throw "Property is missing an expression`n. This should be in calculated property format, with a Name and an Expression:`n@{Name='Something';Expression={`$_.Something}}`nAffected property:`n$($Prop | out-string)"
+        }
+      }
+    }
+
+    $leftHash = @{}
+    $rightHash = @{}
+
+    # Hashtable keys can't be null; we'll use any old object reference as a placeholder if needed.
+    $nullKey = New-Object psobject
+
+    $bound = $PSBoundParameters.Keys -contains "InputObject"
+    if (-not $bound)
+    {
+      [System.Collections.ArrayList]$LeftData = @()
+    }
+  }
+  process
+  {
+    #We pull all the data for comparison later, no streaming
+    if ($bound)
+    {
+      $LeftData = $Left
+    }
+    else
+    {
+      foreach ($Object in $Left)
+      {
+        [void]$LeftData.Add($Object)
+      }
+    }
+  }
+  end
+  {
+    foreach ($item in $Right)
+    {
+      $key = $item.$RightJoinProperty
+
+      if ($null -eq $key)
+      {
+        $key = $nullKey
+      }
+
+      $bucket = $rightHash[$key]
+
+      if ($null -eq $bucket)
+      {
+        $bucket = New-Object System.Collections.ArrayList
+        $rightHash.Add($key,$bucket)
+      }
+
+      $null = $bucket.Add($item)
+    }
+
+    foreach ($item in $LeftData)
+    {
+      $key = $item.$LeftJoinProperty
+
+      if ($null -eq $key)
+      {
+        $key = $nullKey
+      }
+
+      $bucket = $leftHash[$key]
+
+      if ($null -eq $bucket)
+      {
+        $bucket = New-Object System.Collections.ArrayList
+        $leftHash.Add($key,$bucket)
+      }
+
+      $null = $bucket.Add($item)
+    }
+
+    $LeftProperties = TranslateProperties -Properties $LeftProperties -Side 'Left' -RealObject $LeftData[0]
+    $RightProperties = TranslateProperties -Properties $RightProperties -Side 'Right' -RealObject $Right[0]
+
+    #I prefer ordered output. Left properties first.
+    [string[]]$AllProps = $LeftProperties
+
+    #Handle prefixes, suffixes, and building AllProps with Name only
+    $RightProperties = foreach ($RightProp in $RightProperties)
+    {
+      if (-not ($RightProp -as [hashtable]))
+      {
+        Write-Verbose "Transforming property $RightProp to $Prefix$RightProp$Suffix"
+        @{
+          Name = "$Prefix$RightProp$Suffix"
+          Expression = [scriptblock]::Create("param(`$_) `$_.'$RightProp'")
+        }
+        $AllProps += "$Prefix$RightProp$Suffix"
+      }
+      else
+      {
+        Write-Verbose "Skipping transformation of calculated property with name $($RightProp.Name), expression:`n$($RightProp.Expression | out-string)"
+        $AllProps += [string]$RightProp["Name"]
+        $RightProp
+      }
+    }
+
+    $AllProps = $AllProps | Select-Object -Unique
+
+    Write-Verbose "Combined set of properties: $($AllProps -join ', ')"
+
+    foreach ($entry in $leftHash.GetEnumerator())
+    {
+      $key = $entry.Key
+      $leftBucket = $entry.Value
+
+      $rightBucket = $rightHash[$key]
+
+      if ($null -eq $rightBucket)
+      {
+        if ($Type -eq 'AllInLeft' -or $Type -eq 'AllInBoth')
+        {
+          foreach ($leftItem in $leftBucket)
+          {
+            WriteJoinObjectOutput $leftItem $null $LeftProperties $RightProperties | Select-Object $AllProps
+          }
+        }
+      }
+      else
+      {
+        foreach ($leftItem in $leftBucket)
+        {
+          foreach ($rightItem in $rightBucket)
+          {
+            WriteJoinObjectOutput $leftItem $rightItem $LeftProperties $RightProperties | Select-Object $AllProps
+          }
+        }
+      }
+    }
+
+    if ($Type -eq 'AllInRight' -or $Type -eq 'AllInBoth')
+    {
+      foreach ($entry in $rightHash.GetEnumerator())
+      {
+        $key = $entry.Key
+        $rightBucket = $entry.Value
+
+        $leftBucket = $leftHash[$key]
+
+        if ($null -eq $leftBucket)
+        {
+          foreach ($rightItem in $rightBucket)
+          {
+            WriteJoinObjectOutput $null $rightItem $LeftProperties $RightProperties | Select-Object $AllProps
+          }
+        }
+      }
+    }
+  }
+} Export-ModuleMember -Function Join-Object
+function Get-JoinedObjectValueHashes {
 <#
     .Synopsis
        Use in conjunction with Join-Object to identify if both of the joined objects have the same member names
@@ -643,74 +643,74 @@ function Get-JoinedObjectValueHashes{
     .LINK
        www.google.com
     #>
-param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = $null, [PSObject] $obj, [string] $joinPrefix, [string] $PrimaryKey, [switch] $writeProgress)
-    
-    $oldLogLevel = Get-LogLevel
-    if (!([string]::IsNullOrEmpty($logLevel))){Set-LogLevel $logLevel}
-    
-    $leftMembers = $obj | Get-Member | where {$_.MemberType -eq "NoteProperty" -and $_.name -notlike "$joinPrefix*" -and $_.name -ne 'ItemArray'} | select Name
-    $rightMembers = $obj | Get-Member | where {$_.MemberType -eq "NoteProperty" -and $_.name -like "$joinPrefix*"-and $_.name -ne 'ItemArray'}| select Name
-    $outputValue = @()
+  param([Parameter(Position = 0)][ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = $null,[psobject]$obj,[string]$joinPrefix,[string]$PrimaryKey,[switch]$writeProgress)
 
-    if ([string]::IsNullOrEmpty($PrimaryKey)){
-        Write-Log "Please pass a value to the PrimaryKey parameter" Error -ErrorAction Stop
+  $oldLogLevel = Get-LogLevel
+  if (!([string]::IsNullOrEmpty($logLevel))) { Set-LogLevel $logLevel }
+
+  $leftMembers = $obj | Get-Member | Where-Object { $_.MemberType -eq "NoteProperty" -and $_.Name -notlike "$joinPrefix*" -and $_.Name -ne 'ItemArray' } | Select-Object Name
+  $rightMembers = $obj | Get-Member | Where-Object { $_.MemberType -eq "NoteProperty" -and $_.Name -like "$joinPrefix*" -and $_.Name -ne 'ItemArray' } | Select-Object Name
+  $outputValue = @()
+
+  if ([string]::IsNullOrEmpty($PrimaryKey)) {
+    Write-Log "Please pass a value to the PrimaryKey parameter" Error -ErrorAction Stop
+  }
+  if ([string]::IsNullOrEmpty($joinPrefix)) {
+    Write-Log "Please pass a value to the joinPrefix parameter" Error -ErrorAction Stop
+  }
+  $totalRecords = $obj.count
+  $counter = 0
+  foreach ($record in $obj) {
+    $outputObject = New-Object System.Object
+    $outputObject | Add-Member -Type NoteProperty -Name 'RecordPK' -Value $record.$PrimaryKey
+    $outputObject | Add-Member -Type NoteProperty -Name 'NotMatchedJSON' -Value ""
+
+    foreach ($member in $leftMembers.Name) {
+      Write-Log "Hashing the values for the $member member." Debug
+      Write-Log "record.member $record.$member" Debug
+      $NotMatchedJSON = "{"
+      #Hash the values on the left side
+      if ([string]::IsNullOrEmpty($($record.$member))) {
+        $hashValue = ''
+      }
+      else {
+        $leftHashValue = Get-StringHash -inputString $($record.$member) -ErrorAction SilentlyContinue
+      }
+
+      #hash values on the right and compare
+      $rightMemberName = "$joinPrefix$member"
+
+      if ([string]::IsNullOrEmpty($record.$rightMemberName)) {
+        $hashValue = ''
+      }
+      else {
+        $rightHashValue = Get-StringHash -inputString $record.$rightMemberName -ErrorAction SilentlyContinue
+      }
+
+      if ($leftHashValue -ne $rightHashValue) {
+        if ($NotMatchedJSON -ne "{") {
+          $NotMatchedJSON += ",""LeftPrimaryKey"":""$record.$PrimaryKey"",""RightPrimaryKey"":""$record.$joinPrefix$PrimaryKey"",""$($member)"":""$($record.$member)"",""$rightMemberName"":""$($record.$rightMemberName)"""
+        }
+        else {
+          $NotMatchedJSON += """LeftPrimaryKey"":""$record.$PrimaryKey"",""RightPrimaryKey"":""$record.$joinPrefix$PrimaryKey"",""$($member)"":""$($record.$member)"",""$rightMemberName"":""$($record.$rightMemberName)"""
+        }
+      }
+
+      $NotMatchedJSON += "}"
+      $outputObject.NotMatchedJSON = $NotMatchedJSON
+      $outputValue += $outputObject
     }
-    if ([string]::IsNullOrEmpty($joinPrefix)){
-        Write-Log "Please pass a value to the joinPrefix parameter" Error -ErrorAction Stop
+
+    if ($writeProgress) {
+      $counter++
+      $pctComplete = ($counter / $totalRecords * 100)
+      Write-Progress -Activity "Hashing Records" -PercentComplete $pctComplete -Status "Working - $pctComplete%"
     }
-    $totalRecords = $obj.Count
-    $counter = 0
-    foreach ($record in $obj){
-        $outputObject = New-Object System.Object
-        $outputObject | Add-Member -Type NoteProperty -Name 'RecordPK' -Value $record.$PrimaryKey
-        $outputObject | Add-Member -Type NoteProperty -Name 'NotMatchedJSON' -Value ""
-
-        foreach ($member in $leftMembers.Name){
-            Write-log "Hashing the values for the $member member." Debug
-            Write-Log "record.member $record.$member" Debug
-            $NotMatchedJSON = "{"
-            #Hash the values on the left side
-            if ([string]::IsNullOrEmpty($($record.$member))){
-                $hashValue = ''
-            }
-            else{
-                $leftHashValue = Get-StringHash -inputString $($record.$member) -ErrorAction SilentlyContinue 
-            }
-
-            #hash values on the right and compare
-            $rightMemberName = "$joinPrefix$member"
-
-            if ([string]::IsNullOrEmpty($record.$rightMemberName)){
-                $hashValue = ''
-            }
-            else{
-                $rightHashValue = Get-StringHash -inputString $record.$rightMemberName -ErrorAction SilentlyContinue 
-            }
-
-            if ($leftHashValue -ne $rightHashValue){
-                if ($NotMatchedJSON -ne "{"){
-                    $NotMatchedJSON += ",""LeftPrimaryKey"":""$record.$PrimaryKey"",""RightPrimaryKey"":""$record.$joinPrefix$PrimaryKey"",""$($member)"":""$($record.$member)"",""$rightMemberName"":""$($record.$rightMemberName)"""
-                }
-                else{
-                    $NotMatchedJSON +=  """LeftPrimaryKey"":""$record.$PrimaryKey"",""RightPrimaryKey"":""$record.$joinPrefix$PrimaryKey"",""$($member)"":""$($record.$member)"",""$rightMemberName"":""$($record.$rightMemberName)"""
-                }
-            }
-        
-        $NotMatchedJSON += "}"
-        $outputObject.NotMatchedJSON = $NotMatchedJSON
-        $outputValue += $outputObject
-        }
-
-        if ($writeProgress){
-            $counter++
-            $pctComplete = ($counter/$totalRecords*100)
-            Write-Progress -Activity "Hashing Records" -PercentComplete $pctComplete -Status "Working - $pctComplete%"
-        }
-        }
-    Set-LogLevel $oldLogLevel
-    return $outputValue
-}export-modulemember -function Get-JoinedObjectValueHashes
-function Compare-JoinedObjectMembers{
+  }
+  Set-LogLevel $oldLogLevel
+  return $outputValue
+} Export-ModuleMember -Function Get-JoinedObjectValueHashes
+function Compare-JoinedObjectMembers {
 <#
     .Synopsis
        Use in conjunction with Join-Object to identify if both of the joined objects have the same member names
@@ -731,29 +731,29 @@ function Compare-JoinedObjectMembers{
     .LINK
        www.google.com
     #>
-param([PSObject] $obj, [string] $joinPrefix)
-    $leftMembers = $obj | Get-Member | where {$_.MemberType -eq "NoteProperty" -and $_.name -notlike "$joinPrefix*"} | select Name
-    $rightMembers = $obj | Get-Member | where {$_.MemberType -eq "NoteProperty" -and $_.name -like "$joinPrefix*"}| select Name
-    $outputValue = @()
-    foreach ($member in $leftMembers.Name){
-        Write-Log "Evaluating the $member property for a coredsponding property that named: $joinPrefix$member " Debug
-        $found = 0
-        foreach ($rightMember in $rightMembers.Name){
-            if  ($($rightMember.replace($joinPrefix,'')) -eq $member){
-                $found = 1
-            }
-        }
-        if ($found -eq 0){
-            $outputValue += $member
-        }
+  param([psobject]$obj,[string]$joinPrefix)
+  $leftMembers = $obj | Get-Member | Where-Object { $_.MemberType -eq "NoteProperty" -and $_.Name -notlike "$joinPrefix*" } | Select-Object Name
+  $rightMembers = $obj | Get-Member | Where-Object { $_.MemberType -eq "NoteProperty" -and $_.Name -like "$joinPrefix*" } | Select-Object Name
+  $outputValue = @()
+  foreach ($member in $leftMembers.Name) {
+    Write-Log "Evaluating the $member property for a coredsponding property that named: $joinPrefix$member " Debug
+    $found = 0
+    foreach ($rightMember in $rightMembers.Name) {
+      if ($($rightMember.Replace($joinPrefix,'')) -eq $member) {
+        $found = 1
+      }
     }
+    if ($found -eq 0) {
+      $outputValue += $member
+    }
+  }
 
-    return $outputValue
-}export-ModuleMember -Function Compare-JoinedObjectMembers
-function Get-JobsCompleteFlag{
-    $Script:JobsCompleteFlag
-}Export-modulemember -Function Get-JobsCompleteFlag
-function Request-JobStatus{
+  return $outputValue
+} Export-ModuleMember -Function Compare-JoinedObjectMembers
+function Get-JobsCompleteFlag {
+  $Script:JobsCompleteFlag
+} Export-ModuleMember -Function Get-JobsCompleteFlag
+function Request-JobStatus {
 <#
     .Synopsis
        Used to poll the Powershell Jobs running under the current script scope. Will Write-Log the results from completed jobs, and then remove them. Will return $true when there are no more jobs.  
@@ -768,44 +768,44 @@ function Request-JobStatus{
             sleep $jobPollTime       
         }
     #>
-    param([string]$nameLike = $null
-,[switch] $clearFailed)
+  param([string]$nameLike = $null
+    ,[switch]$clearFailed)
 
-        $results = $null
-        if ([string]::IsNullOrEmpty(($nameLike))){
-            $jobs =  Get-Job | where {$_.name -like "$($Script:JobPrefix)$nameLike*"}
-            $compJobs = $jobs | Where State -eq "Completed"
-        }
-        else{
-            $jobs =  Get-Job | where {$_.name -like "$($Script:JobPrefix)$nameLike*"}
-            $compJobs = $jobs | Where {$_.State -eq "Completed"}
-        }
+  $results = $null
+  if ([string]::IsNullOrEmpty(($nameLike))) {
+    $jobs = Get-Job | Where-Object { $_.Name -like "$($Script:JobPrefix)$nameLike*" }
+    $compJobs = $jobs | Where-Object State -EQ "Completed"
+  }
+  else {
+    $jobs = Get-Job | Where-Object { $_.Name -like "$($Script:JobPrefix)$nameLike*" }
+    $compJobs = $jobs | Where-Object { $_.State -eq "Completed" }
+  }
 
-        Write-Log "[Request-JobStatus]     $($jobs.Count) Jobs have not been recieved. $($compJobs.Count) Jobs have been completed and will be recieved." Debug
-        if ($($jobs.Count) -eq 0 ){
-            $results = Get-JobsCompleteFlag
-        }
-        if($clearFailed){
-            $failedJobs = $jobs | Where {$_.State -eq "Failed"}
-            Write-Log "[Request-JobStatus]     Clearing $($failedJobs.Count) jobs that have failed" Debug
-            foreach ($job in $failedJobs){
-                $job | Remove-Job
-            }
-        }
-        if( $jobs.Count -eq 0 ){
-            Write-Log "[Request-JobStatus]     All jobs complete" Debug
-            $results = Get-JobsCompleteFlag
-        }
-        foreach($job in $compJobs){
-            Write-Log "[Request-JobStatus]     ----------" Debug
-            Write-Log "[Request-JobStatus]     Recieving job: $($job.Name)" Debug
-            $results = $job | Receive-Job 
-            $job | Remove-Job
-        }
-          
-        Write-Output $results 
-}export-modulemember -function Request-JobStatus
-function Get-MyJobs{
+  Write-Log "[Request-JobStatus]     $($jobs.Count) Jobs have not been recieved. $($compJobs.Count) Jobs have been completed and will be recieved." Debug
+  if ($($jobs.count) -eq 0) {
+    $results = Get-JobsCompleteFlag
+  }
+  if ($clearFailed) {
+    $failedJobs = $jobs | Where-Object { $_.State -eq "Failed" }
+    Write-Log "[Request-JobStatus]     Clearing $($failedJobs.Count) jobs that have failed" Debug
+    foreach ($job in $failedJobs) {
+      $job | Remove-Job
+    }
+  }
+  if ($jobs.count -eq 0) {
+    Write-Log "[Request-JobStatus]     All jobs complete" Debug
+    $results = Get-JobsCompleteFlag
+  }
+  foreach ($job in $compJobs) {
+    Write-Log "[Request-JobStatus]     ----------" Debug
+    Write-Log "[Request-JobStatus]     Recieving job: $($job.Name)" Debug
+    $results = $job | Receive-Job
+    $job | Remove-Job
+  }
+
+  Write-Output $results
+} Export-ModuleMember -Function Request-JobStatus
+function Get-MyJobs {
 <#
     .Synopsis
         Returns a list of jobs using the managaed job names.
@@ -814,62 +814,72 @@ function Get-MyJobs{
     .OUTPUTS
        An array of powershell background job objects. or null
     #>
-param([Parameter(position=0)][string[]]$state)
+  param([Parameter(Position = 0)] [string[]]$state)
 
-$returnValue = $null
-if ($state -eq $null){
-    $returnValue = (Get-Job | Where-Object {$_.Name -like "$(Get-JobPrefix)*"})
-}
-else{
-    $returnValue = (Get-Job | Where { $state -contains $_.state -and $_.Name -like "$Script:JobPrefix*"})
-}
+  $returnValue = $null
+  if ($state -eq $null) {
+    $returnValue = (Get-Job | Where-Object { $_.Name -like "$(Get-JobPrefix)*" })
+  }
+  else {
+    $returnValue = (Get-Job | Where-Object { $state -contains $_.State -and $_.Name -like "$Script:JobPrefix*" })
+  }
 
-Write-Output $returnValue
+  Write-Output $returnValue
 
-}export-modulemember -function Get-MyJobs
-function Start-MySQLQueryJob{
-param([string] $JobSuffix
-,[string] $sqlServer
-,[string] $sqlDatabase = $null
-,[string] $sqlQuery = $null
-,[PSCredential] $jobCreds = $null)
+} Export-ModuleMember -Function Get-MyJobs
+function Start-MySQLQueryJob {
+<#
+    .Synopsis
+      Runs a SQL statement as a Powershell Background Job. The main benefit of doing it this way is that you can pass custom credentials while using integrated security for the SQL server
+       
+    .EXAMPLE
+        THis example runs the script with a change to the logLevel parameter.
 
-if ([string]::IsNullOrEmpty($sqlQuery)){
+        .Template.ps1 -logLevel Debug
+
+    #>
+  param([string]$JobSuffix
+    ,[string]$sqlServer
+    ,[string]$sqlDatabase = $null
+    ,[string]$sqlQuery = $null
+    ,[pscredential]$jobCreds = $null)
+
+  if ([string]::IsNullOrEmpty($sqlQuery)) {
     Write-Log "Please pass a query using the sqlQuery parameter" Error -ErrorAction Stop
-}
-if ([string]::IsNullOrEmpty($JobSuffix)){
+  }
+  if ([string]::IsNullOrEmpty($JobSuffix)) {
     $JobSuffix = Get-StringHash $sqlQuery -hashAlgo SHA1
-}
-write-log "sqlServer: $sqlServer" Debug
-write-log "sqlDatabase: $sqlDatabase" Debug
-write-log "sqlQuery: $sqlQuery" Debug
+  }
+  Write-Log "sqlServer: $sqlServer" Debug
+  Write-Log "sqlDatabase: $sqlDatabase" Debug
+  Write-Log "sqlQuery: $sqlQuery" Debug
 
-$running = Get-MyJobs -state 'Running'
-    if ($running.Count -le $Script:MaxJobs){
-        Write-Log "[Start-MySQLQueryJob] Starting job named $Script:JobPrefix$JobSuffix"	Debug
-        #If credentials are specified create the Invoke-SQLcmd job with them
-        if ($jobCreds -eq $null){
-            Start-Job -ScriptBlock {
-		        param($jobQuery,$sqlServer, $sqlDatabase)
-                 $results = Invoke-Sqlcmd -Query $jobQuery -ServerInstance $sqlServer -Database $sqlDatabase 
-                 $results
-            } -ArgumentList ($sqlQuery,$sqlServer,$sqlDatabase) -Name "$Script:JobPrefix$JobSuffix"
-        }
-        else{	
-	        Start-Job -ScriptBlock {
-		        param($jobQuery,$sqlServer, $sqlDatabase)
-                 $results = Invoke-Sqlcmd -Query $jobQuery -ServerInstance $sqlServer -Database $sqlDatabase 
-                 $results
-            } -ArgumentList ($sqlQuery,$sqlServer,$sqlDatabase) -Name "FC_$JobSuffix" -Credential $jobCreds 
-        }
-        $true 
+  $running = Get-MyJobs -State 'Running'
+  if ($running.count -le $Script:MaxJobs) {
+    Write-Log "[Start-MySQLQueryJob] Starting job named $Script:JobPrefix$JobSuffix" Debug
+    #If credentials are specified create the Invoke-SQLcmd job with them
+    if ($jobCreds -eq $null) {
+      Start-Job -ScriptBlock {
+        param($jobQuery,$sqlServer,$sqlDatabase)
+        $results = Invoke-Sqlcmd -Query $jobQuery -ServerInstance $sqlServer -Database $sqlDatabase
+        $results
+      } -ArgumentList ($sqlQuery,$sqlServer,$sqlDatabase) -Name "$Script:JobPrefix$JobSuffix"
     }
-    else{
-        $false
+    else {
+      Start-Job -ScriptBlock {
+        param($jobQuery,$sqlServer,$sqlDatabase)
+        $results = Invoke-Sqlcmd -Query $jobQuery -ServerInstance $sqlServer -Database $sqlDatabase
+        $results
+      } -ArgumentList ($sqlQuery,$sqlServer,$sqlDatabase) -Name "FC_$JobSuffix" -Credential $jobCreds
     }
-}Export-ModuleMember -function Start-MySQLQueryJob
-function Query-SqlWithCache{
-    <#
+    $true
+  }
+  else {
+    $false
+  }
+} Export-ModuleMember -Function Start-MySQLQueryJob
+function Query-SqlWithCache {
+<#
     .Synopsis
         Wrapper for Invoke-SQLCmd cmdlt which has some error handling, server name resolution, and optional local caching. 
     .PARAMETER query
@@ -897,75 +907,75 @@ function Query-SqlWithCache{
        A array of System.Data.DataRow. 
        The DataRow objects will have Properties that corespond to the columns returned by your data set.  
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Warning",[string] $ServerInstance
-,[string] $Database
-,[Parameter(position=1,ValueFromPipeline)][string] $query = $null
-,[string] $cacheDir = "$env:Temp\Friendly_Chainsaw"
-,[int] $cacheDays = -1
-)
-$currentLogLevel = Get-LogLevel
-if (!([string]::IsNullOrEmpty($logLevel))){
-        Set-LogLevel $logLevel
-    }
-    
-Write-Log "ServerName : $ServerInstance" Debug
-Write-Log "Database: $Database" Debug
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param([Parameter(Position = 0)][ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = "Warning",[string]$ServerInstance
+    ,[string]$Database
+    ,[Parameter(Position = 1,ValueFromPipeline)] [string]$query = $null
+    ,[string]$cacheDir = "$env:Temp\Friendly_Chainsaw"
+    ,[int]$cacheDays = -1
+  )
+  $currentLogLevel = Get-LogLevel
+  if (!([string]::IsNullOrEmpty($logLevel))) {
+    Set-LogLevel $logLevel
+  }
 
-$queryStartTime = [System.Diagnostics.Stopwatch]::StartNew()
-Import-Module BrandonLib
-$queryHash = Get-StringHash $query
-$fqPath = "$cacheDir$ServerInstance$($Database)_$queryHash.xml"
-if (!(Test-Path  $fqPath)){
+  Write-Log "ServerName : $ServerInstance" Debug
+  Write-Log "Database: $Database" Debug
+
+  $queryStartTime = [System.Diagnostics.Stopwatch]::StartNew()
+  Import-Module BrandonLib
+  $queryHash = Get-StringHash $query
+  $fqPath = "$cacheDir$ServerInstance$($Database)_$queryHash.xml"
+  if (!(Test-Path $fqPath)) {
     Write-Log "Data is not cached, loading cache. File path: $fqPath" Debug
     $results = Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
     $results | Export-Clixml -Path $fqPath
-}
-elseif( $(Get-ChildItem $fqPath).LastWriteTime -le (Get-Date).AddDays($cacheDays)){
+  }
+  elseif ($(Get-ChildItem $fqPath).LastWriteTime -le (Get-Date).AddDays($cacheDays)) {
     Write-Log "Refreashing local cache. File path: $fqPath" Debug
-    Remove-item $fqPath
+    Remove-Item $fqPath
     $results = Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
     $results | Export-Clixml -Path $fqPath
-}
-else{
+  }
+  else {
     Write-Log "Using local cache. File path: $fqPath" Debug
     $results = Import-Clixml $fqPath
-}
-$elapsedTime = $queryStartTime.ElapsedMilliseconds
-Write-Log "Query took: $elapsedTime miliseconds" Debug
-Set-LogLevel $currentLogLevel
-$results
+  }
+  $elapsedTime = $queryStartTime.ElapsedMilliseconds
+  Write-Log "Query took: $elapsedTime miliseconds" Debug
+  Set-LogLevel $currentLogLevel
+  $results
 
-}Export-ModuleMember -function Query-SqlWithCache
-function Get-Type { 
-    param($type) 
- 
-$types = @( 
-'System.Boolean', 
-'System.Byte[]', 
-'System.Byte', 
-'System.Char', 
-'System.Datetime', 
-'System.Decimal', 
-'System.Double', 
-'System.Guid', 
-'System.Int16', 
-'System.Int32', 
-'System.Int64', 
-'System.Single', 
-'System.UInt16', 
-'System.UInt32', 
-'System.UInt64') 
- 
-    if ( $types -contains $type ) { 
-        Write-Output "$type" 
-    } 
-    else { 
-        Write-Output 'System.String' 
-         
-    } 
-} 
-function Out-DataTable { 
+} Export-ModuleMember -Function Query-SqlWithCache
+function Get-Type {
+  param($type)
+
+  $types = @(
+    'System.Boolean',
+    'System.Byte[]',
+    'System.Byte',
+    'System.Char',
+    'System.Datetime',
+    'System.Decimal',
+    'System.Double',
+    'System.Guid',
+    'System.Int16',
+    'System.Int32',
+    'System.Int64',
+    'System.Single',
+    'System.UInt16',
+    'System.UInt32',
+    'System.UInt64')
+
+  if ($types -contains $type) {
+    Write-Output "$type"
+  }
+  else {
+    Write-Output 'System.String'
+
+  }
+}
+function Out-DataTable {
 <# 
 .SYNOPSIS 
 Creates a DataTable for an object 
@@ -992,53 +1002,53 @@ v1.6  - Chad Miller - Added column datatype logic with default to string
 v1.7 - Chad Miller - Fixed issue with IsArray 
 .LINK 
 http://thepowershellguy.com/blogs/posh/archive/2007/01/21/powershell-gui-scripblock-monitor-script.aspx 
-#> 
-    [CmdletBinding()] 
-    param([Parameter(Position=0, Mandatory=$true, ValueFromPipeline = $true)] [PSObject[]]$InputObject) 
- 
-    Begin 
-    { 
-        $dt = new-object Data.datatable   
-        $First = $true  
-    } 
-    Process 
-    { 
-        foreach ($object in $InputObject) 
-        { 
-            $DR = $DT.NewRow()   
-            foreach($property in $object.PsObject.get_properties()) 
-            {   
-                if ($first) 
-                {   
-                    $Col =  new-object Data.DataColumn   
-                    $Col.ColumnName = $property.Name.ToString()   
-                    if ($property.value) 
-                    { 
-                        if ($property.value -isnot [System.DBNull]) { 
-                            $Col.DataType = [System.Type]::GetType("$(Get-Type $property.TypeNameOfValue)") 
-                         } 
-                    } 
-                    $DT.Columns.Add($Col) 
-                }   
-                if ($property.Gettype().IsArray) { 
-                    $DR.Item($property.Name) =$property.value | ConvertTo-XML -AS String -NoTypeInformation -Depth 1 
-                }   
-               else { 
-                    $DR.Item($property.Name) = $property.value 
-                } 
-            }   
-            $DT.Rows.Add($DR)   
-            $First = $false 
-        } 
-    }  
-      
-    End 
-    { 
-        Write-Output @(,($dt)) 
-    } 
- 
+#>
+  [CmdletBinding()]
+  param([Parameter(Position = 0,Mandatory = $true,ValueFromPipeline = $true)] [PSObject[]]$InputObject)
+
+  begin
+  {
+    $dt = New-Object Data.datatable
+    $First = $true
+  }
+  process
+  {
+    foreach ($object in $InputObject)
+    {
+      $DR = $DT.NewRow()
+      foreach ($property in $object.psobject.get_properties())
+      {
+        if ($first)
+        {
+          $Col = New-Object Data.DataColumn
+          $Col.ColumnName = $property.Name.ToString()
+          if ($property.Value)
+          {
+            if ($property.Value -isnot [System.DBNull]) {
+              $Col.DataType = [System.Type]::GetType("$(Get-Type $property.TypeNameOfValue)")
+            }
+          }
+          $DT.Columns.Add($Col)
+        }
+        if ($property.GetType().IsArray) {
+          $DR.Item($property.Name) = $property.Value | ConvertTo-Xml -As String -NoTypeInformation -Depth 1
+        }
+        else {
+          $DR.Item($property.Name) = $property.Value
+        }
+      }
+      $DT.Rows.Add($DR)
+      $First = $false
+    }
+  }
+
+  end
+  {
+    Write-Output @(,($dt))
+  }
+
 } Export-ModuleMember -Function Out-DataTable
-function Write-DataTable { 
+function Write-DataTable {
 <# 
 .SYNOPSIS 
 Writes data only to SQL Server tables. 
@@ -1063,47 +1073,47 @@ v1.1   - Chad Miller - Fixed error message
 http://msdn.microsoft.com/en-us/library/30c3y597%28v=VS.90%29.aspx 
 https://gallery.technet.microsoft.com/ScriptCenter/2fdeaf8d-b164-411c-9483-99413d6053ae/
 #>
-    [CmdletBinding()] 
-    param( 
-    [Parameter(Position=0, Mandatory=$true)] [string]$ServerInstance, 
-    [Parameter(Position=1, Mandatory=$true)] [string]$Database, 
-    [Parameter(Position=2, Mandatory=$true)] [string]$TableName, 
-    [Parameter(Position=3, Mandatory=$true)] $Data, 
-    [Parameter(Position=4, Mandatory=$false)] [string]$Username, 
-    [Parameter(Position=5, Mandatory=$false)] [string]$Password, 
-    [Parameter(Position=6, Mandatory=$false)] [Int32]$BatchSize=50000, 
-    [Parameter(Position=7, Mandatory=$false)] [Int32]$QueryTimeout=0, 
-    [Parameter(Position=8, Mandatory=$false)] [Int32]$ConnectionTimeout=15 
-    ) 
-     
-    $conn=new-object System.Data.SqlClient.SQLConnection 
- 
-    if ($Username) 
-    { $ConnectionString = "Server={0};Database={1};User ID={2};Password={3};Trusted_Connection=False;Connect Timeout={4}" -f $ServerInstance,$Database,$Username,$Password,$ConnectionTimeout } 
-    else 
-    { $ConnectionString = "Server={0};Database={1};Integrated Security=True;Connect Timeout={2}" -f $ServerInstance,$Database,$ConnectionTimeout } 
- 
-    $conn.ConnectionString=$ConnectionString 
- 
-    try 
-    { 
-        $conn.Open() 
-        $bulkCopy = new-object ("Data.SqlClient.SqlBulkCopy") $connectionString 
-        $bulkCopy.DestinationTableName = $tableName 
-        $bulkCopy.BatchSize = $BatchSize 
-        $bulkCopy.BulkCopyTimeout = $QueryTimeOut 
-        $bulkCopy.WriteToServer($Data) 
-        $conn.Close() 
-    } 
-    catch 
-    { 
-        $ex = $_.Exception 
-        Write-Error "$ex.Message" 
-        continue 
-    } 
- 
+  [CmdletBinding()]
+  param(
+    [Parameter(Position = 0,Mandatory = $true)] [string]$ServerInstance,
+    [Parameter(Position = 1,Mandatory = $true)] [string]$Database,
+    [Parameter(Position = 2,Mandatory = $true)] [string]$TableName,
+    [Parameter(Position = 3,Mandatory = $true)] $Data,
+    [Parameter(Position = 4,Mandatory = $false)] [string]$Username,
+    [Parameter(Position = 5,Mandatory = $false)] [string]$Password,
+    [Parameter(Position = 6,Mandatory = $false)] [int32]$BatchSize = 50000,
+    [Parameter(Position = 7,Mandatory = $false)] [int32]$QueryTimeout = 0,
+    [Parameter(Position = 8,Mandatory = $false)] [int32]$ConnectionTimeout = 15
+  )
+
+  $conn = New-Object System.Data.SqlClient.SQLConnection
+
+  if ($Username)
+  { $ConnectionString = "Server={0};Database={1};User ID={2};Password={3};Trusted_Connection=False;Connect Timeout={4}" -f $ServerInstance,$Database,$Username,$Password,$ConnectionTimeout }
+  else
+  { $ConnectionString = "Server={0};Database={1};Integrated Security=True;Connect Timeout={2}" -f $ServerInstance,$Database,$ConnectionTimeout }
+
+  $conn.ConnectionString = $ConnectionString
+
+  try
+  {
+    $conn.Open()
+    $bulkCopy = New-Object ("Data.SqlClient.SqlBulkCopy") $connectionString
+    $bulkCopy.DestinationTableName = $tableName
+    $bulkCopy.BatchSize = $BatchSize
+    $bulkCopy.BulkCopyTimeout = $QueryTimeOut
+    $bulkCopy.WriteToServer($Data)
+    $conn.Close()
+  }
+  catch
+  {
+    $ex = $_.Exception
+    Write-Error "$ex.Message"
+    continue
+  }
+
 } Export-ModuleMember -Function Write-DataTable
-function Invoke-DataTableColumnReorder{
+function Invoke-DataTableColumnReorder {
 <# 
 .SYNOPSIS 
     Takes a DataTable, and reorders and removes columns based on an array of column names you pass in
@@ -1160,30 +1170,30 @@ $schemaName and $tableName are set dynamically based on the files that will be l
     $dataAsDataTable = Invoke-DataTableColumnReorder -DataTable $dataAsDataTable -columnOrder $ColumnNames_DesiredOrder
     Write-Log "Loading data into $FQTableName" -tabLevel 1
     Write-DataTable -serverInstance $destServerName -Database $destDatabase -TableName $FQTableName -data $dataAsDataTable -ErrorAction Stop 
-#> 
-[OutputType([Data.datatable])] 
-param([Parameter(Position=0, Mandatory=$true, ValueFromPipeline = $true)][Data.datatable]$DataTable, [string[]]$columnOrder)
-$columnIndex = 0
-foreach ($column in $columnOrder){
-    if ($DataTable.Columns.Contains($column)){
-        $DataTable.Columns[$column].SetOrdinal($columnIndex)
-        $columnIndex++
+#>
+  [OutputType([Data.datatable])]
+  param([Parameter(Position = 0,Mandatory = $true,ValueFromPipeline = $true)] [Data.datatable]$DataTable,[string[]]$columnOrder)
+  $columnIndex = 0
+  foreach ($column in $columnOrder) {
+    if ($DataTable.Columns.Contains($column)) {
+      $DataTable.Columns[$column].SetOrdinal($columnIndex)
+      $columnIndex++
     }
-    else{
-        Write-Log "Column named: $column does not exist" Warning
+    else {
+      Write-Log "Column named: $column does not exist" Warning
     }
 
-    
-}
-Write-Log "Removing other columns from the data table" Debug
-$removeColumnIndex = $DataTable.Columns.Count
-for ($removeColumnIndex = $DataTable.Columns.Count - 1; $removeColumnIndex -ge $columnIndex; $removeColumnIndex--){
+
+  }
+  Write-Log "Removing other columns from the data table" Debug
+  $removeColumnIndex = $DataTable.Columns.count
+  for ($removeColumnIndex = $DataTable.Columns.count - 1; $removeColumnIndex -ge $columnIndex; $removeColumnIndex --) {
     Write-Log "Removing column: $($DataTable.Columns[$removeColumnIndex])" Warning
     $DataTable.Columns.RemoveAt($removeColumnIndex)
-}
-Write-Output @(,($DataTable)) 
+  }
+  Write-Output @(,($DataTable))
 } Export-ModuleMember -Function Invoke-DataTableColumnReorder
-function Import-FlatFileToSQLServer{
+function Import-FlatFileToSQLServer {
 <#
     .Synopsis
       Loads data from TXT files generated by Trauma1 into sql tables by creating a generic STAGE table with varchar(max) column data types, and then loading the flat file contents into it.  
@@ -1214,185 +1224,185 @@ function Import-FlatFileToSQLServer{
     .PARAMETER tempDir
         The temp directory to use to store the sql files that are generated. defaults to $env:TEMP
 #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Info"
-,[switch] $winEventLog
-,[string] $inputDir = $null
-,[string[]] $extensionsToInclude = @()
-,[string] $tempDir = $env:TEMP
-,[string] $destServerName = $null
-,[string] $destDatabase = $null
-,[string] $schemaName = $null
-,[switch] $executeScripts
-,[switch] $loadData
-,[string] $delimiter = ",")
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param([Parameter(Position = 0)][ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = "Info"
+    ,[switch]$winEventLog
+    ,[string]$inputDir = $null
+    ,[string[]]$extensionsToInclude = @()
+    ,[string]$tempDir = $env:TEMP
+    ,[string]$destServerName = $null
+    ,[string]$destDatabase = $null
+    ,[string]$schemaName = $null
+    ,[switch]$executeScripts
+    ,[switch]$loadData
+    ,[string]$delimiter = ",")
 
-    import-module FC_Log, DataAccess -Force -DisableNameChecking
-    if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
-    Set-LogLevel $logLevel
-    Set-logTargetWinEvent $winEventLog
+  Import-Module FC_Log,DataAccess -Force -DisableNameChecking
+  if ([string]::IsNullOrEmpty($logLevel)) { $logLevel = "Info" }
+  Set-LogLevel $logLevel
+  Set-logTargetWinEvent $winEventLog
 
-    Write-Log "Begining to load data from files with an extension of: ($extensionsToInclude) 
-    From the directory: $inputDir" 
-    Write-Log ""
+  Write-Log "Begining to load data from files with an extension of: ($extensionsToInclude) 
+    From the directory: $inputDir"
+  Write-Log ""
 
-    if (!(Test-Path $inputDir)){
-        Write-Log "Error finding the path: $inputDir" Error -ErrorAction Stop
-    }
-    if ((Get-ChildItem $inputDir) -is [System.IO.Fileinfo]){
-        $files = Get-ChildItem -Path $inputDir | where Extension -in $extensionsToInclude
-    }
-    else{
-        $files = Get-ChildItem -Path $inputDir | where Extension -in $extensionsToInclude
-    }
+  if (!(Test-Path $inputDir)) {
+    Write-Log "Error finding the path: $inputDir" Error -ErrorAction Stop
+  }
+  if ((Get-ChildItem $inputDir) -is [System.IO.FileInfo]) {
+    $files = Get-ChildItem -Path $inputDir | Where-Object Extension -In $extensionsToInclude
+  }
+  else {
+    $files = Get-ChildItem -Path $inputDir | Where-Object Extension -In $extensionsToInclude
+  }
 
-    if ($files -eq $null){
-        Write-Log "Could not find any files with an extension of: $extensionsToInclude at the path: $inputDir. Aborting" Error -ErrorAction Stop
-    }
-    $loadDate = "$([DateTime]::Now.Year).$([DateTime]::Now.Month).$([DateTime]::Now.Day) "
+  if ($files -eq $null) {
+    Write-Log "Could not find any files with an extension of: $extensionsToInclude at the path: $inputDir. Aborting" Error -ErrorAction Stop
+  }
+  $loadDate = "$([DateTime]::Now.Year).$([DateTime]::Now.Month).$([DateTime]::Now.Day) "
 
-    $SQLCreateTableStatements = @()
+  $SQLCreateTableStatements = @()
 
-    $sqlCreateSchema = "USE [$destDatabase]
+  $sqlCreateSchema = "USE [$destDatabase]
     Go
 
     IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '$schemaName')
         exec('CREATE SCHEMA [$schemaName];')
             "
-            $createSchemaSQLFile = "$tempDir\Trauma1CreateSchema_$schemaName.sql"
-            if (Test-Path $createSchemaSQLFile){
-                Remove-Item $createSchemaSQLFile
-            }
-            $sqlCreateSchema | Add-Content $createSchemaSQLFile
+  $createSchemaSQLFile = "$tempDir\Trauma1CreateSchema_$schemaName.sql"
+  if (Test-Path $createSchemaSQLFile) {
+    Remove-Item $createSchemaSQLFile
+  }
+  $sqlCreateSchema | Add-Content $createSchemaSQLFile
 
-    if ($executeScripts){
-        Invoke-Sqlcmd -ServerInstance $destServerName -Database $destDatabase -Query $sqlCreateSchema -ErrorAction Stop
-    }
+  if ($executeScripts) {
+    Invoke-Sqlcmd -ServerInstance $destServerName -Database $destDatabase -Query $sqlCreateSchema -ErrorAction Stop
+  }
 
-    $objStore = @()
+  $objStore = @()
 
-    foreach($file in $files){
-        try{
-            $inputFilePath = $file.fullname
-        
-            $myObj = New-Object psobject
-            $myObj | Add-Member -MemberType NoteProperty -Name FilePath -Value $inputFilePath
-            $myObj | Add-Member -MemberType NoteProperty -Name ErrorExists -Value 0
-            $myObj | Add-Member -MemberType NoteProperty -Name sqlCommand -Value ""
-            $myObj | Add-Member -MemberType NoteProperty -Name ErrorValue -Value ""
+  foreach ($file in $files) {
+    try {
+      $inputFilePath = $file.FullName
 
-            Write-Log "Loading the file: $inputFilePath" Debug
-            $tableName = "Stage_$($file.Name)"
-            $FQTableName = "[$schemaName].[$tableName]"
-            $data = Import-Csv $inputFilePath -Delimiter $delimiter
-            $dataAsDataTable = $data | Out-DataTable
-            $colNames = (Get-Content $inputFilePath | Select-Object -First 1).Split($delimiter)
-            $SQLCreateTable = "USE [$destDatabase]
+      $myObj = New-Object psobject
+      $myObj | Add-Member -MemberType NoteProperty -Name FilePath -Value $inputFilePath
+      $myObj | Add-Member -MemberType NoteProperty -Name ErrorExists -Value 0
+      $myObj | Add-Member -MemberType NoteProperty -Name sqlCommand -Value ""
+      $myObj | Add-Member -MemberType NoteProperty -Name ErrorValue -Value ""
+
+      Write-Log "Loading the file: $inputFilePath" Debug
+      $tableName = "Stage_$($file.Name)"
+      $FQTableName = "[$schemaName].[$tableName]"
+      $data = Import-Csv $inputFilePath -Delimiter $delimiter
+      $dataAsDataTable = $data | Out-DataTable
+      $colNames = (Get-Content $inputFilePath | Select-Object -First 1).Split($delimiter)
+      $SQLCreateTable = "USE [$destDatabase]
     Go
     "
 
-            $SQLCreateTable += "
+      $SQLCreateTable += "
     IF OBJECT_ID('[$destDatabase].$FQTableName') is not null
         Drop Table $FQTableName;
 
     "
 
-        
-            $SQLCreateTable += "
+
+      $SQLCreateTable += "
     Create table $FQTableName (
         "
-            $firstPass = 1
-            foreach ($col in $colNames){
-                if ($firstPass -eq 1){
-                    $SQLCreateTable = $SQLCreateTable + "[$col] varchar(max) null"
-                    $firstPass = 0
-                }
-                else{
-                    $SQLCreateTable = $SQLCreateTable + ",[$col] varchar(max) null"
-                }
-            }
-            $SQLCreateTable = $SQLCreateTable + "
+      $firstPass = 1
+      foreach ($col in $colNames) {
+        if ($firstPass -eq 1) {
+          $SQLCreateTable = $SQLCreateTable + "[$col] varchar(max) null"
+          $firstPass = 0
+        }
+        else {
+          $SQLCreateTable = $SQLCreateTable + ",[$col] varchar(max) null"
+        }
+      }
+      $SQLCreateTable = $SQLCreateTable + "
             );
 
         "
-            $myObj.sqlCommand = $SQLCreateTable
+      $myObj.sqlCommand = $SQLCreateTable
 
-            $createTableSQLFile = "$tempDir\Trauma1CreateTable_$tableName.sql"
-            if (Test-Path $createTableSQLFile){
-                Remove-Item $createTableSQLFile
-            }
-            $SQLCreateTable | Add-Content $createTableSQLFile
+      $createTableSQLFile = "$tempDir\Trauma1CreateTable_$tableName.sql"
+      if (Test-Path $createTableSQLFile) {
+        Remove-Item $createTableSQLFile
+      }
+      $SQLCreateTable | Add-Content $createTableSQLFile
 
-            if ($executeScripts){
-                Write-Log "Executing create table script for $FQTableName"
-                Invoke-Sqlcmd -ServerInstance $destServerName -Database $destDatabase -Query $SQLCreateTable -ErrorAction Stop
-            }
+      if ($executeScripts) {
+        Write-Log "Executing create table script for $FQTableName"
+        Invoke-Sqlcmd -ServerInstance $destServerName -Database $destDatabase -Query $SQLCreateTable -ErrorAction Stop
+      }
 
-            if ($loadData){
-                Write-Log "Loading data into $FQTableName" -tabLevel 1
-                Write-DataTable -serverInstance $destServerName -Database $destDatabase -TableName $FQTableName -data $dataAsDataTable
-                }
-        }
-        catch{
-            $myObj.ErrorExists = 1
-            $myObj.ErrorValue = $_
-        }
-
-        $objStore += $myObj
-   
+      if ($loadData) {
+        Write-Log "Loading data into $FQTableName" -tabLevel 1
+        Write-DataTable -ServerInstance $destServerName -Database $destDatabase -TableName $FQTableName -data $dataAsDataTable
+      }
+    }
+    catch {
+      $myObj.ErrorExists = 1
+      $myObj.ErrorValue = $_
     }
 
+    $objStore += $myObj
 
-    Write-Log "Completed reading files."
+  }
 
-    $errorCount = ($objStore | where ErrorExists -eq 1).Count
 
-    if ($errorCount -ne 0){
-        Write-Log "There were $errorCount files that did not load" Warning
-        foreach ($obj in $objStore | where ErrorExists -eq 1){
-            Write-Log "$($obj.FilePath)" -tabLevel 1
-            Write-Log "$($obj.ErrorValue)" -tablevel 2
-        }
-    } 
+  Write-Log "Completed reading files."
+
+  $errorCount = ($objStore | Where-Object ErrorExists -EQ 1).count
+
+  if ($errorCount -ne 0) {
+    Write-Log "There were $errorCount files that did not load" Warning
+    foreach ($obj in $objStore | Where-Object ErrorExists -EQ 1) {
+      Write-Log "$($obj.FilePath)" -tabLevel 1
+      Write-Log "$($obj.ErrorValue)" -tabLevel 2
+    }
+  }
 } Export-ModuleMember -Function Import-FlatFileToSQLServer
-function Invoke-SqlAgentJobSync{
+function Invoke-SqlAgentJobSync {
 <#
     .Synopsis
       Executes a SQL server agent job
     #>
-param (
- [string] $instancename = $null,
- [string] $jobname = $null
-)
+  param(
+    [string]$instancename = $null,
+    [string]$jobname = $null
+  )
 
-$db = "MSDB"
-$sqlConnection = new-object System.Data.SqlClient.SqlConnection 
-$sqlConnection.ConnectionString = 'server=' + $instancename + ';integrated security=TRUE;database=' + $db 
-$sqlConnection.Open() 
-$sqlCommand = new-object System.Data.SqlClient.SqlCommand 
-$sqlCommand.CommandTimeout = 120 
-$sqlCommand.Connection = $sqlConnection 
-$sqlQuery = "exec dbo.sp_start_job $jobname"
-Write-Log "sqlQuery: $sqlQuery" Debug
-$sqlCommand.CommandText= $sqlQuery
-Write-Host "Executing Job => $jobname..." 
-$result = $sqlCommand.ExecuteNonQuery() 
-$sqlConnection.Close()
+  $db = "MSDB"
+  $sqlConnection = New-Object System.Data.SqlClient.SqlConnection
+  $sqlConnection.ConnectionString = 'server=' + $instancename + ';integrated security=TRUE;database=' + $db
+  $sqlConnection.Open()
+  $sqlCommand = New-Object System.Data.SqlClient.SqlCommand
+  $sqlCommand.CommandTimeout = 120
+  $sqlCommand.Connection = $sqlConnection
+  $sqlQuery = "exec dbo.sp_start_job $jobname"
+  Write-Log "sqlQuery: $sqlQuery" Debug
+  $sqlCommand.CommandText = $sqlQuery
+  Write-Host "Executing Job => $jobname..."
+  $result = $sqlCommand.ExecuteNonQuery()
+  $sqlConnection.Close()
 } Export-ModuleMember -Function Invoke-SqlAgentJobSynch
-Write-Verbose "Importing Functions" 
- 
+Write-Verbose "Importing Functions"
+
 # Import everything in sub folders folder 
-foreach ( $folder in @( 'private', 'public', 'classes' ) ) 
-{ 
-    $root = Join-Path -Path $PSScriptRoot -ChildPath $folder 
-    if ( Test-Path -Path $root ) 
-    { 
-        Write-Verbose "processing folder $root" 
-        $files = Get-ChildItem -Path $root -Filter *.ps1 
- 
- 
-         # dot source each file 
-         $files | where-Object { $_.name -NotLike '*.Tests.ps1' } | 
-             ForEach-Object { Write-Verbose $_.name; . $_.FullName } 
-                  } 
- } 
+foreach ($folder in @('private','public','classes'))
+{
+  $root = Join-Path -Path $PSScriptRoot -ChildPath $folder
+  if (Test-Path -Path $root)
+  {
+    Write-Verbose "processing folder $root"
+    $files = Get-ChildItem -Path $root -Filter *.ps1
+
+
+    # dot source each file 
+    $files | Where-Object { $_.Name -notlike '*.Tests.ps1' } |
+    ForEach-Object { Write-Verbose $_.Name;.$_.FullName }
+  }
+}

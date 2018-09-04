@@ -21,9 +21,6 @@
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline)] $pipelineInput
-,[string] $PRDescription
-,[string] $User
-,[string] $Vote
 )
 
 $repositoryID = $pipelineInput.repository.id

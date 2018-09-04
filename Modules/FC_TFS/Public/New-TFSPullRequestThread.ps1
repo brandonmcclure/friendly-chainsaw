@@ -21,9 +21,7 @@
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline)] $pipelineInput
-,[string] $PRDescription
-,[string] $User
-,[string] $Vote
+,[string] $Message
 )
 
 $repositoryID = $pipelineInput.repository.id
@@ -40,22 +38,20 @@ if ([String]::IsNullOrEmpty($pullRequestID)){
     Write-Log "Please pass a pullRequestID" Error
     return
 }
+if ([String]::IsNullOrEmpty($Message)){
+    Write-Log "Please pass a Message" Error
+    return
+}
 $outputObj = $pipelineInput
 
-switch ($Vote){
-    "Approved"{$tfsVote = 10}
-    "Rejected"{$tfsVote = 0}
-    default{$tfsVote = 0}
-}
+
 $requestBody = ''
-#ehstfsrest - fbf7c924-979e-4101-bfda-5f4fe5f70467
-#bmcclure - 835a4796-e8df-48f0-bd89-4321fd5f9fb0
 $requestBody = @"
 {
   "comments": [
     {
       "parentCommentId": 0,
-      "content": "This new feature looks good!",
+      "content": "$Message",
       "commentType": 1
     }
   ],
@@ -74,9 +70,7 @@ $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
 $response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method POST -Body $requestBody -ContentType "application/json").value
 
-if (![string]::IsNullOrEmpty($projectName)){
-    $response = $response | Where {(Split-Path $_.sourceRefName -Leaf) -eq $projectName}
-}
+$outputObj.PullRequests | Add-Member -Type NoteProperty -Name Thread -Value $response
 
 Write-Output $outputObj
 } Export-ModuleMember -Function New-TFSPullRequestThread
