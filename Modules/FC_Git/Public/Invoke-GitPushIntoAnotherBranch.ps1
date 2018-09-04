@@ -39,14 +39,17 @@ if ([String]::IsNullOrEmpty($currentBranch)){
 
 try{
     Set-Location $autoRepoPath
-    git checkout $currentBranch
+    git fetch
+    git checkout --track origin/$currentBranch
     git pull
-    git checkout $intoBranchName
+    git checkout --track origin/$intoBranchName
     git pull
     git merge $currentBranch
     git push
     git checkout master
     git pull
+    git branch -D $intoBranchName
+    git branch -D $currentBranch
     
 
 }
