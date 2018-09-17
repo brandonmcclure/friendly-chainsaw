@@ -24,8 +24,6 @@ param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Dis
 ,[switch] $winEventLog
 ,[Parameter(ValueFromPipeline)] $pipelineInput)
 
-Import-Module FC_Log
-
 if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
 Set-LogLevel $logLevel
 Set-logTargetWinEvent $winEventLog
