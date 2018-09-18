@@ -1,13 +1,13 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
-    [parameter(Mandatory=$false)][string[]] $moduleName = "FC_Data.psm1"
+    [parameter(Mandatory=$false)][string[]] $moduleName = "FC_Core.psm1"
     ,[parameter(Mandatory=$false)][string]$moduleDescription = $null
     ,[string] $moduleAuthor = "Brandon McClure"
     ,[switch] $forceConfigUpdate = $true
     )
 
-Import-Module BuildHelpers -ErrorAction Stop
+Import-Module BuildHelpers, PSScriptAnalyzer,PSHTMLTable -ErrorAction Stop
 $pathToSearch = (Split-Path $PSCommandPath -Parent)
 . $pathToSearch\BuildFunctions.ps1
 $origLocation = Get-Location
@@ -89,6 +89,24 @@ try{
         if (!([string]::IsNullOrEmpty($bumpVersionType))){
             Step-ModuleVersion -Path $ManifestPath -By $bumpVersionType
         }
+
+        
+            $events = Invoke-ScriptAnalyzer $modulePath
+
+#Create the HTML table without alternating rows, colorize Warning and Error messages, highlighting the whole row.
+    $eventTable = $events | Sort -Descending -Property Severity | New-HTMLTable -setAlternating $false| 
+         Add-HTMLTableColor -Argument "Warning" -Column "Severity" -AttrValue "background-color:orange;" -WholeRow  |
+         Add-HTMLTableColor -Argument "Error" -Column "Severity" -AttrValue "background-color:red;" -WholeRow #|        Add-HTMLTableColor -Argument "Error" -Column "EntryType" -AttrValue "background-color:#FFCC99;" -WholeRow
+
+#Build the HTML head, add an h3 header, add the event table, and close out the HTML
+    $HTML = New-HTMLHead
+    $HTML += "<h3>ScriptAnalyserResults - $ModuleName $(Get-Date -Format "yyyy.MM.dd_HH.mm.ss")</h3>"
+    $HTML += $eventTable | Close-HTML
+
+#test it out
+    set-content "$env:TEMP\ScriptAnalyserResults $(Get-Date -Format "yyyy.MM.dd_HH.mm.ss").htm" $HTML
+    & 'C:\Program Files\Internet Explorer\iexplore.exe' "$env:TEMP\ScriptAnalyserResults $(Get-Date -Format "yyyy.MM.dd_HH.mm.ss").htm"
+}
     }
 }
 catch{

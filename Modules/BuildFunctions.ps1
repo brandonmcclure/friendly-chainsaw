@@ -11,7 +11,7 @@ param($ManifestConfigPath,$ManifestPath,$moduleName)
             Update-ModuleManifest -Path $ManifestPath -Description $configData.Description
         }
         if (![string]::IsNullOrEmpty($moduleName)){
-            Update-ModuleManifest -Path $ManifestPath -RootModule $moduleName
+            Update-ModuleManifest -Path $ManifestPath -RootModule "$moduleName.psm1"
         }
         if (![string]::IsNullOrEmpty($configData.PSVersion)){
             Update-ModuleManifest -Path $ManifestPath -PowerShellVersion $configData.PSVersion
