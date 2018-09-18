@@ -12,7 +12,7 @@
 RootModule = 'FC_Core'
 
 # Version number of this module.
-ModuleVersion = '2.0.0'
+ModuleVersion = '3.0.0'
 
 # ID used to uniquely identify this module
 GUID = 'd5ebfb18-f715-4d1b-8163-a03fdd256ee3'
@@ -66,9 +66,8 @@ FormatsToProcess = @()
 # NestedModules = @()
 
 # Functions to export from this module
-FunctionsToExport = 'Get-GitBranchesComparedToRemote', 'Get-GitBranchesToDelete', 
-               'Invoke-GitFetchForSubDirectories', 'Register-PSRepositoryFix', 
-               'RunISE-DTWBeautifyScript', 'Set-ScriptSignature', 'Start-MyProcess'
+FunctionsToExport = 'Register-PSRepositoryFix', 'RunISE-DTWBeautifyScript', 
+               'Set-ScriptSignature', 'Start-MyProcess'
 
 # Cmdlets to export from this module
 CmdletsToExport = @()
