@@ -107,7 +107,6 @@ try{
     set-content "$env:TEMP\ScriptAnalyserResults $(Get-Date -Format "yyyy.MM.dd_HH.mm.ss").htm" $HTML
     & 'C:\Program Files\Internet Explorer\iexplore.exe' "$env:TEMP\ScriptAnalyserResults $(Get-Date -Format "yyyy.MM.dd_HH.mm.ss").htm"
 }
-    }
 }
 catch{
     $ex = $_.Exception
