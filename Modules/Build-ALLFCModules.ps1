@@ -91,7 +91,7 @@ try{
         }
 
         
-            $events = Invoke-ScriptAnalyzer $modulePath
+            $events = Invoke-ScriptAnalyzer $moduleDir -Recurse
 
 #Create the HTML table without alternating rows, colorize Warning and Error messages, highlighting the whole row.
     $eventTable = $events | Sort -Descending -Property Severity | New-HTMLTable -setAlternating $false| 
