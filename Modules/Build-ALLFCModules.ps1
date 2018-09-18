@@ -1,43 +1,24 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
-    [parameter(Mandatory=$false)][string] $moduleName = $null
+    [parameter(Mandatory=$false)][string[]] $moduleName = "FC_Core.psm1"
     ,[parameter(Mandatory=$false)][string]$moduleDescription = $null
     ,[string] $moduleAuthor = "Brandon McClure"
     ,[switch] $forceConfigUpdate = $true
     )
 
-if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
-Set-LogLevel $logLevel
+Import-Module BuildHelpers, PSScriptAnalyzer,PSHTMLTable -ErrorAction Stop
+$pathToSearch = (Split-Path $PSCommandPath -Parent)
+. $pathToSearch\BuildFunctions.ps1
 $origLocation = Get-Location
 
-function Update-ManifestFromConfig{
-param($ManifestConfigPath,$ManifestPath,$moduleName)
-    Write-Host "Loading configuration data from $ManifestConfigPath"
-    $configData = Get-Content $ManifestConfigPath | ConvertFrom-Json
-    if (Test-Path $ManifestPath){
-        Write-Host "Manifest already exists"
-        if (![string]::IsNullOrEmpty($configData.Author)){
-            Update-ModuleManifest -Path $ManifestPath -Author $configData.Author
-        }
-        if (![string]::IsNullOrEmpty($configData.Description)){
-            Update-ModuleManifest -Path $ManifestPath -Description $configData.Description
-        }
-        if (![string]::IsNullOrEmpty($moduleName)){
-            Update-ModuleManifest -Path $ManifestPath -RootModule $moduleName
-        }
-        if (![string]::IsNullOrEmpty($configData.PSVersion)){
-            Update-ModuleManifest -Path $ManifestPath -PowerShellVersion $configData.PSVersion
-        }
+try{
+    if ([string]::IsNullOrEmpty($moduleName)){
+    $modules = Get-ChildItem -Path $pathToSearch  -Recurse | where {$_.Extension -eq '.psm1'}
     }
     else{
-        New-ModuleManifest -Path $ManifestPath -Author $configData.Author -Description $configData.Description -RootModule $moduleName -ModuleVersion "1.0" -PowerShellVersion $configData.PSVersion -RequiredModules $configData.requiredModules -NestedModules $configData.nestedModules | Out-Null
+        $modules = Get-ChildItem -Path $pathToSearch  -Recurse | where {$_.Extension -eq '.psm1' -and $_.Name -in $moduleName}
     }
-    Test-ModuleManifest -Path $ManifestPath -ErrorAction Stop
-    Write-Log "Module manifest creation/testing complete"
-}
-try{
-    $modules = Get-ChildItem -Recurse | where {$_.Extension -eq '.psm1'}
     foreach($module in $modules){
         $ModuleName = $module.BaseName 
         $modulePath = $module.FullName
@@ -76,6 +57,8 @@ try{
         $commandList = Get-Command -Module $ModuleName
         Remove-Module $ModuleName
 
+        Update-ModuleManifest -Path $ManifestPath -FunctionsToExport $commandList
+
         Write-Output 'Calculating fingerprint'
         $fingerprint = foreach ( $command in $commandList )
         {
@@ -106,7 +89,24 @@ try{
         if (!([string]::IsNullOrEmpty($bumpVersionType))){
             Step-ModuleVersion -Path $ManifestPath -By $bumpVersionType
         }
-    }
+
+        
+            $events = Invoke-ScriptAnalyzer $moduleDir -Recurse
+
+#Create the HTML table without alternating rows, colorize Warning and Error messages, highlighting the whole row.
+    $eventTable = $events | Sort -Descending -Property Severity | New-HTMLTable -setAlternating $false| 
+         Add-HTMLTableColor -Argument "Warning" -Column "Severity" -AttrValue "background-color:orange;" -WholeRow  |
+         Add-HTMLTableColor -Argument "Error" -Column "Severity" -AttrValue "background-color:red;" -WholeRow #|        Add-HTMLTableColor -Argument "Error" -Column "EntryType" -AttrValue "background-color:#FFCC99;" -WholeRow
+
+#Build the HTML head, add an h3 header, add the event table, and close out the HTML
+    $HTML = New-HTMLHead
+    $HTML += "<h3>ScriptAnalyserResults - $ModuleName $(Get-Date -Format "yyyy.MM.dd_HH.mm.ss")</h3>"
+    $HTML += $eventTable | Close-HTML
+
+#test it out
+    set-content "$env:TEMP\ScriptAnalyserResults $(Get-Date -Format "yyyy.MM.dd_HH.mm.ss").htm" $HTML
+    & 'C:\Program Files\Internet Explorer\iexplore.exe' "$env:TEMP\ScriptAnalyserResults $(Get-Date -Format "yyyy.MM.dd_HH.mm.ss").htm"
+}
 }
 catch{
     $ex = $_.Exception
@@ -114,7 +114,7 @@ catch{
     $errorMessage = $ex.Message 
 
     Set-Location $origLocation
-    Write-Log "Error detected at line $errorLine, Error message: $errorMessage" Error -ErrorAction Stop
+    Write-Error "Error detected at line $errorLine, Error message: $errorMessage" -ErrorAction Stop
 }
 
 Set-Location $origLocation

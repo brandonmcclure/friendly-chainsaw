@@ -18,21 +18,28 @@
 
 
     .INPUTS
-       a Crystal Report object fo the type: CrystalDecisions.CrystalReports.Engine.ReportDocument 
+       a Crystal Report object of the type: CrystalDecisions.CrystalReports.Engine.ReportDocument 
     .OUTPUTS
        Nothing. This should be used at the end of your Crystal Reports pipeline
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(ValueFromPipeline,position=0)] $report =$null)
+param([Parameter(ValueFromPipeline,position=0)] $report =$null,
+[switch] $saveReport)
 
 if ($report -eq $null){
     Write-Log "Please pass a crystal report into the function" Error -ErrorAction Stop
 }
 
-Write-Log "Saving the report to: $($report.FilePath)" Debug
-$report.SaveAs($report.FilePath)
+if ($saveReport){
+    Write-Log "Saving the report to: $($report.FilePath)" Debug
+    $report.SaveAs($report.FilePath)
+}
 Write-Log "Disposing of the report object" Debug
+try{
 $report.Dispose()
-
-
+}
+catch{
+#Try to dispose if the report is inside of the input object. (The ouput of functions to extract/insert data) 
+$report.report.Dispose()
+}
 }Export-ModuleMember -Function Close-CrystalReport
