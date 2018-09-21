@@ -6,7 +6,7 @@
     .EXAMPLE
         $configedLogLevel - Get-LogLevel
     #>
-    foreach($key in $script:logLevelOptions.GetEnumerator() | WHere {$_.Value -eq $script:LogLevel}){
-        $key.name
-    }
-}export-modulemember -Function Get-LogLevel
+  foreach ($key in $script:logLevelOptions.GetEnumerator() | Where-Object { $_.Value -eq $script:LogLevel }) {
+    $key.Name
+  }
+} Export-ModuleMember -Function Get-LogLevel
