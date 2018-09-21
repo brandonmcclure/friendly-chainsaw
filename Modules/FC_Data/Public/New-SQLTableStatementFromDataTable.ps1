@@ -25,7 +25,7 @@ param([Parameter(ValueFromPipeline,position=0)] $report
 ,[string] $FQTableName
 )
 $SQLCreateTable = ""
-$colNames = $dataTable.Columns | sort -Property Ordinal | select ColumnName, DataType
+$colNames = $dataTable.Columns | sort -Property Ordinal #| select ColumnName, DataType, AllowDBNull, AutoIncrement, 
 $SQLCreateTable += "
 Create table $FQTableName (`n"
 
@@ -38,6 +38,11 @@ Create table $FQTableName (`n"
                     $dataType = '[DateTime]'
                     break
                 }
+            "String"{
+                $size = if ($col.MaxLength -eq -1 -or $col.MaxLength -eq 2147483647) {'MAX'}else{$col.MaxLength}
+                $dataType = "varchar($size)"
+
+            }
             default {
                     Write-Log "Defaulting to varchar(max) datatype" Debug
                     $dataType = 'varchar(max)'
