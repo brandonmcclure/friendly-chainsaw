@@ -1,5 +1,4 @@
 ﻿function Invoke-SQLCmd_DataTable{
-[CmdletBinding(SupportsShouldProcess=$true)] 
 param($ServerInstance, $Database, $Query, [int] $QueryTimeout, [int] $ConnectionTimeout)
 
       $Datatable = New-Object System.Data.DataTable 

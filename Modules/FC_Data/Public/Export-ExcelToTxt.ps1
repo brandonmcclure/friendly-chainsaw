@@ -1,5 +1,4 @@
 ﻿function Export-ExcelToTxt {
-  [CmdletBinding(SupportsShouldProcess = $true)]
   param(
     [string]$excelFilePath,
     [string]$WorksheetName,

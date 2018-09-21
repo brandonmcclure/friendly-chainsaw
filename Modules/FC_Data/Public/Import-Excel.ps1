@@ -2,7 +2,7 @@
   param(
     [string]$FileName,
     [string]$WorksheetName,
-    [switch]$DisplayProgress = $true
+    [switch]$DisplayProgress
   )
 
   if ($FileName -eq "") {

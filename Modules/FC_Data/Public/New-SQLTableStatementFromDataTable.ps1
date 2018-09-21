@@ -38,7 +38,6 @@
         );
          
     #>
-  [CmdletBinding(SupportsShouldProcess = $true)]
   param([Parameter(Position = 0,ValueFromPipeline)] [System.Data.DataTable]$dataTable
     ,[Parameter(Position = 1)] [string]$FQTableName
   )

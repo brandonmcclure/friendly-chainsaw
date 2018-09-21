@@ -1,4 +1,4 @@
-﻿function Export-CRMetadata{
+﻿function Export-CRMetadata {
 <#
     .Synopsis
       Please give your script a brief Synopsis,
@@ -19,21 +19,20 @@
     .LINK
        www.google.com
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(position=1)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Info"
-,[switch] $winEventLog
-,[Parameter(ValueFromPipeline,position=0)] $CRInputObject)
+  param([Parameter(Position = 1)][ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = "Info"
+    ,[switch]$winEventLog
+    ,[Parameter(ValueFromPipeline,Position = 0)] $CRInputObject)
 
-if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
-Set-LogLevel $logLevel
-Set-logTargetWinEvent $winEventLog
+  if ([string]::IsNullOrEmpty($logLevel)) { $logLevel = "Info" }
+  Set-LogLevel $logLevel
+  Set-logTargetWinEvent $winEventLog
 
-$report = $CRInputObject.report
-$output = New-Object psobject
-$output | Add-Member -type NoteProperty -name report -Value $report
-$report.SummaryInfo
-#$output | Add-Member -type NoteProperty -name report -Value $report.report
+  $report = $CRInputObject.report
+  $output = New-Object psobject
+  $output | Add-Member -Type NoteProperty -Name report -Value $report
+  $report.SummaryInfo
+  #$output | Add-Member -type NoteProperty -name report -Value $report.report
 
-Write-Output $output
+  Write-Output $output
 
-}Export-Modulemember -Function Export-CRMetadata
+} Export-ModuleMember -Function Export-CRMetadata
