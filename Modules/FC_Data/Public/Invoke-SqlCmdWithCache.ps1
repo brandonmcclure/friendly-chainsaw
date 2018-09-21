@@ -1,4 +1,4 @@
-﻿function Query-SqlWithCache {
+﻿function Invoke-SqlCmdWithCache {
 <#
     .Synopsis
         Wrapper for Invoke-SQLCmd cmdlt which has some error handling, server name resolution, and optional local caching. 
@@ -67,4 +67,4 @@
   Set-LogLevel $currentLogLevel
   Write-Output $results
 
-} Export-ModuleMember -Function Query-SqlWithCache
+} Export-ModuleMember -Function Invoke-SqlCmdWithCache
