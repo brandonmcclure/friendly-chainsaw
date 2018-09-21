@@ -15,17 +15,19 @@
         Set this to a positive number to force a refreash of the local cache. 
 
      .EXAMPLE
-        Store a copy of the data locally to speed up any other queries. 
-        The local cache will be located: C:\temp\$serverName$DatabaseName_$queryHash
-        ie: (ServerDatabase_145868016216295781216920420294223571441041221777622495882505022372121155874110212)
+        
+        Store a copy of the data locally to speed up any other queries until the cached data is 5 days old.
 
-        the function will use this cache object until it is older than 1 day. 
+        The local cache will use the default $cacheDir: C:\temp\Friendly_Chainsaw\$sourceServer$sourceDatabase_$queryHash
+        ie: (ServerDatabase_145868016216295781216920420294223571441041221777622495882505022372121155874110212)
+        
+        $sqlQuery = 'Select [DateTimeColumn], [varchar100Column], [VarcharMAXColumn] from mySchema.myTable'
+        $dataAsDataTable = Query-SqlWithCache -ServerInstance $sourceServer -Database $sourceDatabase -Query $sqlQuery -cacheDays -5
          
     .INPUTS
        A sql command
     .OUTPUTS
-       A array of System.Data.DataRow. 
-       The DataRow objects will have Properties that corespond to the columns returned by your data set.  
+       An array of powershell objects  
     #>
   [CmdletBinding(SupportsShouldProcess = $true)]
   param([Parameter(Position = 0)][ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = "Warning",[string]$ServerInstance
@@ -47,13 +49,13 @@
   $fqPath = "$cacheDir$ServerInstance$($Database)_$queryHash.xml"
   if (!(Test-Path $fqPath)) {
     Write-Log "Data is not cached, loading cache. File path: $fqPath" Debug
-    $results = Invoke-SQLCmd_DataTable -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
+    $results = Invoke-SQLCmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
     $results | Export-Clixml -Path $fqPath
   }
   elseif ($(Get-ChildItem $fqPath).LastWriteTime -le (Get-Date).AddDays($cacheDays)) {
     Write-Log "Refreashing local cache. File path: $fqPath" Debug
     Remove-Item $fqPath
-    $results = Invoke-SQLCmd_DataTable -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
+    $results = Invoke-SQLCmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
     $results | Export-Clixml -Path $fqPath
   }
   else {

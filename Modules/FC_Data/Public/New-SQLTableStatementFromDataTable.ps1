@@ -1,9 +1,7 @@
 ﻿Function New-SQLTableStatementFromDataTable{
 <#
     .Synopsis
-      Updates the data source of all tables in the report and all sub reports to use the specified ODBC DSN and database. 
-
-      *NOTE* This function does not check the connection type and has not been tested on reports that do not use ODBC connections, or connections to multiple databases. Use at your own risk! 
+      Creates a MS SQL Server create table statement based on the DataTable that is passed in. It makes very limited assumptions on the data type for each column.
     .DESCRIPTION
       This function is used when we recieve our .rpt files from a vendor. The files all use ODBC conenctions to a single database, but they are pointed to the vendor's development database. Using Get-ChildITem | Open-CrystalReport | Change-CRDataSourceConnection |  Close-CrystalReport we can quickly update all the files we recieve so our developers do not need to manually update the connections for each report file. 
        
@@ -11,21 +9,41 @@
         Opens all .rpt files in C:\reportsFromVendor and all subdirectories and updates the connections to use the ODBC DSN 'devODBCConnection' and the database "DevelopmentDatabase"
 
         Get-ChildItem C:\reportsFromVendor -recurse | where {$_.Extension -eq 'rpt'} | Open-CrystalReport | Change-CRDataSourceConnection -ODBCdsnName "devODBCConnection" -databaseName "DevelopmentDatabase" |  Close-CrystalReport
+    .PARAMETER dataTable
+        Default: $Null
+        Required
+        Type: [System.Data.DataTable]
+        
+        The data table that you want to generate the create table statement for. 
+    .PARAMETER FQTableName
+        Default: $null
+        Required
+        Type: [String]
 
-    .INPUTS
-       A CrystalDecisions.CrystalReports.Engine.ReportDocument object
-       A DSN name for an ODBC connection. This does not check if the DSN is registered on the machine or is valid in any way. 
-       A database name 
-    .OUTPUTS
-       A CrystalDecisions.CrystalReports.Engine.ReportDocument object
+        The fully qualified name of the new table. Should include the schema and the table name.
+     .EXAMPLE
+        Queries a SQL server and returns a DataTable. Generate a Create table statement from the datatable you got from the $destDatabase.
+
+        $sqlQuery = 'Select [DateTimeColumn], [varchar100Column], [VarcharMAXColumn] from mySchema.myTable'
+        $dataAsDataTable = Invoke-SQLCmd_DataTable -ServerInstance $sourceServer -Database $sourceDatabase -Query $sqlQuery
+
+        $createTableScript = New-SQLTableStatementFromDataTable -dataTable $dataAsDataTable -FQTableName "myNewSchema.myNewTable"
+
+        $createTableScript will contain:
+
+        Create Table myNewSchema.myNewTable(
+            DateTimeColumn DateTime Null,
+            varchar100Column Varchar(100) null,
+            VarcharMAXColumn Varchar(max) null
+        );
+         
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(ValueFromPipeline,position=0)] $report
-,[System.Data.DataTable] $dataTable
-,[string] $FQTableName
+param([Parameter(position=0,ValueFromPipeline)][System.Data.DataTable] $dataTable
+,[Parameter(position=1)][string] $FQTableName
 )
 $SQLCreateTable = ""
-$colNames = $dataTable.Columns | sort -Property Ordinal #| select ColumnName, DataType, AllowDBNull, AutoIncrement, 
+$colNames = $dataTable.Columns | sort -Property Ordinal  
 $SQLCreateTable += "
 Create table $FQTableName (`n"
 
