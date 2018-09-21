@@ -1,4 +1,4 @@
-﻿Function Change-CRDataSourceConnection{
+﻿Function Edit-CRDataSourceConnection{
 <#
     .Synopsis
       Updates the data source of all tables in the report and all sub reports to use the specified ODBC DSN and database. 
@@ -19,7 +19,6 @@
     .OUTPUTS
        A CrystalDecisions.CrystalReports.Engine.ReportDocument object
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline,position=0)] $report
 ,[string] $ODBCdsnName = $null
 ,[string] $databaseName = $null
@@ -32,7 +31,7 @@ if ([string]::IsNullOrEmpty($ODBCdsnName)){
 if([string]::IsNullOrEmpty($databaseName)){
     Write-Log "Please pass a value to the databaseName parameter" -ErrorAction Stop
 }
-if ($report -eq $null){
+if ($null -eq $report){
     Write-Log "Invalid input object. Please pass a Crystal Report object from the Open-CrystalReport function." Error -ErrorAction Stop
 }
 $connectionInfo = $report.Database.Tables[0].LogOnInfo.ConnectionInfo;
@@ -66,4 +65,4 @@ foreach ($subReport in $report.Subreports){
 
 Write-Output $report
 
-}Export-ModuleMember -Function Change-CRDataSourceConnection
+}Export-ModuleMember -Function Edit-CRDataSourceConnection
