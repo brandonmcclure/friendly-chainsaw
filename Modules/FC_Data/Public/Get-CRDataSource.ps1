@@ -1,4 +1,4 @@
-﻿function Get-CRDataSources{
+﻿function Get-CRDataSource{
 <#
     .Synopsis
       Please give your script a brief Synopsis,
@@ -38,4 +38,4 @@ Write-Log "$PSCommandPath started at: [$([DateTime]::Now)]" Debug
 Write-Log "Do stuff here"
 
 Write-Log "$PSCommandPath ended at: [$([DateTime]::Now)]" Debug
-}
+}Export-ModuleMember -Function Get-CRDataSource
