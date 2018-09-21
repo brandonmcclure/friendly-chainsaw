@@ -49,13 +49,13 @@
   $fqPath = "$cacheDir$ServerInstance$($Database)_$queryHash.xml"
   if (!(Test-Path $fqPath)) {
     Write-Log "Data is not cached, loading cache. File path: $fqPath" Debug
-    $results = Invoke-SQLCmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
+    $results = Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
     $results | Export-Clixml -Path $fqPath
   }
   elseif ($(Get-ChildItem $fqPath).LastWriteTime -le (Get-Date).AddDays($cacheDays)) {
     Write-Log "Refreashing local cache. File path: $fqPath" Debug
     Remove-Item $fqPath
-    $results = Invoke-SQLCmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
+    $results = Invoke-Sqlcmd -ServerInstance $ServerInstance -Database $Database -Query $query -QueryTimeout 0 -ConnectionTimeout 0
     $results | Export-Clixml -Path $fqPath
   }
   else {
