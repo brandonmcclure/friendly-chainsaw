@@ -1,16 +1,16 @@
-﻿Function Get-GitBranchesWithChange{
-param([string] $filePath)
+﻿function Get-GitBranchesWithChange {
+  param([string]$filePath)
 
-$oldLocation = Get-Location
-try{
+  $oldLocation = Get-Location
+  try {
     Set-Location (Split-Path $filePath)
-    $lastMasterCommit = Get-GitLastCommit -path $filePath -masterBranch
-    $a = get-location
-    git for-each-ref --format="%(refname:short)" refs/heads | where {$_ -ne "master"}
+    $lastMasterCommit = Get-GitLastCommit -Path $filePath -masterBranch
+    $a = Get-Location
+    git for-each-ref --format="%(refname:short)" refs/heads | Where-Object { $_ -ne "master" }
     $x = 0
-}
-catch{
+  }
+  catch {
     Set-Location $oldLocation
-}
-Set-Location $oldLocation
-}Export-ModuleMember -Function Get-GitBranchesWithChange
+  }
+  Set-Location $oldLocation
+} Export-ModuleMember -Function Get-GitBranchesWithChange

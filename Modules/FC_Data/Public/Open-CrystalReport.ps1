@@ -19,7 +19,6 @@
     .LINK
        www.google.com
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline,position=0)][string]  $pathToReport = $null)
 
 if ([string]::IsNullOrEmpty($pathToReport)){

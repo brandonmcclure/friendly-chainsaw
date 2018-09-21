@@ -22,11 +22,10 @@
     .OUTPUTS
        Nothing. This should be used at the end of your Crystal Reports pipeline
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline,position=0)] $report =$null,
 [switch] $saveReport)
 
-if ($report -eq $null){
+if ($null -eq $report){
     Write-Log "Please pass a crystal report into the function" Error -ErrorAction Stop
 }
 

@@ -1,4 +1,4 @@
-﻿Function Get-GitLastCommit{
+﻿function Get-GitLastCommit {
 <#
     .Synopsis
       Returns the full SHA1 commit hash for the most recent commit of the current branch
@@ -45,45 +45,45 @@
 
         Output: 6cb5d7854d5b81b407d475972ee602de9c7ddca3
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(position=0)][string] $path = $null
-,[Parameter(position=1)][switch] $masterBranch = $false
-)
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param([Parameter(Position = 0)] [string]$path = $null
+    ,[Parameter(Position = 1)] [switch]$masterBranch = $false
+  )
 
-Write-Verbose "Current Location: $(Get-Location)"
-$oldErrorAction = $ErrorActionPreference
-$ErrorActionPreference = "Stop"
-try{
-    if (!([string]::IsNullOrEmpty($path))){
-    
-        $path = $path -replace "\\","/"
-        #This is crappy code... I was getting an error when I tried to parameterize this to allow you to specify what branch you want to get the last commit from. The error was :Path $path exists on disk but not in the index. 
-        #When I outputted the call I am making, I was able to execute it on the command line just fine. Come find out the parameter that was located where "master" or "head" are is what was causing it. For the meantime, this works for my purposes. 
-        #If theuser specifies, then get the commit from master. If not, get the commit of the current branch (HEAD)
-        if ($masterBranch){
-            Write-Verbose "git rev-parse master:""$path"""
-            $gitLogOutput = & git rev-parse master:'"'$path'"'
-        }
-        else{
-            Write-Verbose "git rev-parse head:""$path"""
-            $gitLogOutput = & git rev-parse head:'"'$path'"'
-        }
+  Write-Verbose "Current Location: $(Get-Location)"
+  $oldErrorAction = $ErrorActionPreference
+  $ErrorActionPreference = "Stop"
+  try {
+    if (!([string]::IsNullOrEmpty($path))) {
+
+      $path = $path -replace "\\","/"
+      #This is crappy code... I was getting an error when I tried to parameterize this to allow you to specify what branch you want to get the last commit from. The error was :Path $path exists on disk but not in the index. 
+      #When I outputted the call I am making, I was able to execute it on the command line just fine. Come find out the parameter that was located where "master" or "head" are is what was causing it. For the meantime, this works for my purposes. 
+      #If theuser specifies, then get the commit from master. If not, get the commit of the current branch (HEAD)
+      if ($masterBranch) {
+        Write-Verbose "git rev-parse master:""$path"""
+        $gitLogOutput = & git rev-parse master:'"'$path'"'
+      }
+      else {
+        Write-Verbose "git rev-parse head:""$path"""
+        $gitLogOutput = & git rev-parse head:'"'$path'"'
+      }
     }
-    else{
-        if ($masterBranch){
-            Write-Verbose "git rev-parse master"
-            $gitLogOutput = & git rev-parse master
-        }
-        else{
-            Write-Verbose "git rev-parse HEAD"
-            $gitLogOutput = & git rev-parse HEAD
-        }
-    
+    else {
+      if ($masterBranch) {
+        Write-Verbose "git rev-parse master"
+        $gitLogOutput = & git rev-parse master
+      }
+      else {
+        Write-Verbose "git rev-parse HEAD"
+        $gitLogOutput = & git rev-parse HEAD
+      }
+
     }
-}
-catch{
+  }
+  catch {
     $gitLogOutput = ''
-}
-$ErrorActionPreference = $oldErrorAction
-Write-Output $gitLogOutput
-}Export-Modulemember -Function Get-GitLastCommit
+  }
+  $ErrorActionPreference = $oldErrorAction
+  Write-Output $gitLogOutput
+} Export-ModuleMember -Function Get-GitLastCommit

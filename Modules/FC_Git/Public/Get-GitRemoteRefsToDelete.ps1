@@ -1,4 +1,4 @@
-﻿function Get-GitRemoteRefsToDelete{
+﻿function Get-GitRemoteRefsToDelete {
 <#
     .Synopsis
       Identifies which local git branches do not have a valid upstream branch. It does this by calling git fetch -p --dry-run
@@ -12,32 +12,32 @@
         The remote name that we are looking for when parsing out the response. IE. Which remote are we looking for deleted branches from. default is "origin"
 
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([string]$gitfetchOutputPath = "$env:TEMP\gitFetchOutput.txt"
-,[string] $remoteName = "origin")
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param([string]$gitfetchOutputPath = "$env:TEMP\gitFetchOutput.txt"
+    ,[string]$remoteName = "origin")
 
-Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+  Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
 
-if (Test-Path $gitfetchOutputPath){
+  if (Test-Path $gitfetchOutputPath) {
     Remove-Item $gitfetchOutputPath
     "" | Add-Content -Path $gitfetchOutputPath
-}
-else{
+  }
+  else {
     New-Item $gitfetchOutputPath -ItemType File | Out-Null
-}
+  }
 
-$allOutput = & git fetch -p --dry-run 2>&1
-$allOutput | ?{ $_ -is [System.Management.Automation.ErrorRecord] } | Add-Content -Path $gitfetchOutputPath
+  $allOutput = & git fetch -p --dry-run 2>&1
+  $allOutput | Where-Object { $_ -is [System.Management.Automation.ErrorRecord] } | Add-Content -Path $gitfetchOutputPath
 
-$branchName = $null
-$outBranches = @()
-foreach ($line in Get-Content $gitfetchOutputPath){
-    if ([string]::IsNullOrEmpty($line)-or ($line -notlike "*$remoteName/*") -or ($line.Substring($line.IndexOf("[")+1,7) -ne "deleted")){continue}
+  $branchName = $null
+  $outBranches = @()
+  foreach ($line in Get-Content $gitfetchOutputPath) {
+    if ([string]::IsNullOrEmpty($line) -or ($line -notlike "*$remoteName/*") -or ($line.Substring($line.IndexOf("[") + 1,7) -ne "deleted")) { continue }
     Write-Log "Parsing the line: $line" Debug
-    
-    $branchName = $line.Substring($line.IndexOf("$remoteName/")+7)
-    $outBranches += $branchName
-}
 
-Write-Output $outBranches
-}export-modulemember -Function Get-GitRemoteRefsToDelete
+    $branchName = $line.Substring($line.IndexOf("$remoteName/") + 7)
+    $outBranches += $branchName
+  }
+
+  Write-Output $outBranches
+} Export-ModuleMember -Function Get-GitRemoteRefsToDelete

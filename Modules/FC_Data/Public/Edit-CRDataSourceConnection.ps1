@@ -1,4 +1,4 @@
-﻿Function Change-CRDataSourceConnection{
+﻿function Edit-CRDataSourceConnection {
 <#
     .Synopsis
       Updates the data source of all tables in the report and all sub reports to use the specified ODBC DSN and database. 
@@ -19,51 +19,50 @@
     .OUTPUTS
        A CrystalDecisions.CrystalReports.Engine.ReportDocument object
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(ValueFromPipeline,position=0)] $report
-,[string] $ODBCdsnName = $null
-,[string] $databaseName = $null
-)
-Load-CrystalDecisionAssemblies
+  param([Parameter(ValueFromPipeline,Position = 0)] $report
+    ,[string]$ODBCdsnName = $null
+    ,[string]$databaseName = $null
+  )
+  Load-CrystalDecisionAssemblies
 
-if ([string]::IsNullOrEmpty($ODBCdsnName)){
+  if ([string]::IsNullOrEmpty($ODBCdsnName)) {
     Write-Log "Please pass a value to the ODBCdsnName parameter" -ErrorAction Stop
-}
-if([string]::IsNullOrEmpty($databaseName)){
+  }
+  if ([string]::IsNullOrEmpty($databaseName)) {
     Write-Log "Please pass a value to the databaseName parameter" -ErrorAction Stop
-}
-if ($report -eq $null){
+  }
+  if ($null -eq $report) {
     Write-Log "Invalid input object. Please pass a Crystal Report object from the Open-CrystalReport function." Error -ErrorAction Stop
-}
-$connectionInfo = $report.Database.Tables[0].LogOnInfo.ConnectionInfo;
-$connectionInfo.ServerName = $ODBCdsnName
-$connectionInfo.DatabaseName = $databaseName
-$connectionInfo.IntegratedSecurity = $false
+  }
+  $connectionInfo = $report.Database.Tables[0].LogOnInfo.ConnectionInfo;
+  $connectionInfo.ServerName = $ODBCdsnName
+  $connectionInfo.DatabaseName = $databaseName
+  $connectionInfo.IntegratedSecurity = $false
 
-$tableLogOnInfo = New-Object CrystalDecisions.Shared.TableLogOnInfo 
-$tableLogOnInfo.ConnectionInfo = $connectionInfo
+  $tableLogOnInfo = New-Object CrystalDecisions.Shared.TableLogOnInfo
+  $tableLogOnInfo.ConnectionInfo = $connectionInfo
 
-Write-Log "Setting the connection at the report level"
-$report.DataSourceConnections[0].SetConnection($ODBCdsnName, $databaseName, $true)
+  Write-Log "Setting the connection at the report level"
+  $report.DataSourceConnections[0].SetConnection($ODBCdsnName,$databaseName,$true)
 
-Write-Log "There are $($report.Database.Tables | Measure-Object | Select -ExpandProperty Count) tables in the base report"
-foreach ($table in $report.Database.Tables){
- 
+  Write-Log "There are $($report.Database.Tables | Measure-Object | Select -ExpandProperty Count) tables in the base report"
+  foreach ($table in $report.Database.Tables) {
+
     Write-Log "Setting the connection for the $($table.Name) table"
     $table.ApplyLogOnInfo($tableLogOnInfo)
 
-}
+  }
 
-Write-Log "There are $($report.Subreports | Measure-Object | Select -ExpandProperty Count) subreports in the base report"
-foreach ($subReport in $report.Subreports){
+  Write-Log "There are $($report.Subreports | Measure-Object | Select -ExpandProperty Count) subreports in the base report"
+  foreach ($subReport in $report.Subreports) {
     Write-Log "Setting the connections for the $($subReport.Name) subreport"
     Write-Log "There are $($subReport.Database.Tables | Measure-Object | Select -ExpandProperty Count) tables in the subreport report"
-    foreach ($table in $subReport.Database.Tables){
-        Write-Log "Setting the connection for the $($table.Name) table" -tabLevel 1
-        $table.ApplyLogOnInfo($tableLogOnInfo)
+    foreach ($table in $subReport.Database.Tables) {
+      Write-Log "Setting the connection for the $($table.Name) table" -tabLevel 1
+      $table.ApplyLogOnInfo($tableLogOnInfo)
     }
-}
+  }
 
-Write-Output $report
+  Write-Output $report
 
-}Export-ModuleMember -Function Change-CRDataSourceConnection
+} Export-ModuleMember -Function Edit-CRDataSourceConnection

@@ -1,4 +1,4 @@
-﻿Function Load-CrystalDecisionAssemblies{
+﻿Function Invoke-CrystalDecisionAssembliesLoad{
 try{
     Write-Log "loading CrystalDecisions assemblies that we need" Debug
 [System.Reflection.Assembly]::LoadWithPartialName("CrystalDecisions.CrystalReports.Engine") | Out-Null
@@ -7,4 +7,4 @@ try{
 catch{
     Write-Log "Could not load the needed assemblies... TODO: Figure out and document how to install the needed assemblies. (I would start with the SQL feature pack)" Error -ErrorAction Stop
 }
-}Export-ModuleMember -Function Load-CrystalDecisionAssemblies
+}Export-ModuleMember -Function Invoke-CrystalDecisionAssembliesLoad

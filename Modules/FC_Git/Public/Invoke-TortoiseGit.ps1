@@ -1,4 +1,4 @@
-﻿Function Invoke-TortoiseGit{
+﻿function Invoke-TortoiseGit {
 <#
     .SYNOPSIS
         Runs tortoiseGit UI from command line. View the TortoiseGit help documentation by running one of the following:
@@ -31,23 +31,23 @@
     .LINKS
         https://ayende.com/blog/4749/executing-tortoisegit-from-the-command-line
 #>
-param([Parameter(position=0)] $cmd,
-[Parameter(position=1)] $path
-)
-        $tGitPath = 'TortoiseGitProc.exe'
-    
-        if ([string]::IsNullOrEmpty($cmd)){
-            & $tGitPath /command:help /path:.
-        }
-        else{
-            if ([string]::IsNullOrEmpty($path)){
-                & $tGitPath /command:$cmd /path:.
-            }
-            else{
-                Write-log "Path: $path" Debug
-                & $tGitPath /command:$cmd /path:$path
-            }
-        }
+  param([Parameter(Position = 0)] $cmd,
+    [Parameter(Position = 1)] $path
+  )
+  $tGitPath = 'TortoiseGitProc.exe'
+
+  if ([string]::IsNullOrEmpty($cmd)) {
+    & $tGitPath /command:help /path:.
+  }
+  else {
+    if ([string]::IsNullOrEmpty($path)) {
+      & $tGitPath /command:$cmd /path:.
+    }
+    else {
+      Write-Log "Path: $path" Debug
+      & $tGitPath /command:$cmd /path:$path
+    }
+  }
 
 
-}Export-ModuleMember -Function Invoke-TortoiseGit -Alias tGit
+} Export-ModuleMember -Function Invoke-TortoiseGit -Alias tGit

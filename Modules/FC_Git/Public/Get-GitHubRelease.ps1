@@ -1,4 +1,4 @@
-﻿Function Get-GitHubRelease{
+﻿function Get-GitHubRelease {
 <#
 Write-Log "Current location: $(Get-Location)" Debug
     .Synopsis
@@ -18,63 +18,63 @@ Write-Log "Current location: $(Get-Location)" Debug
     .LINK
        I followed this gist to write this script - https://gist.github.com/MarkTiedemann/c0adc1701f3f5c215fc2c2d5b1d5efd3#file-download-latest-release-ps1-L9
     #>
-[CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Warning"
-,[switch] $winEventLog
-,[string] $repo = $null
-,[string] $fileFormat = $null
-,[string] $tag
-,[switch] $forceDownload
-,[switch] $cleanupLocalFiles)
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param([Parameter(Position = 0)][ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = "Warning"
+    ,[switch]$winEventLog
+    ,[string]$repo = $null
+    ,[string]$fileFormat = $null
+    ,[string]$tag
+    ,[switch]$forceDownload
+    ,[switch]$cleanupLocalFiles)
 
-$currentLogLevel = Get-LogLevel
-if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
-Set-LogLevel $logLevel
-Set-logTargetWinEvent $winEventLog
+  $currentLogLevel = Get-LogLevel
+  if ([string]::IsNullOrEmpty($logLevel)) { $logLevel = "Info" }
+  Set-LogLevel $logLevel
+  Set-logTargetWinEvent $winEventLog
 
-try{    
-    $releases = "https://api.github.com/repos/$repo/releases" 
- 
-    if ([String]::IsNullOrEmpty($tag)){
-        Write-Log "No tag specified, determining latest release for the $repo repository"
-        $tag = (Invoke-WebRequest $releases -ErrorAction Stop | ConvertFrom-Json)[0].tag_name 
+  try {
+    $releases = "https://api.github.com/repos/$repo/releases"
+
+    if ([string]::IsNullOrEmpty($tag)) {
+      Write-Log "No tag specified, determining latest release for the $repo repository"
+      $tag = (Invoke-WebRequest $releases -ErrorAction Stop | ConvertFrom-Json)[0].tag_name
     }
- 
-    $name1 = $fileFormat.Split("0")[0] 
-    $name2 = $fileFormat.Split("0")[1].Split(".")[0] 
-    $ext = $fileFormat.Split("0")[1].Split(".")[1] 
-    $zip = "$name1$tag$name2.$ext" 
-    $dir = "$name1$tag$name2" 
 
-    $download = "https://github.com/$repo/releases/download/$tag/$zip" 
+    $name1 = $fileFormat.Split("0")[0]
+    $name2 = $fileFormat.Split("0")[1].Split(".")[0]
+    $ext = $fileFormat.Split("0")[1].Split(".")[1]
+    $zip = "$name1$tag$name2.$ext"
+    $dir = "$name1$tag$name2"
+
+    $download = "https://github.com/$repo/releases/download/$tag/$zip"
     Write-Log "Will download the file: $download" Debug
-    
+
     $localDownloadDir = "$env:TEMP\$dir"
     Write-Log "Into $localDownloadDir" Debug
-    if (!(Test-Path $localDownloadDir)){
-        Write-Log "Creating the directory to hold the release file"
-        Mkdir $localDownloadDir
+    if (!(Test-Path $localDownloadDir)) {
+      Write-Log "Creating the directory to hold the release file"
+      mkdir $localDownloadDir
     }
-    if (!(Test-Path "$localDownloadDir\$zip") -or $forceDownload){
-        Write-Log "Dowloading the release taged as $tag"
-        Invoke-WebRequest $download -Out "$localDownloadDir\$zip"
+    if (!(Test-Path "$localDownloadDir\$zip") -or $forceDownload) {
+      Write-Log "Dowloading the release taged as $tag"
+      Invoke-WebRequest $download -Out "$localDownloadDir\$zip"
     }
-    else{
-        Write-Log "file already exists on your PC. Skipping download."
+    else {
+      Write-Log "file already exists on your PC. Skipping download."
     }
-}
-catch{
-    if ((Test-Path $localDownloadDir) -and $cleanupLocalFiles){
-        rm $localDownloadDir
+  }
+  catch {
+    if ((Test-Path $localDownloadDir) -and $cleanupLocalFiles) {
+      rm $localDownloadDir
     }
     Set-LogLevel $currentLogLevel
-}
+  }
 
-if ((Test-Path $localDownloadDir) -and $cleanupLocalFiles){
+  if ((Test-Path $localDownloadDir) -and $cleanupLocalFiles) {
     rm $localDownloadDir
-}
-Set-LogLevel $currentLogLevel
+  }
+  Set-LogLevel $currentLogLevel
 
-Write-Output "$localDownloadDir\$zip"
+  Write-Output "$localDownloadDir\$zip"
 
 } Export-ModuleMember -Function Get-GitHubRelease
