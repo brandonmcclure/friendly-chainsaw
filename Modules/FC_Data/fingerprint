@@ -28,6 +28,7 @@ Change-CRDataSourceConnection:cf
 Change-CRDataSourceConnection:WhatIf
 Change-CRDataSourceConnection:wi
 Close-CrystalReport:report
+Close-CrystalReport:saveReport
 Close-CrystalReport:ErrorAction
 Close-CrystalReport:ea
 Close-CrystalReport:WarningAction
