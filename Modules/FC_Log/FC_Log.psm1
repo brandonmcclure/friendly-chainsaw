@@ -1,4 +1,4 @@
-﻿$script:logLevelOptions = @{"Debug" = 0; "Info" = 10; "Warning" = 20; "Error" = 30; "Disable" = 100} 
+﻿$script:logLevelOptions = @{"Debug" = 0;"Verbose" = 5; "Info" = 10; "Warning" = 20; "Error" = 30; "Disable" = 100} 
 $script:LogSource = "FC Powershell Scripts"
 $script:logTargetFileDir = "logs\$($env:computername)\$(Get-Date -f yyyy-MM-dd)\"
 $script:logTargetFileName = $null

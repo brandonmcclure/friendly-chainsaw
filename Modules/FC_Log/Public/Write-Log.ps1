@@ -32,7 +32,7 @@
   [CmdletBinding()]
   param(
     [Parameter(ValueFromPipeline = $True,Position = 0)] [string]$Message = "",
-    [Parameter(Position = 1)][ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$EventLevel = "Info",
+    [Parameter(Position = 1)][ValidateSet("Debug","Verbose","Info","Warning","Error","Disable")] [string]$EventLevel = "Info",
     [Parameter(Position = 2)] [int]$eventID = 10,
     [Parameter(Position = 3)] [int]$tabLevel = 0
 
@@ -75,7 +75,8 @@
       Write-Debug "$Message"
     }
     else {
-      Write-Information "$FormatMessage" -ForegroundColor Cyan
+        $VerbosePreference = 'Continue'
+      Write-Verbose "$FormatMessage"
     }
     if ($script:logTargetWinEvent -eq 1) {
       Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
@@ -85,6 +86,20 @@
 
 
   }
+  #Verbose Messages
+  elseif ($messageLevel -eq 5 -and $script:LogLevel -le 5){
+    if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
+      $FormatMessage = "$tabs$timeStamp[$callingFunction] $Message"
+    }
+    else {
+      $FormatMessage = "$tabs$timeStamp $Message"
+    }
+    $VerbosePreference = 'Continue'
+      Write-Verbose "$FormatMessage"
+       if ($script:logTargetWinEvent -eq 1) {
+      Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
+    }
+  }
   #Info Messages
   elseif ($messageLevel -eq 10 -and $script:LogLevel -le 10) {
     if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
@@ -93,12 +108,8 @@
     else {
       $FormatMessage = "$tabs$timeStamp$Message"
     }
-    if ($VerbosePreference -eq 'Continue') {
-      Write-Verbose "$FormatMessage"
-    }
-    else {
-      Write-Information "$FormatMessage" -ForegroundColor Green
-    }
+      $InformationPreference = 'Continue'  
+      Write-Information $FormatMessage
     if ($script:logTargetWinEvent -eq 1) {
       Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
     }
