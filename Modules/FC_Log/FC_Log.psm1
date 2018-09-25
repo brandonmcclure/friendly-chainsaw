@@ -3,12 +3,9 @@ $script:LogSource = "FC Powershell Scripts"
 $script:logTargetFileDir = "logs\$($env:computername)\$(Get-Date -f yyyy-MM-dd)\"
 $script:logTargetFileName = $null
 $script:logLevel = 10
-$script:logTargetConsole = 1
-$script:logTargetFile = 0
-$script:logTargetWinEvent = 0
 
 $script:logFormattingOptions = @{"PrefixCallingFunction" = 0; "AutoTabCallsFromFunctions" = 0; "PrefixTimestamp" = 0} 
-$script:logTargets = @{"Console" = 1; "WindowsEventLog" = 0; "File" =0; "Speech" = 1}
+$script:logTargets = @{"Console" = 1; "WindowsEventLog" = 0; "File" =0; "Speech" = 0}
 Write-Verbose "Importing Functions" 
  
 # Import everything in sub folders folder 
