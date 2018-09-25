@@ -8,7 +8,7 @@ $script:logTargetFile = 0
 $script:logTargetWinEvent = 0
 
 $script:logFormattingOptions = @{"PrefixCallingFunction" = 0; "AutoTabCallsFromFunctions" = 0; "PrefixTimestamp" = 0} 
-
+$script:logTargets = @{"Console" = 1; "WindowsEventLog" = 0; "File" =0; "Speech" = 1}
 Write-Verbose "Importing Functions" 
  
 # Import everything in sub folders folder 

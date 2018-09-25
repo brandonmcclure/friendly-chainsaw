@@ -80,10 +80,11 @@
     if ($script:logTargetWinEvent -eq 1) {
       Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
     }
-
-
-
-
+    if ($script:logTargets['Speech'] -eq 1){
+        Add-Type -AssemblyName System.speech
+        $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
+        $speak.Speak($Message)
+    }
   }
   #Info Messages
   elseif ($messageLevel -eq 10 -and $script:LogLevel -le 10) {
@@ -103,7 +104,11 @@
       Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
     }
 
-
+    if ($script:logTargets['Speech'] -eq 1){
+        Add-Type -AssemblyName System.speech
+        $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
+        $speak.Speak($Message)
+    }
 
   }
   #Warning Messages
@@ -119,7 +124,11 @@
       Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Warning" -EventId $eventID -Message "$FormatMessage"
     }
 
-
+    if ($script:logTargets['Speech'] -eq 1){
+        Add-Type -AssemblyName System.speech
+        $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
+        $speak.Speak($Message)
+    }
 
   }
   #Error Messages
@@ -134,7 +143,11 @@
     if ($script:logTargetWinEvent -eq 1) {
       Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Error" -EventId $eventID -Message "$FormatMessage"
     }
-
+    if ($script:logTargets['Speech'] -eq 1){
+        Add-Type -AssemblyName System.speech
+        $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
+        $speak.Speak($Message)
+    }
 
 
   }
