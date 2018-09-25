@@ -1,5 +1,3 @@
-AssistDataImport:a
-AssistDataImport:dataAsDataTable
 Close-CrystalReport:report
 Close-CrystalReport:saveReport
 Close-CrystalReport:ErrorAction
@@ -329,6 +327,8 @@ Out-DataTable:PipelineVariable
 Out-DataTable:pv
 Request-JobStatus:nameLike
 Request-JobStatus:clearFailed
+SetDataImportSQLMetadata:a
+SetDataImportSQLMetadata:dataAsDataTable
 Start-MySQLQueryJob:JobSuffix
 Start-MySQLQueryJob:sqlServer
 Start-MySQLQueryJob:sqlDatabase
