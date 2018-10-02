@@ -1,27 +1,33 @@
 ﻿function Set-logTargets{
 <#
     .Synopsis
-       Turns on or off the formatting options for the FC_log module. This controls how Write-Log formats the messages it logs.
+       Turns on or off the targets for the FC_log module. This controls where Write-Log logs the messages.
 	.Description
         This function only needs to be called once at the start of the script. You can set some or all of the options by only passing the parameters that correspond to the formatting option you want to enable.
-	.PARAMETER PrefixCallingFunction
+	.PARAMETER Console
         Default: -1
         Position: 0
 
-		When set to 1, Write-Log will format the message to include the calling function in the message. This is helpful when reading log output to help determine where the log message came from.
-        When set to 0, it will explicitly turn off that formatting 
-	.PARAMETER AutoTabCallsFromFunctions
+		When set to 1, Write-Log will Send the log to the Information/Debug/Verbose/Warning/Error streams. By default, this is on. 
+        When set to 0, it will explicitly turn off that target
+	.PARAMETER WindowsEventLog
         Default: -1
         Position: 1
 		
-        When set to 1, Write-Log will format the message to place 5 spaces at the front to form a graphical indicator of which functions are nested within each other.
-        When set to 0, it will explicitly turn off that formatting
-	.PARAMETER PrefixTimestamp
+        When set to 1, Write-Log will Send the log to the windows event log. It will use the $script:LogSource value as set in FC_Log.psm1
+        When set to 0, it will explicitly turn off that target
+	.PARAMETER File
         Default: -1
         Position:  2
 
-		When set to 1, Write-Log will format the message to place the contents of Get-Date at the front of the message. There is no control over the formatting of the date.
-        When set to 0, it will explicitly turn off that formatting 
+		When set to 1, Write-Log will send the log message to a file
+        When set to 0, it will explicitly turn off that target
+	.PARAMETER Speech
+        Default: -1
+        Position:  2
+
+		When set to 1, Write-Log will use microsoft's speech synthesis to speek the message to you. 
+        When set to 0, it will explicitly turn off that target
 
 
     #>
