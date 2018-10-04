@@ -16,9 +16,10 @@ where obj.name = '$($a.tableName)';"
     $a.sqlCommand = $SQLCreateTable
     $a.ImportSummary.DoesTableNeedToBeCreated = 1
     #Add the XML needed to add these tables to a SSDT database project. IE, We can copy and paste this output into ClarityCustom so that these tables are part of the proper Clarity_Custom database
-    $a.sqlprojIncludes += "    <Build Include=`"$schemaName\Tables\$tableName.sql`" />"
+    $a.sqlprojIncludes += "    <Build Include=`"$schemaName\Tables\$($a.FQTableName).sql`" />"
 
-    $a.fileHTMLReport += "Table does not exist for $tableName. Will create with the SQL below."
+
+    $a.fileHTMLReport += "Table does not exist for $([System.Web.HttpUtility]::HtmlEncode($a.FQTableName)). Will create with the SQL below.<br>Include the following in the database project file<br><code><pre>$([System.Web.HttpUtility]::HtmlEncode($a.sqlprojIncludes))</pre></code>"
   }
   #else, check to see if we need to add any columns
   else {

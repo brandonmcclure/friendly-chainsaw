@@ -45,7 +45,7 @@
       $sheet = $wb.Sheets.Item($WorksheetName)
     }
     if (-not $sheet) {
-      Write-Log "Unable to open worksheet $WorksheetName" Error -ErrorAction Stop
+      Write-Log "Unable to open worksheet $sheet" Error -ErrorAction Stop
     }
     $n = [io.path]::GetFileNameWithoutExtension($excelFilePath) + "_" + $sheet.Name
     $savePath = "$csvLoc\$n.txt"
