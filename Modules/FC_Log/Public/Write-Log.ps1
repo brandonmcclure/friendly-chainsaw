@@ -82,19 +82,19 @@
         else {
           $FormatMessage = "$tabs$timeStamp[DEBUG] $msg"
         }
-
-        if ($DebugPreference -eq "Inquire" -or $DebugPreference -eq "Continue") {
-          Write-Debug "$msg"
-        }
-        else {
-          $VerbosePreference = 'Continue'
-          Write-Verbose "$FormatMessage"
+        if ($script:logTargets['Console'] -eq 1){
+            if ($DebugPreference -eq "Inquire" -or $DebugPreference -eq "Continue") {
+              Write-Debug "$msg"
+            }
+            else {
+              $VerbosePreference = 'Continue'
+              Write-Verbose "$FormatMessage"
+            }
         }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
         }
         if ($script:logTargets['Speech'] -eq 1) {
-          Add-Type -AssemblyName System.speech
           $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
           $speak.Speak($msg)
         }
@@ -107,13 +107,15 @@
         else {
           $FormatMessage = "$tabs$timeStamp $msg"
         }
-        $VerbosePreference = 'Continue'
-        Write-Verbose "$FormatMessage"
+        if ($script:logTargets['Console'] -eq 1){
+            $VerbosePreference = 'Continue'
+            Write-Verbose "$FormatMessage"
+        }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
         }
         if ($script:logTargets['Speech'] -eq 1) {
-          Add-Type -AssemblyName System.speech
+          
           $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
           $speak.Speak($msg)
         }
@@ -126,8 +128,10 @@
         else {
           $FormatMessage = "$tabs$timeStamp$msg"
         }
-        $InformationPreference = 'Continue'
-        Write-Information $FormatMessage
+        if ($script:logTargets['Console'] -eq 1){
+            $InformationPreference = 'Continue'
+            Write-Information $FormatMessage
+        }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
         }
@@ -146,13 +150,14 @@
         else {
           $FormatMessage = "$tabs$timeStamp[WARNING] $msg"
         }
-        Write-Warning "$FormatMessage"
+        if ($script:logTargets['Console'] -eq 1){
+            Write-Warning "$FormatMessage"
+        }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Warning" -EventId $eventID -Message "$FormatMessage"
         }
 
         if ($script:logTargets['Speech'] -eq 1) {
-          Add-Type -AssemblyName System.speech
           $speak = New-Object System.Speech.Synthesis.SpeechSynthesizer
           $speak.Speak($msg)
         }
@@ -166,7 +171,9 @@
         else {
           $FormatMessage = "$tabs$timeStamp$msg"
         }
-        Write-Error "$FormatMessage"
+        if ($script:logTargets['Console'] -eq 1){
+            Write-Error "$FormatMessage"
+        }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Error" -EventId $eventID -Message "$FormatMessage"
         }

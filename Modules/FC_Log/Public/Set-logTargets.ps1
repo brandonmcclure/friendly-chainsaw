@@ -47,5 +47,6 @@
     }
     if ($Speech -eq 1 -or $Speech -eq 0){
         $script:logTargets['Speech'] = $Speech
+        Add-Type -AssemblyName System.speech
     }
 }export-modulemember -Function Set-logTargets
