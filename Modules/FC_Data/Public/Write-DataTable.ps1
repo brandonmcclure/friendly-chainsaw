@@ -13,12 +13,18 @@ None
     $dt = Invoke-Sqlcmd2 -ServerInstance "Z003\R2" -Database pubs "select *  from authors" 
     Write-DataTable -ServerInstance "Z003\R2" -Database pubscopy -TableName authors -Data $dt 
     This example loads a variable dt of type DataTable from query and write the datatable to another database 
+.PARAMETER BatchSize
+    Default: 5000 
+    Optional
+
+    If set to a value greater than 0, will set the BatchSize of the BulkCopy object. If set to 0 (or less) then it will default to the unlimited batch size, which may cause memory issues on your machine depending on your data and your computer. 
 .NOTES 
     Write-DataTable uses the SqlBulkCopy class see links for additional information on this class. 
     Version History 
     v1.0   - Chad Miller - Initial release 
     v1.1   - Chad Miller - Fixed error message 
-    V2.0   - Brandon McClure - Refactor to use PSCredential instead of plaintext username and passwords. 
+    V2.0   - Brandon McClure - Refactor to use PSCredential instead of plaintext username and passwords.
+    v2.1   - Brandon McClure - If batch size is not passed, use the default (unlimited) batch size for the bulk copy  
 .LINK 
     http://msdn.microsoft.com/en-us/library/30c3y597%28v=VS.90%29.aspx 
     https://gallery.technet.microsoft.com/ScriptCenter/2fdeaf8d-b164-411c-9483-99413d6053ae/
@@ -28,9 +34,9 @@ None
     [Parameter(Position = 0,Mandatory = $true)] [string]$ServerInstance,
     [Parameter(Position = 1,Mandatory = $true)] [string]$Database,
     [Parameter(Position = 2,Mandatory = $true)] [string]$TableName,
-    [Parameter(Position = 3,Mandatory = $true,ValueFromPipeline)][System.Data.DataTable] $Data,
-    [Parameter(Position = 4,Mandatory = $false)] [PSCredential]$databaseCredentials,
-    [Parameter(Position = 5,Mandatory = $false)] [int32]$BatchSize = 50000,
+    [Parameter(Position = 3,Mandatory = $true,ValueFromPipeline)] [System.Data.DataTable]$Data,
+    [Parameter(Position = 4,Mandatory = $false)] [pscredential]$databaseCredentials,
+    [Parameter(Position = 5,Mandatory = $false)] [int32]$BatchSize = 5000,
     [Parameter(Position = 6,Mandatory = $false)] [int32]$QueryTimeout = 0,
     [Parameter(Position = 7,Mandatory = $false)] [int32]$ConnectionTimeout = 15
   )
@@ -49,7 +55,9 @@ None
     $conn.Open()
     $bulkCopy = New-Object ("Data.SqlClient.SqlBulkCopy") $connectionString
     $bulkCopy.DestinationTableName = $tableName
-    $bulkCopy.BatchSize = $BatchSize
+    if ($BatchSize -gt 0) {
+      $bulkCopy.BatchSize = $BatchSize
+    }
     $bulkCopy.BulkCopyTimeout = $QueryTimeOut
     $bulkCopy.WriteToServer($Data)
     $conn.Close()
