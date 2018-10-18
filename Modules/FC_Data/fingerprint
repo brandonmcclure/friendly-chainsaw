@@ -1,3 +1,5 @@
+AssistDataImport:a
+AssistDataImport:dataAsDataTable
 Close-CrystalReport:report
 Close-CrystalReport:saveReport
 Close-CrystalReport:ErrorAction
@@ -74,6 +76,12 @@ Export-CRMetadata:OutBuffer
 Export-CRMetadata:ob
 Export-CRMetadata:PipelineVariable
 Export-CRMetadata:pv
+Export-DBObjects:server
+Export-DBObjects:dbname
+Export-DBObjects:objToScript
+Export-DBObjects:schemaNames
+Export-DBObjects:ObjectNames
+Export-DBObjects:SavePath
 Export-ExcelToTxt:excelFilePath
 Export-ExcelToTxt:WorksheetName
 Export-ExcelToTxt:csvLoc
