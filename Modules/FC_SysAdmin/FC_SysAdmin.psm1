@@ -80,3 +80,8 @@ do {
 
 
 } Export-ModuleMember -Function Remove-FilesOlderThan
+
+Function Get-UserLoggedOn{
+    param($computerName = $env:COMPUTERNAME)
+    Write-Output (Invoke-Command -ComputerName $computerName -ScriptBlock {Get-Process -IncludeUserName | Where  name -eq "explorer" | Select-Object -Unique -Property UserName} )
+}Export-ModuleMember -Function Get-UserLoggedOn
