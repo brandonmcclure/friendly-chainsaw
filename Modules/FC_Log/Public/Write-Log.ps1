@@ -57,6 +57,10 @@
     Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
 
     $tabs = ''
+    if ($script:logFormattingOptions['PrefixScriptName'] -eq 1) {
+      $scriptName = Get-PSCallStack | Select-Object -Skip 1 -First 1 | Where-Object { $_.FunctionName -eq '<ScriptBlock>' } | select -ExpandProperty Command
+      $x = 0;
+    }
     if ($script:logFormattingOptions['AutoTabCallsFromFunctions'] -eq 1) {
       $callingFunction = (Get-PSCallStack | Select-Object FunctionName -Skip 1 -First 1).FunctionName | Where-Object { $_ -ne '<ScriptBlock>' }
       if (!([string]::IsNullOrEmpty($callingFunction))) {
@@ -77,7 +81,10 @@
       #Debug Messages
       if ($msgLevel -eq 0 -and $script:LogLevel -eq 0) {
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
-          $FormatMessage = "$tabs$timeStamp[$callingFunction][DEBUG] $msg"
+            $FormatMessage = "$tabs$timeStamp[$callingFunction][DEBUG] $msg"
+        }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName][DEBUG] $msg"
         }
         else {
           $FormatMessage = "$tabs$timeStamp[DEBUG] $msg"
@@ -104,6 +111,9 @@
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
           $FormatMessage = "$tabs$timeStamp[$callingFunction] $msg"
         }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName] $msg"
+        }
         else {
           $FormatMessage = "$tabs$timeStamp $msg"
         }
@@ -122,6 +132,9 @@
       elseif ($msgLevel -eq 10 -and $script:LogLevel -le 10) {
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
           $FormatMessage = "$tabs$timeStamp[$callingFunction] $msg"
+        }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName] $msg"
         }
         else {
           $FormatMessage = "$tabs$timeStamp$msg"
@@ -143,6 +156,9 @@
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
           $FormatMessage = "$tabs$timeStamp[$callingFunction][WARNING] $msg"
         }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName][WARNING] $msg"
+        }
         else {
           $FormatMessage = "$tabs$timeStamp[WARNING] $msg"
         }
@@ -162,6 +178,9 @@
       elseif ($msgLevel -eq 30 -and $script:LogLevel -le 30) {
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
           $FormatMessage = "$tabs$timeStamp[$callingFunction] $msg"
+        }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName] $msg"
         }
         else {
           $FormatMessage = "$tabs$timeStamp$msg"
