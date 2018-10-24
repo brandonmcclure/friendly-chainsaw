@@ -26,6 +26,7 @@ Get-CallerPreference:pv
 Set-LogFormattingOptions:PrefixCallingFunction
 Set-LogFormattingOptions:AutoTabCallsFromFunctions
 Set-LogFormattingOptions:PrefixTimestamp
+Set-LogFormattingOptions:PrefixScriptName
 Set-LogFormattingOptions:ErrorAction
 Set-LogFormattingOptions:ea
 Set-LogFormattingOptions:WarningAction
