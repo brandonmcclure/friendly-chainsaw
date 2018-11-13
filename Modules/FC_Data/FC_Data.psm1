@@ -5,7 +5,7 @@ $script:SSISLogLevels = @{ "None" = 0; "Basic" = 1; "Performance" = 2; "Verbose"
 
 class iDataImport{
     [boolean]$ErrorExists
-    [Exception]$ErrorException
+    [System.Management.Automation.ErrorRecord]$ErrorException
     [int]$ErrorLine
     [string]$ErrorMessage
 }

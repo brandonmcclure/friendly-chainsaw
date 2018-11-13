@@ -3,6 +3,7 @@
     $a
     ,[System.Data.DataTable]$dataAsDataTable
   )
+  Add-Type -AssemblyName System.Web
   $metaDataSQL = "Select count(*) 'cnt' from sys.objects obj
   inner join sys.schemas sch on obj.schema_id = sch.schema_id and sch.name = '$($a.schemaName)'
 where obj.name = '$($a.tableName)';"
