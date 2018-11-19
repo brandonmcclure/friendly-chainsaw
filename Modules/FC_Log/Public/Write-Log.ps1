@@ -57,6 +57,10 @@
     Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
 
     $tabs = ''
+    if ($script:logFormattingOptions['PrefixScriptName'] -eq 1) {
+      $scriptName = Get-PSCallStack | Select-Object -Skip 1 -First 1 | Where-Object { $_.FunctionName -eq '<ScriptBlock>' } | select -ExpandProperty Command
+      $x = 0;
+    }
     if ($script:logFormattingOptions['AutoTabCallsFromFunctions'] -eq 1) {
       $callingFunction = (Get-PSCallStack | Select-Object FunctionName -Skip 1 -First 1).FunctionName | Where-Object { $_ -ne '<ScriptBlock>' }
       if (!([string]::IsNullOrEmpty($callingFunction))) {
@@ -77,18 +81,23 @@
       #Debug Messages
       if ($msgLevel -eq 0 -and $script:LogLevel -eq 0) {
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
-          $FormatMessage = "$tabs$timeStamp[$callingFunction][DEBUG] $msg"
+            $FormatMessage = "$tabs$timeStamp[$callingFunction][DEBUG] $msg"
+        }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName][DEBUG] $msg"
         }
         else {
           $FormatMessage = "$tabs$timeStamp[DEBUG] $msg"
         }
 
-        if ($DebugPreference -eq "Inquire" -or $DebugPreference -eq "Continue") {
-          Write-Debug "$msg"
-        }
-        else {
-          $VerbosePreference = 'Continue'
-          Write-Verbose "$FormatMessage"
+        if($script:logTargets['Console'] -eq 1){
+            if ($DebugPreference -eq "Inquire" -or $DebugPreference -eq "Continue") {
+              Write-Debug "$msg"
+            }
+            else {
+              $VerbosePreference = 'Continue'
+              Write-Verbose "$FormatMessage"
+            }
         }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
@@ -104,11 +113,16 @@
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
           $FormatMessage = "$tabs$timeStamp[$callingFunction] $msg"
         }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName] $msg"
+        }
         else {
           $FormatMessage = "$tabs$timeStamp $msg"
         }
-        $VerbosePreference = 'Continue'
-        Write-Verbose "$FormatMessage"
+        if($script:logTargets['Console'] -eq 1){
+            $VerbosePreference = 'Continue'
+            Write-Verbose "$FormatMessage"
+        }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
         }
@@ -123,11 +137,16 @@
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
           $FormatMessage = "$tabs$timeStamp[$callingFunction] $msg"
         }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName] $msg"
+        }
         else {
           $FormatMessage = "$tabs$timeStamp$msg"
         }
-        $InformationPreference = 'Continue'
-        Write-Information $FormatMessage
+        if($script:logTargets['Console'] -eq 1){
+            $InformationPreference = 'Continue'
+            Write-Information $FormatMessage
+        }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
         }
@@ -143,10 +162,15 @@
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
           $FormatMessage = "$tabs$timeStamp[$callingFunction][WARNING] $msg"
         }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName][WARNING] $msg"
+        }
         else {
           $FormatMessage = "$tabs$timeStamp[WARNING] $msg"
         }
-        Write-Warning "$FormatMessage"
+        if($script:logTargets['Console'] -eq 1){
+            Write-Warning "$FormatMessage"
+        }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Warning" -EventId $eventID -Message "$FormatMessage"
         }
@@ -163,10 +187,15 @@
         if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1 -and !([string]::IsNullOrEmpty($callingFunction))) {
           $FormatMessage = "$tabs$timeStamp[$callingFunction] $msg"
         }
+        elseif ($script:logFormattingOptions['PrefixScriptName'] -eq 1 -and !([string]::IsNullOrEmpty($scriptName))) {
+          $FormatMessage = "$tabs$timeStamp[$scriptName] $msg"
+        }
         else {
           $FormatMessage = "$tabs$timeStamp$msg"
         }
-        Write-Error "$FormatMessage"
+        if($script:logTargets['Console'] -eq 1){
+            Write-Error "$FormatMessage"
+        }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Error" -EventId $eventID -Message "$FormatMessage"
         }
@@ -177,6 +206,12 @@
         }
 
 
+      }
+
+      if ($script:logTargets['File'] -eq 1) {
+        foreach($file in $script:logTargetFileNames){
+            $FormatMessage | Add-Content $file
+        }
       }
     }
   }

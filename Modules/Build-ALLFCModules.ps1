@@ -1,7 +1,8 @@
 [CmdletBinding(SupportsShouldProcess=$true)]
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
-    [parameter(Mandatory=$false)][string[]] $moduleName = "FC_Log.psm1"
+
+    [parameter(Mandatory=$false)][string[]] $moduleName = $null#"FC_Data.psm1"
     ,[parameter(Mandatory=$false)][string]$moduleDescription = $null
     ,[string] $moduleAuthor = "Brandon McClure"
     ,[switch] $forceConfigUpdate = $true
@@ -29,6 +30,7 @@ try{
         
         Write-Host "Checking the $ModuleName module"
         Write-Host "At: $modulePath"
+        Remove-Module $ModuleName -ErrorAction Ignore
         
         Write-Host "Does a module manifest exist?"
         If(!(Test-Path $ManifestPath)){
@@ -53,7 +55,7 @@ try{
             }
         }
 
-        Import-Module $modulePath -ErrorAction Stop
+        Import-Module $modulePath -Force -ErrorAction Stop
         $commandList = Get-Command -Module $ModuleName
         Remove-Module $ModuleName
 

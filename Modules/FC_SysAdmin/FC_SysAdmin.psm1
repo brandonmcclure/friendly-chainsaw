@@ -80,3 +80,24 @@ do {
 
 
 } Export-ModuleMember -Function Remove-FilesOlderThan
+
+Function Get-UserLoggedOn{
+    param($computerName = $env:COMPUTERNAME)
+    Write-Output (Invoke-Command -ComputerName $computerName -ScriptBlock {Get-Process -IncludeUserName | Where  name -eq "explorer" | Select-Object -Unique -Property UserName} )
+}Export-ModuleMember -Function Get-UserLoggedOn
+
+# Import everything in sub folders folder 
+foreach ( $folder in @( 'private', 'public', 'classes' ) ) 
+{ 
+    $root = Join-Path -Path $PSScriptRoot -ChildPath $folder 
+    if ( Test-Path -Path $root ) 
+    { 
+        Write-Verbose "processing folder $root" 
+        $files = Get-ChildItem -Path $root -Filter *.ps1 
+ 
+ 
+         # dot source each file 
+         $files | where-Object { $_.name -NotLike '*.Tests.ps1' } | 
+             ForEach-Object { Write-Verbose $_.name; . $_.FullName } 
+                  } 
+ } 

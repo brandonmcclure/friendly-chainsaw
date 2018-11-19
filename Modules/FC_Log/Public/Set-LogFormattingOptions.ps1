@@ -22,10 +22,16 @@
 
 		When set to 1, Write-Log will format the message to place the contents of Get-Date at the front of the message. There is no control over the formatting of the date.
         When set to 0, it will explicitly turn off that formatting 
+    .PARAMETER PrefixScriptName
+        Default: -1
+        Position:  2
+
+		When set to 1, Write-Log will format the message to place the script name that the command was run from. 
+        When set to 0, it will explicitly turn off that formatting 
 
 
     #>
-    param([Parameter(Position=0)][int] $PrefixCallingFunction = -1,[Parameter(Position=1)][int] $AutoTabCallsFromFunctions = -1,[Parameter(Position=2)][int] $PrefixTimestamp = -1)
+    param([Parameter(Position=0)][int] $PrefixCallingFunction = -1,[Parameter(Position=1)][int] $AutoTabCallsFromFunctions = -1,[Parameter(Position=2)][int] $PrefixTimestamp = -1,[Parameter(Position=2)][int] $PrefixScriptName = -1)
 
     if ($PrefixCallingFunction -eq 1 -or $PrefixCallingFunction -eq 0){
         $script:logFormattingOptions['PrefixCallingFunction'] = $PrefixCallingFunction
@@ -35,5 +41,8 @@
     }
     if ($PrefixTimestamp -eq 1 -or $PrefixTimestamp -eq 0){
         $script:logFormattingOptions['PrefixTimestamp'] = $PrefixTimestamp
+    }
+    if ($PrefixScriptName -eq 1 -or $PrefixScriptName -eq 0){
+        $script:logFormattingOptions['PrefixScriptName'] = $PrefixScriptName
     }
 }export-modulemember -Function Set-LogFormattingOptions

@@ -1,9 +1,30 @@
 ﻿function Export-ExcelToTxt {
+<#
+    .Synopsis
+      Saves an excel workbook's worksheet as a windows txt files. 
+
+    .INPUTS
+       None
+    .OUTPUTS
+       The full file path to the flat file
+    #>
   param(
     [string]$excelFilePath,
     [string]$WorksheetName,
-    [string]$csvLoc
+    [string]$csvLoc,
+    $XlFileFormat = 'xlTextWindows'
   )
+  #https://msdn.microsoft.com/en-us/library/office/ff198017.aspx
+  $ValidXLFileFormats = @{'xlCSV'=6; 'xlTextWindows' = 20}
+
+  if  ($ValidXLFileFormats[$XlFileFormat] -le 0){
+        Write-Log "Could not identify which XLFileFormat to use"
+    }
+    else{
+        $XLFileFormatID = $ValidXLFileFormats[$XlFileFormat]
+    }
+
+    Write-Log "Using the XLFileFormatID: $XLFileFormatID" Debug
   $E = New-Object -ComObject Excel.Application
   $E.Visible = $false
   $E.DisplayAlerts = $false
@@ -23,15 +44,16 @@
       Write-Log "Attempting to load the $WorksheetName worksheet." Debug
       $sheet = $wb.Sheets.Item($WorksheetName)
     }
-
     if (-not $sheet) {
-      Write-Log "Unable to open worksheet $WorksheetName" Error -ErrorAction Stop
+      Write-Log "Unable to open worksheet $sheet" Error -ErrorAction Stop
     }
     $n = [io.path]::GetFileNameWithoutExtension($excelFilePath) + "_" + $sheet.Name
     $savePath = "$csvLoc\$n.txt"
-    $sheet.SaveAs("$savePath",20) #https://msdn.microsoft.com/en-us/library/office/ff198017.aspx
+    $sheet.SaveAs("$savePath",$XLFileFormatID) 
 
     $E.Quit()
+    [Runtime.Interopservices.Marshal]::ReleaseComObject($E) | Out-Null
+    Write-Output $savePath
   }
   catch {
     $E.Quit()
