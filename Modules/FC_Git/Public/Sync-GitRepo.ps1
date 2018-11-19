@@ -1,4 +1,13 @@
-﻿function Sync-GitRepo{
+﻿<#
+    .Synopsis
+      Performs a git fetch and pull from the master branch for the given repoPath
+    .DESCRIPTION
+      USed to programatically get an up to date programatic branch that is in sync with a remote
+
+
+    #>
+function Sync-GitRepo{
+
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param(
   [Parameter(ParameterSetName='path')][string] $repoPath,

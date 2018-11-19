@@ -1,8 +1,9 @@
 ﻿function SetDataImportSQLMetadata {
   param(
-    $a
+    [DataImportFile]$a
     ,[System.Data.DataTable]$dataAsDataTable
   )
+  Add-Type -AssemblyName System.Web
   $metaDataSQL = "Select count(*) 'cnt' from sys.objects obj
   inner join sys.schemas sch on obj.schema_id = sch.schema_id and sch.name = '$($a.schemaName)'
 where obj.name = '$($a.tableName)';"
@@ -27,6 +28,8 @@ where obj.name = '$($a.tableName)';"
 
     #Query the database to modify the local DataTable to match the deployed schema. Generate alter scripts to get the deployed shema to match any new columns
     $dbOrdered = @()
+
+    $importSumamry = New-Object DataImportFileSummary
     function QueryDB {
       $noChanges = $true
       $dbTableMetaData = Invoke-Sqlcmd -ServerInstance $a.destServerName -Database $a.destDatabase -ConnectionTimeout 0 -Query "select col.name, column_id  from sys.columns col 
@@ -34,21 +37,21 @@ where obj.name = '$($a.tableName)';"
   inner join sys.schemas sch on obj.schema_id = sch.schema_id and sch.name = '$($a.schemaName)'"
       foreach ($col in $dbTableMetaData) {
         if (!($dataAsDataTable.Columns[$col.Name])) {
-          $a.ColumnsInDBNotInFile += $col
-          $a.NumColumnsNotInFile += 1
+          $importSumamry.ColumnsInDBNotInFile += $col
+          $importSumamry.NumColumnsNotInFile += 1
         }
 
       }
       foreach ($col in $dataAsDataTable.Columns) {
         $columnName = $col.ColumnName
-        $a = $dbTableMetaData | Select-Object -ExpandProperty name | Where-Object { $_ -eq $columnName }
-        if (!($a -ne $null)) {
+        $b = $dbTableMetaData | Select-Object -ExpandProperty name | Where-Object { $_ -eq $columnName }
+        if (!($b -ne $null)) {
           #$noChanges = $false
           Write-Log "$columnName exists in the file but not in the database. Altering table to add new varchar(max) column"
           $InLocalAndNotDB += $col.ColumnName
-          $a.ColumnsAddedToDB += $col
-          $a.NumColumnsAddedToDB += 1
-          $a.sqlCommand += New-AlterSQLTableStatementFromColumn -FQTableName $FQTableName -dataColumn $col
+          $importSumamry.ColumnsAddedToDB += $col
+          $importSumamry.NumColumnsAddedToDB += 1
+          #$a.sqlCommand += New-AlterSQLTableStatementFromColumn -FQTableName $a.FQTableName -dataColumn $col
           #Invoke-Sqlcmd -ServerInstance $destServerName -Database $destDatabase -ConnectionTimeout 0 -Query $alterSQL
         }
       }
@@ -73,7 +76,7 @@ where obj.name = '$($a.tableName)';"
     QueryDB
 
 
-
+    $a.ImportSummary = $importSumamry
 
     #Write-DataTable -ServerInstance $destServerName -Database $destDatabase -TableName $FQTableName -data $dataAsDataTable
     $a.fileHTMLReport += "<h3>Columns in file and not in database (need to be added to DB)</h3>"

@@ -52,6 +52,7 @@
     $sheet.SaveAs("$savePath",$XLFileFormatID) 
 
     $E.Quit()
+    [Runtime.Interopservices.Marshal]::ReleaseComObject($E) | Out-Null
     Write-Output $savePath
   }
   catch {
