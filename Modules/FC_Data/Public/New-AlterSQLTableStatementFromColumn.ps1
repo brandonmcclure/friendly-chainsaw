@@ -41,6 +41,7 @@ Create table $FQTableName (`n"
   $SQLCreateTable = $SQLCreateTable + "`n);
 
     "
+    Write-Log "Generated SQL for $FQTableName" Debug
   Write-Log $SQLCreateTable Debug
   Write-Output $SQLCreateTable
 } Export-ModuleMember -Function New-AlterSQLTableStatementFromColumn
