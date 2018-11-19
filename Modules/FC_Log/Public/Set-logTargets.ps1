@@ -33,7 +33,7 @@
     #>
     param([Parameter(Position=0)][int] $Console = -1,
     [Parameter(Position=1)][int] $WindowsEventLog = -1,
-    [Parameter(Position=2)][int] $File = -1,
+    [Parameter(Position=2)][string[]] $File = "-",
     [Parameter(Position=3)][int] $Speech = -1)
 
     if ($Console -eq 1 -or $Console -eq 0){
@@ -42,8 +42,20 @@
     if ($WindowsEventLog -eq 1 -or $WindowsEventLog -eq 0){
         $script:logTargets['WindowsEventLog'] = $WindowsEventLog
     }
-    if ($File -eq 1 -or $File -eq 0){
-        $script:logTargets['File'] = $File
+    if ($File -eq "-"){
+    }
+    elseif (![string]::IsNullOrEmpty($File)){
+        foreach($File2 in $File){
+            $fileParentDir = Split-Path $file2 -Parent
+            if (-not (Test-Path $fileParentDir)){
+                New-Item -Path $fileParentDir -ItemType Directory -Force
+            }
+            $script:logTargetFileNames += $File2
+        }
+        $script:logTargets['File'] = 1
+    }
+    else{
+        $script:logTargets['File'] = 0
     }
     if ($Speech -eq 1 -or $Speech -eq 0){
         $script:logTargets['Speech'] = $Speech
