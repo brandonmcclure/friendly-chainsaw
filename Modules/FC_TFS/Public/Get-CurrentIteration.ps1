@@ -1,4 +1,4 @@
-﻿Function New-TFSWorkItem{
+﻿Function Get-CurrentIteration{
 <#
     .Synopsis
       Please give your script a brief Synopsis,
@@ -22,26 +22,23 @@
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline)] $pipelineInput
 ,[string] $PRDescription
-,[string] $requestBody
 ,$type = 'Bug')
 
 $repositoryID = $pipelineInput.repository.id
 if ([String]::IsNullOrEmpty($repositoryID)){
     Write-Log "Please pass a repositoryID" Error -ErrorAction Stop
 }
-$BaseTFSURL = Get-TFSRestURL
-
-$action = '/wit/workitems/$'+$type+"?api-version=$($script:apiVersion)" 
+$BaseTFSURL = Get-TFSRestURL_Team -teamName 'Cogito%20-%20CPM'
+$action = '/work/TeamSettings/Iterations?$timeframe=current&api-version='+$($script:apiVersion) 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Verbose
 
 
 $outputObj = New-Object PSObject
 $outputObj | Add-Member -Type NoteProperty -Name repository -Value $pipelineInput.Repository
-
-
+Clear-Variable response -ErrorAction Ignore | Out-Null
 try{
-$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method PATCH -Body $requestBody -ContentType "application/json-patch+json" 
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json" 
 }
 catch{
     $ex = $_.Exception
@@ -53,20 +50,14 @@ catch{
      $responseBody = $reader.ReadToEnd(); 
      $responseBody 
      }
-
-    $line = $_.InvocationInfo.ScriptLineNumber
-    $scriptName = Split-Path $_.InvocationInfo.ScriptName -Leaf
-    $msg = $ex.Message
-    Write-Log "Error in script $scriptName at line $line, error message: $msg" Error -ErrorAction Stop
-}
-if ([bool]($outputObj.PSobject.Properties.name -match "AttachedWorkItems")){
-    $outputObj.AttachedWorkItems += $response
+     }
+if ([bool]($outputObj.PSobject.Properties.name -match "CurrentIteration")){
+    $outputObj.CurrentIteration += $response.value | select id,name,path
 }
 else{
-    $outputObj | Add-Member -type NoteProperty -Name "AttachedWorkItems" -value @()
-    $outputObj.AttachedWorkItems += $response
+    $outputObj | Add-Member -type NoteProperty -Name "CurrentIteration" -value @()
+    $outputObj.CurrentIteration += $response.value | select id,name,path
 }
-
 Write-Output $outputObj
-
-}Export-ModuleMember -Function New-TFSWorkItem
+$x = 0;
+}Export-ModuleMember -Function Get-CurrentIteration
