@@ -33,17 +33,17 @@ if ([String]::IsNullOrEmpty($repositoryID)){
     Write-Log "Please pass a repositoryID" Error -ErrorAction Stop
 }
 $BaseTFSURL = Get-TFSRestURL
-$action = "/git/repositories/$repositoryID/PullRequests?api-version=$($Global:apiVersion)&name=$($BuildName)" 
+$action = "/git/repositories/$repositoryID/PullRequests?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
 $response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json").value
 
 if (![string]::IsNullOrEmpty($sourceRefName)){
-    $response = $response | Where {(Split-Path $_.sourceRefName -Leaf) -eq $sourceRefName}
+    $outresponse = $response | where{$sourceRefName -in $_.sourceRefName}
 }
 if (![string]::IsNullOrEmpty($targetRefName)){
-    $response = $response | Where {(Split-Path $_.targetRefName -Leaf) -eq $targetRefName}
+    $outresponse = $response | Where{ $_.targetRefName -contains $targetRefName} 
 }
-$outputObj | Add-Member -Type NoteProperty -Name PullRequests -Value $response
+$outputObj | Add-Member -Type NoteProperty -Name PullRequests -Value $outresponse
 Write-Output $outputObj
 } Export-ModuleMember -Function Get-TFSPullRequests
