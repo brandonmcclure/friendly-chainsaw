@@ -48,6 +48,7 @@ try{
     Start-MyProcess -EXEPath 'git' -options "pull"  | HandleSTdOut
 }
 catch{
+    throw
 }
 finally{
     Set-Location $oldLocation
