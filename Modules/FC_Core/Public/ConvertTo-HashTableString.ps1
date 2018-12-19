@@ -13,20 +13,32 @@
 param([Parameter(ValueFromPipeline)][object[]]$inputObect)
 
 process{
-$objCount = ($inputObect | Measure-Object).Count
+ $objCount = ($inputObect | Measure-Object).Count
 if ($objCount -eq 0){return $null}
 $outHash = "@{"
+
 
 foreach ($item in $inputObect){
 
 foreach ($k in ($inputObect | Get-Member -MemberType NoteProperty).Name) {
-    $outHash+= "$k = '$($item.$k)'
+    if ($($item.$k).GetType().FullName -eq "System.Management.Automation.PSCustomObject"){
+        $x = 0;
+        $innerHash ="@{"
+        foreach ($y in ($($item.$k) | Get-Member -MemberType NoteProperty).Name){
+            $innerHash+="$y = '$($($item.$k.$y).Replace("`'","`'`'"))'"
+        }
+        $innerhash+="}"
+        $outHash+=$innerHash
+    }
+    else{
+
+    $outHash+= "$k = '$($($item.$k).Replace("`'","`'`'"))'
 "
+}
     }
     }
 
     $outHash += "}"
 
-    Write-Output "$outHash"
-    }
+    Write-Output "$outHash"}
     }Export-ModuleMember -Function ConvertTo-HashTableString
