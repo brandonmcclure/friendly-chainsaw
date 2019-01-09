@@ -28,9 +28,9 @@
     #>
   [CmdletBinding()]
   param(
-    [Parameter(ValueFromPipeline = $True,Position = 0)] [string]$EXEPath
-    ,[string]$options
-    ,[Parameter(Position = 0)][ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = "Warning"
+    [Parameter(Position = 0)] [string]$EXEPath
+    ,[Parameter(Position = 1)][string]$options
+    ,[ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = "Warning"
     ,[switch]$async
     ,[int]$sleepTimer = 5
     ,[string]$workingDir
@@ -77,7 +77,7 @@
   if (!$async) {
     if (!$process.HasExited) {
       # Wait a while for the process to exitn 
-      Write-Log "$EXE is not done, let's wait 5 more seconds"
+      Write-Log "$EXE is not done, let's wait $sleepTimer more seconds"
       sleep -Seconds $sleepTimer
     }
     Write-Log "$EXE has completed."
