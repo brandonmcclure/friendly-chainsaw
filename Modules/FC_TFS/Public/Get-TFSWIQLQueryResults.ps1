@@ -1,4 +1,4 @@
-﻿function Get-TFSPullRequests{
+﻿function Get-TFSWIQLQueryResults{
 <#
     .Synopsis
       Please give your script a brief Synopsis,
@@ -21,8 +21,7 @@
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline)] $pipelineInput
-,[string] $sourceRefName
-,[string] $targetRefName)
+,[string] $query)
 
 
 $outputObj = New-Object PSObject
@@ -32,18 +31,30 @@ $repositoryID = $pipelineInput.repository.id
 if ([String]::IsNullOrEmpty($repositoryID)){
     Write-Log "Please pass a repositoryID" Error -ErrorAction Stop
 }
+if ([String]::IsNullOrEmpty($query)){
+    Write-Log "Please pass a query" Error -ErrorAction Stop
+}
 $BaseTFSURL = Get-TFSRestURL
-$action = "/git/repositories/$repositoryID/PullRequests?api-version=$($script:apiVersion)" 
+$action = "/wit/wiql?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
-$response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json").value
+$requestBody = @"
+{
+  "query": "$query"
+}
+"@
+$queryOut = New-Object PSObject
+$queryOut | Add-Member -type NoteProperty -Name QueryText -Value $query
+$queryOut | Add-Member -type NoteProperty -Name QueryResult -Value $null
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method POST -Body $requestBody -ContentType "application/json"
+$queryOut.QueryResult = $response
+if ([bool]($outputObj.PSobject.Properties.name -match "QueryResults")){
+    $outputObj.QueryResults += $queryOut
+}
+else{
+    $outputObj | Add-Member -type NoteProperty -Name "QueryResults" -value @()
+    $outputObj.QueryResults += $queryOut
+}
 
-if (![string]::IsNullOrEmpty($sourceRefName)){
-    $outresponse = $response | where{$sourceRefName -in $_.sourceRefName}
-}
-if (![string]::IsNullOrEmpty($targetRefName)){
-    $outresponse = $response | Where{ $_.targetRefName -contains $targetRefName} 
-}
-$outputObj | Add-Member -Type NoteProperty -Name PullRequests -Value $outresponse
 Write-Output $outputObj
-} Export-ModuleMember -Function Get-TFSPullRequests
+} Export-ModuleMember -Function Get-TFSWIQLQueryResults

@@ -4,8 +4,8 @@
       Please give your script a brief Synopsis,
     .DESCRIPTION
       A slightly longer description,
-    .PARAMETER logLevel
-        explain your parameters here. Create a new .PARAMETER line for each parameter,
+    .PARAMETER remoteName
+        if set, will push --delete the branch from the remote specified
        
     .EXAMPLE
         THis example runs the script with a change to the logLevel parameter.
@@ -32,17 +32,23 @@ elseif([string]::IsNullOrEmpty($repoPath)){
     Write-Log "Please pass a valid repo path to $repoPath" Error -ErrorAction Stop
 }
 $oldLocation = Get-Location
+
 try{
     Set-Location $repoPath
+    Write-Log "git branch -D $branchName" Verbose
     $result = Start-MyProcess -EXEPath 'git' -options "branch -D $branchName"
-    Write-Log $result.stderr
-    Write-Log $result.stdout
+    Write-Log "stderr: $($result.stderr)" Verbose
+    Write-Log "stdout: $($result.stdout)" Verbose
 
-    $result = Start-MyProcess -EXEPath 'git' -options "push $remoteName --delete $branchName"
-    Write-Log $result.stderr
-    Write-Log $result.stdout
+    if (-not [string]::IsNullOrEmpty($remoteName)){
+        Write-Log "git push $remoteName --delete $branchName" Verbose
+        $result = Start-MyProcess -EXEPath 'git' -options "push $remoteName --delete $branchName"
+        Write-Log "stderr: $($result.stderr)" Verbose
+        Write-Log "stdout: $($result.stdout)" Verbose
+    }
 }
 catch{
+    throw
 }
 finally{
     Set-Location $oldLocation

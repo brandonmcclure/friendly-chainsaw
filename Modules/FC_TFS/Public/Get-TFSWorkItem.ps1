@@ -1,4 +1,4 @@
-﻿Function Get-TFSWorkItemTypes{
+﻿Function Get-TFSWorkItem{
 <#
     .Synopsis
       Please give your script a brief Synopsis,
@@ -21,8 +21,7 @@
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param([Parameter(ValueFromPipeline)] $pipelineInput
-,[string] $PRDescription
-,[string] $requestBody)
+,[int] $WorkItemID)
 
 $repositoryID = $pipelineInput.repository.id
 function ConvertFrom-Json2{
@@ -169,33 +168,38 @@ if ([String]::IsNullOrEmpty($repositoryID)){
     Write-Log "Please pass a repositoryID" Error -ErrorAction Stop
 }
 $BaseTFSURL = Get-TFSRestURL_Collection
-$action = "/wit/workitemtypes?api-version=$($script:apiVersion)" 
+$action = "/wit/workitems/$($workItemID)?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
-$outputObj = New-Object PSObject
-$outputObj | Add-Member -Type NoteProperty -Name repository -Value $pipelineInput.Repository
+$outputObj = $pipelineInput
 
 try{
-$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json"
-$json = $response|ConvertFrom-Json2
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json"
+$json = $response
 $x = 0;
 }
 catch{
     $ex = $_.Exception
+    if ($ex.response -ne $null){
     $errResponse = $ex.Response.GetResponseStream()
     $reader = New-Object System.IO.StreamReader($errResponse) 
      $reader.BaseStream.Position = 0 
      $reader.DiscardBufferedData() 
      $responseBody = $reader.ReadToEnd(); 
      $responseBody 
+     }
 
     $line = $_.InvocationInfo.ScriptLineNumber
     $scriptName = Split-Path $_.InvocationInfo.ScriptName -Leaf
     $msg = $ex.Message
     Write-Log "Error in script $scriptName at line $line, error message: $msg" Warning
 }
-#This does not actually return anything useful
-$outputObj | Add-Member -Type NoteProperty -Name PullRequests -Value $json.Value
+if([bool]($outputObj.PSobject.Properties.name -match "WorkItems")){
+    $outputObj.WorkItems += $json
+}
+else{
+    $outputObj | Add-Member -Type NoteProperty -Name WorkItems -Value $json
+}
 Write-Output $outputObj
 
-}Export-ModuleMember -Function Get-TFSWorkItemTypes
+}Export-ModuleMember -Function Get-TFSWorkItem
