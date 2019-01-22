@@ -1,15 +1,6 @@
 ﻿Remove-Module FC_TFS -Force | Out-Null
 Import-Module FC_TFS -Force
 
-Describe 'Get-TFSIteration'{
-    Context 'Parameter Validation'{
-        it 'asd'{
-            mock Invoke-RestMethod {} -Verifiable
-            Get-TFSIterations
-            Assert-MockCalled Invoke-RestMethod -Exactly -Times 0
-        }
-    }
-}
 describe 'Get-TFSRestURL_Team'{
     Context 'Parameter Validation'{
         it 'No team results in error'{
@@ -40,15 +31,36 @@ describe 'Get-TFSRestURL_Team'{
             Set-TFSBaseURL 'https://baseurl.com'
             Set-TFSCollection 'TestCollection'
             Set-TFSProject 'TestProject'
-            Get-TFSRestURL_Team -teamName "TestTeam" | should be 'https://baseurl.com/TestCollection/TestProject/TestTeam/_apis'
+            Get-TFSRestURL_Team -teamName "TestTeam" | should be 'https://baseurl.com/TestCollection/TestProject/TestTeam'
         }
     }
 }
 describe 'Get-TFSIterations' {
+BeforeEach{
+    Remove-Module FC_TFS -Force | Out-Null
+    Import-Module FC_TFS -Force -DisableNameChecking
+}
 Context 'Parameter Validation'{
         It 'Did not perform setup will result in error'{
             $scriptBlock = {Get-TFSIterations -teamName 'TestTeam' -ErrorAction Stop}
             $scriptBlock | should throw "Could not get the Base TFS URL. Ensure that you have called Set-TFSBaseURL, Set-TFSCollection and Set-TFSProject"
+        }
+    }
+}
+
+describe 'ErrorAction'{
+    context 'Testing different methods'{
+        it 'Write-Log using local module'{
+            $scriptBlock = {Write-Log "Error" Error -ErrorAction Stop}
+            $scriptBlock | should throw
+        }
+        it 'throw'{
+            $scriptBlock = {throw "sdgaag"}
+            $scriptBlock | should throw
+        }
+        it 'Write-Error'{
+            $scriptBlock = {Write-Error "asgag" -ErrorAction Stop}
+            $scriptBlock | should throw
         }
     }
 }

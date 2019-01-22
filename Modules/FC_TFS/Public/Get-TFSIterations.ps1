@@ -32,10 +32,10 @@ if ([string]::IsNullOrEmpty($BaseTFSURL)){
     Write-Log "Could not get the Base TFS URL. Ensure that you have called Set-TFSBaseURL, Set-TFSCollection and Set-TFSProject" Error -ErrorAction Stop
 }
 if ($current){
-    $action = '/work/TeamSettings/Iterations?$timeframe=current&api-version='+"$($script:apiVersion)" 
+    $action = '/_apis/work/TeamSettings/Iterations?$timeframe=current&api-version='+"$($script:apiVersion)" 
 }
 else{
-    $action = "/work/TeamSettings/Iterations?api-version=$($script:apiVersion)" 
+    $action = "/_apis/work/TeamSettings/Iterations?api-version=$($script:apiVersion)" 
     
 }
 $fullURL = $BaseTFSURL + $action

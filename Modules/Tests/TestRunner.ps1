@@ -23,7 +23,7 @@
         TestRunner -paths "DataAccess.Tests.ps1" -describesToFilter @("Process-AllTabularModel","Invoke-MockableDateCompare")
    
     #>
-param([string[]]$paths = @("FC_Core.Tests.ps1"), [string[]] $describesToFilter = @("ConvertTo-HashTable"))
+param([string[]]$paths = @("FC_TFS.Tests.ps1"), [string[]] $describesToFilter = @())
 clear
 Remove-Module Pester -Force -ErrorAction Ignore | Out-Null
 Import-Module Pester -Force

@@ -34,6 +34,6 @@ if([string]::IsNullOrEmpty($script:TFSTeamProject)){
     return
 }
 
-Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject/$teamName/_apis"
+Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject/$teamName"
 
 } Export-ModuleMember -Function Get-TFSRestURL_Team

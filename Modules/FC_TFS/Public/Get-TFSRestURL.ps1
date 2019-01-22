@@ -20,6 +20,6 @@
        www.google.com
     #>
 
-Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject/_apis"
+Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject"
 
 } Export-ModuleMember -Function Get-TFSRestURL

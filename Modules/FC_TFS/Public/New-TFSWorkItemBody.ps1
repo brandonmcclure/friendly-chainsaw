@@ -1,6 +1,6 @@
 ﻿
 function New-TFSWorkItemBody{
-param([string]$workItemTitle,$AssignedTo,$IterationPath,$AreaPath,$itemType)
+param($fieldDefinition,[string] $fieldDefinitionpath)
 
 function AmmendCommasOnWorkItemBody{
 param($workItemBody)
@@ -14,49 +14,29 @@ else{
 }
 }
 
+
+$config = Get-Content $fieldDefinitionpath | ConvertFrom-Json
 $workItemBody = @"
 [
 "@
-if (-not [string]::IsNullOrEmpty($workItemTitle)){
-$workItemBody += @"
+
+foreach ($field in $fieldDefinition.keys){
+    if($field -notin $config.FieldAlias){
+        Write-Log "Could not find a field with the name: $($field)" Error -ErrorAction Stop
+    }
+
+    $fieldReference = $config | where {$field -in $_.FieldAlias}| select -ExpandProperty FieldPath
+
+    $workItemBody += @"
 $(AmmendCommasOnWorkItemBody $workItemBody)
     {
         "op": "add",
-        "path": "/fields/System.Title",
-        "value": "$($workItemTitle)"
+        "path": "/fields/$fieldReference",
+        "value": "$($fieldDefinition[$field])"
     }
 "@
 }
-if (-not [string]::IsNullOrEmpty($AssignedTo)){
-$workItemBody += @"
-$(AmmendCommasOnWorkItemBody $workItemBody)
-    {
-        "op": "add",
-        "path": "/fields/System.AssignedTo",
-        "value": "$($AssignedTo)"
-    }
-"@
-}
-if (-not [string]::IsNullOrEmpty($IterationPath)){
-$workItemBody += @"
-$(AmmendCommasOnWorkItemBody $workItemBody)
-    {
-        "op": "add",
-        "path": "/fields/System.IterationPath",
-        "value": "$($IterationPath)"
-    }
-"@
-}
-if (-not [string]::IsNullOrEmpty($AreaPath)){
-$workItemBody += @"
-$(AmmendCommasOnWorkItemBody $workItemBody)
-    {
-        "op": "add",
-        "path": "/fields/System.AreaPath",
-        "value": "$($AreaPath)"
-    }
-"@
-}
+
 $workItemBody += @"
 
 ]
