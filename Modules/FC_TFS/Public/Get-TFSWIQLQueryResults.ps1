@@ -35,7 +35,7 @@ if ([String]::IsNullOrEmpty($query)){
     Write-Log "Please pass a query" Error -ErrorAction Stop
 }
 $BaseTFSURL = Get-TFSRestURL
-$action = "/wit/wiql?api-version=$($script:apiVersion)" 
+$action = "/_apis/wit/wiql?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
 $requestBody = @"
