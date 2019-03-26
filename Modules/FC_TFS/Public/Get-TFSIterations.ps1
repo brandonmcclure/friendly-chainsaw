@@ -20,10 +20,14 @@
        https://docs.microsoft.com/en-us/azure/devops/integrate/previous-apis/work/iterations?view=tfs-2018
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
-param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Info",
+param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
 [string] $teamName = 'Cogito%20-%20CPM'
 ,[switch] $current)
 
+Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
+  $currentLogLevel = Get-LogLevel
+
+try{
 if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
 Set-LogLevel $logLevel
 
@@ -40,7 +44,12 @@ else{
 }
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
-$response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json").value
-
-Write-Output $response
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json" -Headers $script:AuthHeader
+Write-Log "Test"
+$x = 0;
+Write-Output $response.value
+}
+catch{
+      Set-LogLevel $currentLogLevel
+}
 } Export-ModuleMember -Function Get-TFSIterations

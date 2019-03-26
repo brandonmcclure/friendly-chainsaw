@@ -27,7 +27,7 @@ $BaseTFSURL = Get-TFSRestURL
 $action = "/_apis/git/repositories?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
-$response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json").value
+$response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json" -Headers $script:AuthHeader).value
 if ([string]::IsNullOrEmpty($repositoryName)){
 }
 else{

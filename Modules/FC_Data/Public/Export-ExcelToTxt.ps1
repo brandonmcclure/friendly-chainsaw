@@ -25,6 +25,7 @@
     }
 
     Write-Log "Using the XLFileFormatID: $XLFileFormatID" Debug
+    Write-Log "Exporting the Excel file at: $excelFilePath" Debug 
   $E = New-Object -ComObject Excel.Application
   $E.Visible = $false
   $E.DisplayAlerts = $false

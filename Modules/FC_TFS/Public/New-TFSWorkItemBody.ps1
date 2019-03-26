@@ -1,6 +1,6 @@
 ﻿
 function New-TFSWorkItemBody{
-param($fieldDefinition,[string] $fieldDefinitionpath)
+param($itemDefinition)
 
 function AmmendCommasOnWorkItemBody{
 param($workItemBody)
@@ -14,25 +14,23 @@ else{
 }
 }
 
-
-$config = Get-Content $fieldDefinitionpath | ConvertFrom-Json
 $workItemBody = @"
 [
 "@
 
-foreach ($field in $fieldDefinition.keys){
-    if($field -notin $config.FieldAlias){
+foreach ($field in $itemDefinition.keys){
+    if($field -notin $script:fieldDefinition.FieldAlias){
         Write-Log "Could not find a field with the name: $($field)" Error -ErrorAction Stop
     }
 
-    $fieldReference = $config | where {$field -in $_.FieldAlias}| select -ExpandProperty FieldPath
+    $fieldReference = $script:fieldDefinition | where {$field -in $_.FieldAlias}| select -ExpandProperty FieldPath
 
     $workItemBody += @"
 $(AmmendCommasOnWorkItemBody $workItemBody)
     {
         "op": "add",
         "path": "/fields/$fieldReference",
-        "value": "$($fieldDefinition[$field])"
+        "value": "$($itemDefinition[$field])"
     }
 "@
 }

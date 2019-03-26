@@ -34,6 +34,11 @@ if([string]::IsNullOrEmpty($script:TFSTeamProject)){
     return
 }
 
+if ($script:apiVersion -eq "3.0"){
 Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject/$teamName"
+}
+else{
+Write-Output "$script:TFSbaseURL/$script:TFSTeamProject/$teamName"
+}
 
 } Export-ModuleMember -Function Get-TFSRestURL_Team
