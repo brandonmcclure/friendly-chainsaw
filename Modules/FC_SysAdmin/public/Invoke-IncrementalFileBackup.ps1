@@ -13,9 +13,27 @@
     ,[Parameter(position = 5,ValueFromPipelineByPropertyName)] [int]$NumberOfIncrementalBeforeFull = 10
     ,[switch]$ForceFull
     ,[int]$NumberOfBackupsToKeep = 20
+    ,[switch] $compressFiles = $true
   )
+
+  
+
+function Split-Array ([object[]]$InputObject,[int]$SplitSize=100)
+{
+#https://powershell.org/forums/topic/splitting-an-array-in-smaller-arrays/
+$length=$InputObject.Length
+for ($Index = 0; $Index -lt $length; $Index += $SplitSize)
+{
+#, encapsulates result in array
+#-1 because we index the array from 0
+,($InputObject[$index..($index+$splitSize-1)])
+}
+}
+
   $OrigLogLevel = Get-LogLevel
   $originalLocation = Get-Location
+
+  import-module FC_Data -force -DisableNameChecking
   Write-Log "Original log level: $OrigLogLevel" Debug
   try {
     if ([string]::IsNullOrEmpty($logLevel)) { $logLevel = "Info" }
@@ -98,14 +116,24 @@
     $fileCount = $FilesToCopy | Measure-Object | Select-Object -ExpandProperty Count
     $fileCountIndex = 0
 
+    $parallelQueues = 5
 
-    foreach ($file in $FilesToCopy) {
+
+    $splitArrays = @()
+
+    $splitArrays = Split-Array -InputObject $FilesToCopy -SplitSize ($fileCount/5)
+    $jobs = @()
+    $i = 0;
+        foreach ($array in $splitArrays){
+        $i++
+            $jobName = "$(Get-JobPrefix)FileBackup$i"
+            $jobs += Start-Job  {
+                param($files,$hashAlgorithm,$destination,$PreviousBackup)
+                foreach ($file in $files) {
 
       $file.FileHash = Get-FileHash -Path $file.FullName -Algorithm $hashAlgorithm | Select-Object -ExpandProperty Hash
       $relativePath = "$(Resolve-Path -Relative (Split-Path $file.FullName -Parent))\$($file.Name)"
       $relativePath = $relativePath.Substring(2,$relativePath.Length - 2)
-      Write-Progress -Activity "Copying files" -Status "$relativePath" -PercentComplete ($fileCountIndex / $fileCount * 100)
-      $fileCountIndex++
       $destinationFilePath = "$destination\$relativePath"
       $DestinationFIleParentDirPath = Split-Path $destinationFilePath -Parent
       Write-Log (($file | Select-Object FullName,LastBackup,WasUpdated) -join ",") Verbose
@@ -138,6 +166,19 @@
         }
       }
     }
+            }-ArgumentList ($array,$hashAlgorithm,$destination,$PreviousBackup) -Name $jobName
+        }
+
+        $jobPollTime = 15
+       $exit = $false
+        while (!$exit){
+            $jobs = Request-JobStatus
+            if ($jobs -eq (Get-JobsCompleteFlag) ){
+                $exit = $true
+            }
+            sleep $jobPollTime       
+        }
+    
     $outputObj = New-Object -TypeName psobject
     $outputObj | Add-Member -MemberType NoteProperty -Name "BackupInstance" -Value $backupInstant
     $outputObj | Add-Member -MemberType NoteProperty -Name "backupType" -Value $backupType
