@@ -2,10 +2,11 @@
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
 
-    [parameter(Mandatory=$false)][string[]] $moduleName = $null#"FC_Data.psm1"
+    [parameter(Mandatory=$false)][string[]] $moduleName = @("FC_TFS.psm1")
     ,[parameter(Mandatory=$false)][string]$moduleDescription = $null
     ,[string] $moduleAuthor = "Brandon McClure"
     ,[switch] $forceConfigUpdate = $true
+    ,[switch] $skipScriptAnalyzer = $true
     )
 
 Import-Module BuildHelpers, PSScriptAnalyzer,PSHTMLTable -ErrorAction Stop
@@ -92,8 +93,9 @@ try{
             Step-ModuleVersion -Path $ManifestPath -By $bumpVersionType
         }
 
-        
+        if (!($skipScriptAnalyzer)){
             Invoke-ScriptAnalyserWithReport -moduleDir $moduleDir
+            }
 }
 }
 catch{

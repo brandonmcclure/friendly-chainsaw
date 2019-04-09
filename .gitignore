@@ -193,3 +193,11 @@ ModelManifest.xml
 logs
 *.nupkg
 *.nuspec
+/Modules/FC_Core/ScriptAnalyserResults - FC_Core.htm
+/Modules/FC_Data/ScriptAnalyserResults - FC_Data.htm
+/Modules/FC_Git/ScriptAnalyserResults - FC_Git.htm
+/Modules/FC_Log/ScriptAnalyserResults - FC_Log.htm
+/Modules/FC_MicrosoftGraph/ScriptAnalyserResults - FC_MicrosoftGraph.htm
+/Modules/FC_Misc/ScriptAnalyserResults - FC_Misc.htm
+/Modules/FC_SysAdmin/ScriptAnalyserResults - FC_SysAdmin.htm
+/Modules/FC_TFS/ScriptAnalyserResults - FC_TFS.htm

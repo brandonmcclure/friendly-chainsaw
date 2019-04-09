@@ -1,6 +1,6 @@
 ﻿
 function New-TFSWorkItemBody{
-param([string]$workItemTitle,$AssignedTo,$IterationPath,$AreaPath,$itemType)
+param($itemDefinition)
 
 function AmmendCommasOnWorkItemBody{
 param($workItemBody)
@@ -17,46 +17,46 @@ else{
 $workItemBody = @"
 [
 "@
-if (-not [string]::IsNullOrEmpty($workItemTitle)){
-$workItemBody += @"
+
+foreach ($field in $itemDefinition.keys){
+    if($field -notin $script:fieldDefinition.FieldAlias){
+        Write-Log "Could not find a field with the name: $($field)" Error -ErrorAction Stop
+    }
+
+    
+
+    $fieldReference = $script:fieldDefinition | where {$field -in $_.FieldAlias}| select -ExpandProperty FieldPath
+
+    if($field -eq "relationship_parent"){
+     $workItemBody += @"
+$(AmmendCommasOnWorkItemBody $workItemBody)
+{
+            "op": "add",
+            "path": "/relations/-",
+            "value":
+            {
+                "rel": "System.LinkTypes.Hierarchy-Reverse",
+                "url": "$($itemDefinition[$field])",
+                "attributes":
+                {
+                    "isLocked": false,
+                "comment": "Automagical relationship"
+                }
+            }
+        }
+"@
+        continue;
+    }
+    $workItemBody += @"
 $(AmmendCommasOnWorkItemBody $workItemBody)
     {
         "op": "add",
-        "path": "/fields/System.Title",
-        "value": "$($workItemTitle)"
+        "path": "/fields/$fieldReference",
+        "value": "$($itemDefinition[$field])"
     }
 "@
 }
-if (-not [string]::IsNullOrEmpty($AssignedTo)){
-$workItemBody += @"
-$(AmmendCommasOnWorkItemBody $workItemBody)
-    {
-        "op": "add",
-        "path": "/fields/System.AssignedTo",
-        "value": "$($AssignedTo)"
-    }
-"@
-}
-if (-not [string]::IsNullOrEmpty($IterationPath)){
-$workItemBody += @"
-$(AmmendCommasOnWorkItemBody $workItemBody)
-    {
-        "op": "add",
-        "path": "/fields/System.IterationPath",
-        "value": "$($IterationPath)"
-    }
-"@
-}
-if (-not [string]::IsNullOrEmpty($AreaPath)){
-$workItemBody += @"
-$(AmmendCommasOnWorkItemBody $workItemBody)
-    {
-        "op": "add",
-        "path": "/fields/System.AreaPath",
-        "value": "$($AreaPath)"
-    }
-"@
-}
+
 $workItemBody += @"
 
 ]

@@ -1,23 +1,17 @@
 ﻿function Invoke-GitPushIntoAnotherBranch{
 <#
     .Synopsis
-      Please give your script a brief Synopsis,
+      Merges a git branch into another branch. 
     .DESCRIPTION
-      A slightly longer description,
-    .PARAMETER logLevel
-        explain your parameters here. Create a new .PARAMETER line for each parameter,
-       
+      This is designed for programatic/automatic merging on branches using a dedicated repository on your computer. 
+      It is also designed to be uses with a remote named 'origin', which is where it will checkout the branches from. I use this to keep my git branches merged into Integration branches in TFS.
+
+      Merges the $fromBranchName branch into $intoBranchName       
     .EXAMPLE
-        THis example runs the script with a change to the logLevel parameter.
+        Takes my code in "MyCurrentFeatureBranch" and merges it into "SharedIntegrationBranch" which will trigger CI build/release and ensure my work is integrated with my other teammates. 
 
-        .Template.ps1 -logLevel Debug
+        Invoke-GitPushIntoAnotherBranch -autoRepoPath C:\source\Auto\MyRepo -fromBranchName "MyCurrentFeatureBranch" -intoBranchName "SharedIntegrationBranch"
 
-    .INPUTS
-       What sort of pipeline inputdoes this expect?
-    .OUTPUTS
-       What sort of pipeline output does this output?
-    .LINK
-       www.google.com
     #>
 [CmdletBinding(SupportsShouldProcess=$true)] 
 param([string] $autoRepoPath
@@ -68,7 +62,7 @@ try{
     Start-MyProcess -EXEPath 'git' -options "pull" | HandleSTdOut
     Start-MyProcess -EXEPath 'git' -options "checkout --track origin/$intoBranchName" | HandleSTdOut
     Start-MyProcess -EXEPath 'git' -options "pull" | HandleSTdOut
-    Write-Log "Perfroming the merge"
+    Write-Log "Performing the merge"
         Start-MyProcess -EXEPath 'git' -options "merge $fromBranchName" | HandleSTdOut
         Write-Log "Push the newly merged branch to the remote"
     Start-MyProcess -EXEPath 'git' -options "push" | HandleSTdOut

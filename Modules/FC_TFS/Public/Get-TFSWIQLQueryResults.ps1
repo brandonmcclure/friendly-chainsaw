@@ -35,7 +35,7 @@ if ([String]::IsNullOrEmpty($query)){
     Write-Log "Please pass a query" Error -ErrorAction Stop
 }
 $BaseTFSURL = Get-TFSRestURL
-$action = "/wit/wiql?api-version=$($script:apiVersion)" 
+$action = "/_apis/wit/wiql?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
 $requestBody = @"
@@ -46,7 +46,7 @@ $requestBody = @"
 $queryOut = New-Object PSObject
 $queryOut | Add-Member -type NoteProperty -Name QueryText -Value $query
 $queryOut | Add-Member -type NoteProperty -Name QueryResult -Value $null
-$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method POST -Body $requestBody -ContentType "application/json"
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method POST -Body $requestBody -ContentType "application/json" -Headers $script:AuthHeader
 $queryOut.QueryResult = $response
 if ([bool]($outputObj.PSobject.Properties.name -match "QueryResults")){
     $outputObj.QueryResults += $queryOut

@@ -31,7 +31,7 @@ if ([String]::IsNullOrEmpty($repositoryID)){
 }
 $BaseTFSURL = Get-TFSRestURL
 
-$action = '/wit/workitems/$'+$type+"?api-version=$($script:apiVersion)" 
+$action = '/_apis/wit/workitems/$'+$type+"?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Verbose
 
@@ -41,7 +41,8 @@ $outputObj | Add-Member -Type NoteProperty -Name repository -Value $pipelineInpu
 
 
 try{
-$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method PATCH -Body $requestBody -ContentType "application/json-patch+json" 
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method POST -Body $requestBody -ContentType "application/json-patch+json" -Headers $script:AuthHeader
+$response | Add-Member -type NoteProperty -Name "UserURL" -Value "$BaseTFSURL/_workitems/edit/$($response.id)"
 }
 catch{
     $ex = $_.Exception
