@@ -105,10 +105,10 @@ Get-CRDataSource:OutBuffer
 Get-CRDataSource:ob
 Get-CRDataSource:PipelineVariable
 Get-CRDataSource:pv
-Get-CRDataSource:WhatIf
-Get-CRDataSource:wi
 Get-CRDataSource:Confirm
 Get-CRDataSource:cf
+Get-CRDataSource:WhatIf
+Get-CRDataSource:wi
 Get-MyJobs:state
 Get-MyJobs:Verbose
 Get-MyJobs:vb
@@ -262,6 +262,7 @@ New-AlterSQLTableStatementFromColumn:PipelineVariable
 New-AlterSQLTableStatementFromColumn:pv
 New-SQLImportValuesStatementFromDataTable:dataTable
 New-SQLImportValuesStatementFromDataTable:FQTableName
+New-SQLImportValuesStatementFromDataTable:ColumnMetaData
 New-SQLImportValuesStatementFromDataTable:Verbose
 New-SQLImportValuesStatementFromDataTable:vb
 New-SQLImportValuesStatementFromDataTable:Debug

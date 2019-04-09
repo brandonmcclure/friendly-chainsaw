@@ -2,7 +2,7 @@
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
 
-    [parameter(Mandatory=$false)][string[]] $moduleName = @("FC_TFS.psm1")
+    [parameter(Mandatory=$false)][string[]] $moduleName = $null #@("FC_TFS.psm1")
     ,[parameter(Mandatory=$false)][string]$moduleDescription = $null
     ,[string] $moduleAuthor = "Brandon McClure"
     ,[switch] $forceConfigUpdate = $true
@@ -16,10 +16,12 @@ $origLocation = Get-Location
 
 try{
     if ([string]::IsNullOrEmpty($moduleName)){
-    $modules = Get-ChildItem -Path $pathToSearch  -Recurse | where {$_.Extension -eq '.psm1'}
+        $modules = Get-ChildItem -Path $pathToSearch  -Recurse | where {$_.Extension -eq '.psm1'}
+        Get-ChildItem -Path $pathToSearch -Recurse | where {$_.Extension -eq ".nupkg"} | Remove-Item -Force -ErrorAction Ignore
     }
     else{
         $modules = Get-ChildItem -Path $pathToSearch  -Recurse | where {$_.Extension -eq '.psm1' -and $_.Name -in $moduleName}
+        Get-ChildItem -Path $pathToSearch -Recurse | where {$_.Extension -eq ".nupkg" -and $_.Name -in $moduleName} | Remove-Item -Force -ErrorAction Ignore
     }
     foreach($module in $modules){
         $ModuleName = $module.BaseName 
@@ -92,10 +94,20 @@ try{
         if (!([string]::IsNullOrEmpty($bumpVersionType))){
             Step-ModuleVersion -Path $ManifestPath -By $bumpVersionType
         }
-
+        $moduleVersion = Get-Module $ManifestPath -ListAvailable | select -ExpandProperty Version
         if (!($skipScriptAnalyzer)){
             Invoke-ScriptAnalyserWithReport -moduleDir $moduleDir
             }
+
+        Set-Location $moduleDir
+    Write-Log "Creating the nuget package"
+    #https://roadtoalm.com/2017/05/02/using-vsts-package-management-as-a-private-powershell-gallery/#comments
+    nuget spec $moduleName -Force
+
+    [string]$nugetHack = Get-Content "$moduleName.nuspec" -ErrorAction Stop
+    $a = $nugetHack.replace("1.0.0" ,"$($moduleVersion)") 
+$a | Set-Content "$moduleName.nuspec" -Force
+    nuget pack
 }
 }
 catch{
