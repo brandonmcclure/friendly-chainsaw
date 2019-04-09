@@ -48,9 +48,14 @@ Create table $FQTableName (`n"
 
   $firstPass = 1
   foreach ($col in $colNames) {
-    Write-Log "Identifying the data type to use based on the dataTable you passed in" Debug
+    Write-Log "Identifying the data type for the column: $col based on the dataTable you passed in" Debug
 
     $dataType = Get-SQLServerDataTypeFromDataTable -table $dataTable -columnName $col.ColumnName
+
+    if ($col.Ordinal -eq 43){
+    $x = 0;
+    $y = $x;
+    }
     if ($firstPass -eq 1) {
       $SQLCreateTable = $SQLCreateTable + "[$($col.ColumnName)] $($dataType.derivedFSDataTypeDefinition) null`n"
       $firstPass = 0
