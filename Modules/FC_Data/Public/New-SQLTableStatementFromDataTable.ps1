@@ -40,6 +40,7 @@
     #>
   param([Parameter(Position = 0,ValueFromPipeline)] [System.Data.DataTable]$dataTable
     ,[Parameter(Position = 1)] [string]$FQTableName
+    ,[switch] $VarcharMax
   )
   $SQLCreateTable = ""
   $colNames = $dataTable.Columns | sort -Property Ordinal
@@ -48,15 +49,20 @@ Create table $FQTableName (`n"
 
   $firstPass = 1
   foreach ($col in $colNames) {
+  if(-not $VarcharMax){
     Write-Log "Identifying the data type to use based on the dataTable you passed in" Debug
 
-    $dataType = Get-SQLServerDataTypeFromDataTable -table $dataTable -columnName $col.ColumnName
+    $dataType = Get-SQLServerDataTypeFromDataTable -table $dataTable -columnName $col.ColumnName | select -ExpandProperty derivedFSDataTypeDefinition
+    }
+    else{
+        $dataType = 'varchar(max)'
+    }
     if ($firstPass -eq 1) {
-      $SQLCreateTable = $SQLCreateTable + "[$($col.ColumnName)] $($dataType.derivedFSDataTypeDefinition) null`n"
+      $SQLCreateTable = $SQLCreateTable + "[$($col.ColumnName)] $($dataType) null`n"
       $firstPass = 0
     }
     else {
-      $SQLCreateTable = $SQLCreateTable + ",[$($col.ColumnName)] $($dataType.derivedFSDataTypeDefinition) null`n"
+      $SQLCreateTable = $SQLCreateTable + ",[$($col.ColumnName)] $($dataType) null`n"
     }
   }
   $SQLCreateTable = $SQLCreateTable + "`n);

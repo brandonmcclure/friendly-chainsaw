@@ -2,6 +2,7 @@
   param(
     [DataImportFile]$a
     ,[System.Data.DataTable]$dataAsDataTable
+    ,[switch] $VarcharMax
   )
   Add-Type -AssemblyName System.Web
   $metaDataSQL = "Select count(*) 'cnt' from sys.objects obj
@@ -9,10 +10,10 @@
 where obj.name = '$($a.tableName)';"
   $tableMetaData = Invoke-Sqlcmd -ServerInstance $a.destServerName -Database $a.destDatabase -Query $metaDataSQL | Select-Object -ExpandProperty cnt
 
-  $a.sqlprojCreateScript = New-SQLTableStatementFromDataTable -dataTable $dataAsDataTable -FQTableName $a.FQTableName
+  $a.sqlprojCreateScript = New-SQLTableStatementFromDataTable -dataTable $dataAsDataTable -FQTableName $a.FQTableName -VarcharMax:$VarcharMax
   #If table does not exist, generate create table sql
   if ($tableMetaData -eq 0) {
-    $SQLCreateTable = New-SQLTableStatementFromDataTable -dataTable $dataAsDataTable -FQTableName $a.FQTableName
+    $SQLCreateTable = New-SQLTableStatementFromDataTable -dataTable $dataAsDataTable -FQTableName $a.FQTableName -VarcharMax:$VarcharMax
 
     $a.sqlCommand = $SQLCreateTable
     $a.ImportSummary.DoesTableNeedToBeCreated = 1
