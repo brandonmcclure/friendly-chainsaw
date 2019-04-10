@@ -25,6 +25,7 @@
     }
 
     Write-Log "Using the XLFileFormatID: $XLFileFormatID" Debug
+    Write-Log "Exporting the Excel file at: $excelFilePath" Debug 
   $E = New-Object -ComObject Excel.Application
   $E.Visible = $false
   $E.DisplayAlerts = $false
@@ -50,17 +51,19 @@
     $n = [io.path]::GetFileNameWithoutExtension($excelFilePath) + "_" + $sheet.Name
     $savePath = "$csvLoc\$n.txt"
     $sheet.SaveAs("$savePath",$XLFileFormatID) 
-
-    $E.Quit()
-    [Runtime.Interopservices.Marshal]::ReleaseComObject($E) | Out-Null
+    
     Write-Output $savePath
   }
   catch {
-    $E.Quit()
+    
     Write-Log "$($_.Exception) " Error
     Write-Log "Error Line: $($_.InvocationInfo.PositionMessage)" Error
-
     Write-Log "Error of some sorts... closing out the Excel workbook" Error -ErrorAction Stop
 
   }
+  finally{
+    $E.Quit()
+    [Runtime.Interopservices.Marshal]::ReleaseComObject($E) | Out-Null
+  }
+
 } Export-ModuleMember -Function Export-ExcelToTxt

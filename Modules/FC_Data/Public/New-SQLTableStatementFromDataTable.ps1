@@ -49,6 +49,7 @@ Create table $FQTableName (`n"
 
   $firstPass = 1
   foreach ($col in $colNames) {
+    Write-Log "Identifying the data type for the column: $col based on the dataTable you passed in" Debug
   if(-not $VarcharMax){
     Write-Log "Identifying the data type to use based on the dataTable you passed in" Debug
 
@@ -56,6 +57,11 @@ Create table $FQTableName (`n"
     }
     else{
         $dataType = 'varchar(max)'
+    }
+
+    if ($col.Ordinal -eq 43){
+    $x = 0;
+    $y = $x;
     }
     if ($firstPass -eq 1) {
       $SQLCreateTable = $SQLCreateTable + "[$($col.ColumnName)] $($dataType) null`n"

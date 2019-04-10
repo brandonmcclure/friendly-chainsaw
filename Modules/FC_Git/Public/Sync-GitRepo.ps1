@@ -23,30 +23,32 @@ $global:GitRepositories
     $repoPath = Get-GitRepositories
 }
 $oldLocation = Get-Location
+function HandleSTdOut{
+param([Parameter(ValueFromPipeline)][object] $processOutput)
+process{
+    Write-Log "stdOut: $( $processOutput.stdout)" Verbose
+    Write-Log "stderr: $( $processOutput.stderr)" Verbose
+  
+    if ($processOutput.stdout -like '*error*'){
+        Write-Log "There was an error: $($processOutput.stdout)" Error -ErrorAction Stop
+        
+    }
+    elseif ($processOutput.stderr -like '*error*'){
+        Write-Log "There was an error: $($processOutput.stderr)" Error -ErrorAction Stop
+        
+    }
+}
+}
 try{
     Set-Location $repoPath
     if ((Get-GitBranch) -ne $branchName){
-        $result = $null
-        $result = Start-MyProcess -EXEPath 'git' -options "checkout $branchName"
-
-        if ($result.stdout -like '*error*'){
-            Write-Log "There was an error:" Warning
-            $result.stdout
-        }
+        Start-MyProcess -EXEPath 'git' -options "checkout $branchName" | HandleSTdOut
     }
-    $result = $null
-    $result = Start-MyProcess -EXEPath 'git' -options "fetch"
-
-    Write-Log $result.stdout
-    Write-Log $result.stderr
-    $result = $null
-    $result = Start-MyProcess -EXEPath 'git' -options "pull"
-
-    Write-Log $result.stdout
-    Write-Log $result.stderr
-
+    Start-MyProcess -EXEPath 'git' -options "fetch" | HandleSTdOut
+    Start-MyProcess -EXEPath 'git' -options "pull"  | HandleSTdOut
 }
 catch{
+    throw
 }
 finally{
     Set-Location $oldLocation

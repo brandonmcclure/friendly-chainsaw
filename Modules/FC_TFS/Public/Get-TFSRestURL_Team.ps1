@@ -19,10 +19,26 @@
     .LINK
        www.google.com
     #>
+[CmdletBinding(SupportsShouldProcess=$true)] 
 param([string] $teamName)
 if([string]::IsNullOrEmpty($teamname)){
     Write-Log "invalid teamName" error -ErrorAction Stop
 }
-Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject/$teamName/_apis"
+if([string]::IsNullOrEmpty($script:TFSbaseURL)){
+    return
+}
+if([string]::IsNullOrEmpty($script:TFSCollection)){
+    return
+}
+if([string]::IsNullOrEmpty($script:TFSTeamProject)){
+    return
+}
+
+if ($script:apiVersion -eq "3.0"){
+Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject/$teamName"
+}
+else{
+Write-Output "$script:TFSbaseURL/$script:TFSTeamProject/$teamName"
+}
 
 } Export-ModuleMember -Function Get-TFSRestURL_Team

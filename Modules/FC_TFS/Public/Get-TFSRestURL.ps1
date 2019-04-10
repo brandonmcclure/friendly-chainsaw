@@ -19,7 +19,11 @@
     .LINK
        www.google.com
     #>
-
-Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject/_apis"
+    if ($script:apiVersion -eq "3.0"){
+Write-Output "$script:TFSbaseURL/$script:TFSCollection/$script:TFSTeamProject"
+}
+else{
+Write-Output "$script:TFSbaseURL/$script:TFSTeamProject"
+}
 
 } Export-ModuleMember -Function Get-TFSRestURL

@@ -11,7 +11,7 @@
 Create table $FQTableName (`n"
 
   $firstPass = 1
-  foreach ($col in $colNames) {
+  foreach ($col in $dataColumn) {
     Write-Log "Identifying the data type to use based on the dataTable you passed in" Debug
     switch ($col.DataType.Name)
     {

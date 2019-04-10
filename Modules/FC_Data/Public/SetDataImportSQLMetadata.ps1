@@ -33,14 +33,18 @@ where obj.name = '$($a.tableName)';"
     $importSumamry = New-Object DataImportFileSummary
     function QueryDB {
       $noChanges = $true
-      $dbTableMetaData = Invoke-Sqlcmd -ServerInstance $a.destServerName -Database $a.destDatabase -ConnectionTimeout 0 -Query "select col.name, column_id  from sys.columns col 
+      $sqlQuery = "select col.name, column_id  from sys.columns col 
   inner join sys.objects obj on col.object_id = obj.object_id and obj.name = '$($a.tableName)'
   inner join sys.schemas sch on obj.schema_id = sch.schema_id and sch.name = '$($a.schemaName)'"
+      $dbTableMetaData = Invoke-Sqlcmd -ServerInstance $a.destServerName -Database $a.destDatabase -ConnectionTimeout 0 -Query $sqlQuery
       foreach ($col in $dbTableMetaData) {
         if (!($dataAsDataTable.Columns[$col.Name])) {
           $importSumamry.ColumnsInDBNotInFile += $col
           $importSumamry.NumColumnsNotInFile += 1
         }
+
+        $sqlQuery = "exec sp_describe_first_result_set  @TSQL = N'select [$($col.name)] from [$($a.schemaName)].[$($a.tableName)]'"
+        $dataType = Invoke-Sqlcmd -ServerInstance $a.destServerName -Database $a.destDatabase -ConnectionTimeout 0 -Query $sqlQuery
 
       }
       foreach ($col in $dataAsDataTable.Columns) {
@@ -52,7 +56,7 @@ where obj.name = '$($a.tableName)';"
           $InLocalAndNotDB += $col.ColumnName
           $importSumamry.ColumnsAddedToDB += $col
           $importSumamry.NumColumnsAddedToDB += 1
-          #$a.sqlCommand += New-AlterSQLTableStatementFromColumn -FQTableName $a.FQTableName -dataColumn $col
+          
           #Invoke-Sqlcmd -ServerInstance $destServerName -Database $destDatabase -ConnectionTimeout 0 -Query $alterSQL
         }
       }
