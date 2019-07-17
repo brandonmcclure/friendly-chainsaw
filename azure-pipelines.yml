@@ -1,0 +1,61 @@
+pool:
+  name: default
+  demands:
+  - ehstfsserviceCodeSigningCert
+  - DotNetFramework
+
+#Your build pipeline references an undefined variable named ‘$env:USERNAME’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
+
+steps:
+- task: richardfennellBM.BM-VSTS-PesterRunner-Task.Pester-Task.Pester@8
+  displayName: 'Pester Test Runner'
+  inputs:
+    scriptFolder: '$(System.DefaultWorkingDirectory)\Powershell Scripts\Tests\*'
+    excludeTag: ExcludeTFS
+    additionalModulePath: '$(System.DefaultWorkingDirectory)\Powershell Scripts\Modules'
+  continueOnError: true
+
+- task: PublishTestResults@2
+  displayName: 'Publish Test Results $(System.DefaultWorkingDirectory)\Test-Pester.XML'
+  inputs:
+    testResultsFormat: NUnit
+    testResultsFiles: '$(System.DefaultWorkingDirectory)\Test-Pester.XML'
+
+- task: PowerShell@1
+  displayName: 'Build-PowershelScripts'
+  inputs:
+    scriptName: 'PowerShell Scripts/TFS Build-Deploy/Build-PowershellScripts.ps1'
+
+- task: NuGetCommand@2
+  displayName: 'NuGet pack'
+  inputs:
+    command: pack
+    packagesToPack: '**\*.nuspec'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: Powershell Scripts'
+  inputs:
+    PathtoPublish: 'Powershell Scripts'
+    ArtifactName: 'Powershell Scripts'
+
+- task: PublishBuildArtifacts@1
+  displayName: 'Publish Artifact: Module Nugets'
+  inputs:
+    ArtifactName: 'Module Nugets'
+
+- powershell: |
+   # Write your powershell commands here.
+   
+   Write-Host "$($env:USERNAME)"
+   
+   # Use the environment variables input below to pass secret variables to this script.
+  displayName: 'PowerShell Script'
+
+- task: NuGetCommand@2
+  displayName: 'NuGet push'
+  inputs:
+    command: push
+    publishVstsFeed: 'cbb2d910-3718-48fa-97a7-95df7049ca3f'
+    allowPackageConflicts: true
+  enabled: false
+
