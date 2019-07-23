@@ -29,9 +29,9 @@ $repositoryID = $pipelineInput.repository.id
 if ([String]::IsNullOrEmpty($repositoryID)){
     Write-Log "Please pass a repositoryID" Error -ErrorAction Stop
 }
-$BaseTFSURL = Get-TFSRestURL_Collection
+$BaseTFSURL = $script:TFSbaseURL
 
-$action = "/wit/workitemrelationtypes?api-version=$($script:apiVersion)" 
+$action = "/_apis/wit/workitemrelationtypes?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Verbose
 
@@ -41,7 +41,7 @@ $outputObj | Add-Member -Type NoteProperty -Name repository -Value $pipelineInpu
 
 
 try{
-$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json" 
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json" -Headers $script:AuthHeader
 Write-Log "Found $($response.Count) relationship types"
 }
 catch{

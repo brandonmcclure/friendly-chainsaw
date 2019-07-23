@@ -53,6 +53,7 @@ where obj.name = '$($a.tableName)';"
         if (!($b -ne $null)) {
           #$noChanges = $false
           Write-Log "$columnName exists in the file but not in the database. Altering table to add new varchar(max) column"
+          $a.sqlprojCreateScript = New-SQLTableStatementFromDataTable -dataTable $dataAsDataTable -FQTableName $a.FQTableName -VarcharMax:$VarcharMax
           $InLocalAndNotDB += $col.ColumnName
           $importSumamry.ColumnsAddedToDB += $col
           $importSumamry.NumColumnsAddedToDB += 1

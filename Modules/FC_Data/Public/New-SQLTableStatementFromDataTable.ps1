@@ -45,7 +45,7 @@
   $SQLCreateTable = ""
   $colNames = $dataTable.Columns | sort -Property Ordinal
   $SQLCreateTable += "
-Create table $FQTableName (`n"
+CREATE or ALTER TABLE $FQTableName (`n"
 
   $firstPass = 1
   foreach ($col in $colNames) {
