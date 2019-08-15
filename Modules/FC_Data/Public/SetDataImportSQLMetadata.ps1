@@ -5,6 +5,11 @@
     ,[switch] $VarcharMax
   )
   Add-Type -AssemblyName System.Web
+
+
+  $out = New-Object myOut
+  
+ 
   $metaDataSQL = "Select count(*) 'cnt' from sys.objects obj
   inner join sys.schemas sch on obj.schema_id = sch.schema_id and sch.name = '$($a.schemaName)'
 where obj.name = '$($a.tableName)';"
@@ -22,6 +27,7 @@ where obj.name = '$($a.tableName)';"
 
 
     $a.fileHTMLReport += "Table does not exist for $([System.Web.HttpUtility]::HtmlEncode($a.FQTableName)). Will create with the SQL below.<br>Include the following in the database project file<br><code><pre>$([System.Web.HttpUtility]::HtmlEncode($a.sqlprojIncludes))</pre></code>"
+
   }
   #else, check to see if we need to add any columns
   else {
@@ -90,4 +96,7 @@ where obj.name = '$($a.tableName)';"
     $a.fileHTMLReport += "<h4>Columns in database and not in file (will be null with this import)</h4>"
     $a.fileHTMLReport += $a.ColumnsInDBNotInFile | Sort-Object -Property "column_id" | New-HTMLTable -setAlternating $false -Properties name,column_id
   }
+  $out.metadata = $a
+  $out.DataTable = $dataAsDataTable
+  Write-Output $out
 } Export-ModuleMember -Function SetDataImportSQLMetadata
