@@ -33,9 +33,7 @@ elseif([string]::IsNullOrEmpty($repoPath)){
 $oldLocation = Get-Location
 try{
     Set-Location $repoPath
-    if ((Get-GitBranch) -ne 'master'){
-        Sync-TFSLocalAutoRepo
-    }
+
     $result = Start-MyProcess -EXEPath 'git' -options "checkout -b $branchName"
     Write-Log $result.stderr
     Write-Log $result.stdout
