@@ -39,9 +39,9 @@ class DataImportSummary{
     }
 }
 class DataImportFileSummary : DataImportSummary{
-    [string]$ColumnsInDBNotInFile
+    [string[]]$ColumnsInDBNotInFile
     [int]$NumColumnsNotInFile
-    [string]$ColumnsAddedToDB
+    [string[]]$ColumnsAddedToDB
     [int]$NumColumnsAddedToDB
     [boolean]$DoesTableNeedToBeCreated
 
@@ -54,6 +54,10 @@ class DataImportFileSummary : DataImportSummary{
     }
 }
 
+  class myOut {
+  [DataImportFile] $metadata
+  [System.Data.DataTable] $DataTable
+  }
 
 Write-Verbose "Importing Functions"
 

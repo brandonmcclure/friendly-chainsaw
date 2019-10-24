@@ -9,6 +9,8 @@
   $outObj | Add-Member -Type NoteProperty -Name "derivedSize" -Value 0
   $outObj | Add-Member -Type NoteProperty -Name "derivedFSDataTypeDefinition" -Value 0
 
+  $col =  $table.Columns[$columnName]
+
   switch ($col.DataType.Name)
   {
     "DateTime" {
@@ -19,7 +21,7 @@
     }
 
     "String" {
-      foreach ($dr in $dataTable.Rows)
+      foreach ($dr in $table.Rows)
       {
         $curRowVal = $dr.Item($columnName)
         $outObj.MinValue = [math]::Min($outObj.MaxValue,$curRowVal.Length);
