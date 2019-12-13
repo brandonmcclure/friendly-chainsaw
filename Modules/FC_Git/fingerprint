@@ -1,7 +1,6 @@
 Get-GitAllBranchStatus:sourceBranchName
 Get-GitAllBranchStatus:targetBranch
 Get-GitAllBranchStatus:full
-Get-GitBranch:returnAllBranches
 Get-GitBranchesComparedToRemote:branchName
 Get-GitBranchesComparedToRemote:remoteName
 Get-GitBranchesComparedToRemote:Verbose
@@ -26,10 +25,10 @@ Get-GitBranchesComparedToRemote:OutBuffer
 Get-GitBranchesComparedToRemote:ob
 Get-GitBranchesComparedToRemote:PipelineVariable
 Get-GitBranchesComparedToRemote:pv
-Get-GitBranchesComparedToRemote:Confirm
-Get-GitBranchesComparedToRemote:cf
 Get-GitBranchesComparedToRemote:WhatIf
 Get-GitBranchesComparedToRemote:wi
+Get-GitBranchesComparedToRemote:Confirm
+Get-GitBranchesComparedToRemote:cf
 Get-GitBranchesWithChange:filePath
 Get-GitBranchStatus:sourceBranchName
 Get-GitBranchStatus:targetBranch

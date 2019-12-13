@@ -50,6 +50,14 @@
     ,[Parameter(Position = 1)] [switch]$masterBranch = $false
   )
 
+  function HandleGitOutput([Parameter(ValueFromPipeline)] $o){
+    Write-Log "$($return.stdout)" Verbose
+    
+    if ($return.sterr -ne $null){
+        Write-Log "$($return.sterr)" Warning
+        Write-Log "There was an error of some type. See warning above for more info" Error -ErrorAction Stop
+    }
+  }
   Write-Verbose "Current Location: $(Get-Location)"
   $oldErrorAction = $ErrorActionPreference
   $ErrorActionPreference = "Stop"
@@ -62,26 +70,31 @@
       #If theuser specifies, then get the commit from master. If not, get the commit of the current branch (HEAD)
       if ($masterBranch) {
         Write-Verbose "git rev-parse master:""$path"""
-        $gitLogOutput = & git rev-parse master:'"'$path'"'
+        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse master:'""'$path'""'" -ErrorAction Stop | HandleGitOutput 
       }
       else {
         Write-Verbose "git rev-parse head:""$path"""
-        $gitLogOutput = & git rev-parse head:'"'$path'"'
+        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse head:'""'$path'""'" -ErrorAction Stop | HandleGitOutput 
       }
     }
     else {
       if ($masterBranch) {
         Write-Verbose "git rev-parse master"
-        $gitLogOutput = & git rev-parse master
+        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse master" -ErrorAction Stop | HandleGitOutput 
       }
       else {
         Write-Verbose "git rev-parse HEAD"
-        $gitLogOutput = & git rev-parse HEAD
+        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse HEAD" -ErrorAction Stop | HandleGitOutput 
       }
 
     }
   }
   catch {
+     $ex = $_.Exception
+    $line = $_.InvocationInfo.ScriptLineNumber
+    $scriptName = Split-Path $_.InvocationInfo.ScriptName -Leaf
+    $msg = $ex.Message
+    Write-Log "Error in script $scriptName at line $line, error message: $msg" Warning
     $gitLogOutput = ''
   }
   $ErrorActionPreference = $oldErrorAction

@@ -62,6 +62,8 @@ where obj.name = '$($a.tableName)';"
           $InLocalAndNotDB += $col.ColumnName
           $importSumamry.ColumnsAddedToDB += $col
           $importSumamry.NumColumnsAddedToDB += 1
+          $a.sqlCommand += "ALTER TABLE [$($a.schemaName)].[$($a.tableName)]
+ADD [$($columnName)] VARCHAR(MAX);"
           
           #Invoke-Sqlcmd -ServerInstance $destServerName -Database $destDatabase -ConnectionTimeout 0 -Query $alterSQL
         }
