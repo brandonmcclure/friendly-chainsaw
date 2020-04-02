@@ -2,24 +2,26 @@
 param(
 	[ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Debug",
 
-    [parameter(Mandatory=$false)][string[]] $moduleName = @("FC_Core.psm1")
+    [parameter(Mandatory=$false)][string[]] $moduleName = @("FC_TFS.psm1")
     ,[parameter(Mandatory=$false)][string]$moduleDescription = $null
     ,[string] $moduleAuthor = "Brandon McClure"
     ,[switch] $forceConfigUpdate = $true
     ,[switch] $skipScriptAnalyzer = $true
     )
-    try{
-Import-Module BuildHelpers, PSScriptAnalyzer,PSHTMLTable -ErrorAction Stop
+
+function ManageModule($moduleName){
+if (Get-Module -ListAvailable -Name $moduleName) {
+    Import-Module $moduleName -ErrorAction Stop
+} 
+else {
+    Install-Module $moduleName 
+    Import-Module $moduleName -ErrorAction Stop
 }
-catch{
-    $installModules = $true
 }
 
-if($installModules){
-    Install-Module  BuildHelpers, PSScriptAnalyzer,PSHTMLTable -ErrorAction Stop
-}
-
-Import-Module BuildHelpers, PSScriptAnalyzer,PSHTMLTable -ErrorAction Stop
+ManageModule 'BuildHelpers'
+ManageModule 'PSScriptAnalyzer'
+ManageModule 'PSHTMLTable'
 $pathToSearch = (Split-Path $PSCommandPath -Parent)
 . $pathToSearch\BuildFunctions.ps1
 $origLocation = Get-Location
