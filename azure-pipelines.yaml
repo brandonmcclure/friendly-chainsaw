@@ -18,6 +18,9 @@ stages:
           displayName: 'Build-PowershelScripts'
           inputs:
               scriptName: 'Modules/Build-AllFCModules.ps1'
+        - task: NuGetToolInstaller@1
+          inputs:
+            versionSpec: '5.x'
         - task: NuGetCommand@2
           displayName: 'NuGet pack'
           inputs:
@@ -26,7 +29,7 @@ stages:
         - task: CopyFiles@2
           inputs:
             SourceFolder: '$(agent.builddirectory)'
-            Contents: '**\*.nupkg'
+            Contents: '*'
             TargetFolder: '$(build.artifactstagingdirectory)'
         - task: PublishBuildArtifacts@1
           inputs:
