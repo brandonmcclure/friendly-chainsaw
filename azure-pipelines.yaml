@@ -11,22 +11,15 @@ stages:
 - stage: NugetPublish
   displayName: 
   jobs:
-    steps:
-    - checkout: self
-    - task: PowerShell@1
-    displayName: 'Build-PowershelScripts'
-    inputs:
-        scriptName: 'Modules/Build-AllFCModules.ps1'
-    - task: NuGetCommand@2
-      displayName: 'NuGet pack'
-      inputs:
-        command: pack
-        packagesToPack: '**\*.nuspec'
-    - task: NuGetCommand@2
-      displayName: 'NuGet push'
-      inputs:
-        command: push
-        publishVstsFeed: 'cbb2d910-3718-48fa-97a7-95df7049ca3f'
-        allowPackageConflicts: true
-      enabled: false
-    
+    - job: SignFiles
+      steps:
+        - checkout: self
+        - task: PowerShell@1
+          displayName: 'Build-PowershelScripts'
+          inputs:
+              scriptName: 'Modules/Build-AllFCModules.ps1'
+        - task: NuGetCommand@2
+          displayName: 'NuGet pack'
+          inputs:
+            command: pack
+            packagesToPack: '**\*.nuspec'
