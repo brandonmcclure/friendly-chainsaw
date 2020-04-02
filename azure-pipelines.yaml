@@ -1,0 +1,33 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    
+pool:
+  vmImage: windows-latest
+#Your build pipeline references an undefined variable named ‘$env:USERNAME’. Create or edit the build pipeline for this YAML file, define the variable on the Variables tab. See https://go.microsoft.com/fwlink/?linkid=865972
+
+stages:
+- stage: NugetPublish
+  displayName: 
+  jobs:
+    steps:
+    - checkout: self
+    - task: PowerShell@1
+    displayName: 'Build-PowershelScripts'
+    inputs:
+        scriptName: 'Modules/Build-AllFCModules.ps1'
+    - task: NuGetCommand@2
+      displayName: 'NuGet pack'
+      inputs:
+        command: pack
+        packagesToPack: '**\*.nuspec'
+    - task: NuGetCommand@2
+      displayName: 'NuGet push'
+      inputs:
+        command: push
+        publishVstsFeed: 'cbb2d910-3718-48fa-97a7-95df7049ca3f'
+        allowPackageConflicts: true
+      enabled: false
+    
