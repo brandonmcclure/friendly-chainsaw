@@ -14,7 +14,7 @@ if (Get-Module -ListAvailable -Name $moduleName) {
     Import-Module $moduleName -ErrorAction Stop
 } 
 else {
-    Install-Module $moduleName –scope CurrentUser -ErrorAction Stop
+    Install-Module $moduleName -Force -Verbose -Scope CurrentUser
     Import-Module $moduleName -ErrorAction Stop
 }
 }
