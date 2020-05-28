@@ -33,7 +33,7 @@ if ([String]::IsNullOrEmpty($repositoryID)){
     Write-Log "Please pass a repositoryID" Error -ErrorAction Stop
 }
 $BaseTFSURL = Get-TFSRestURL
-$action = "/git/repositories/$repositoryID/PullRequests?api-version=$($script:apiVersion)" 
+$action = "/_apis/git/repositories/$repositoryID/PullRequests?api-version=$($script:apiVersion)" 
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
 $response = (Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json-patch+json").value
