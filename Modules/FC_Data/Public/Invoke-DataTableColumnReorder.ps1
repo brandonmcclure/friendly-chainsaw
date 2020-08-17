@@ -58,6 +58,10 @@ $schemaName and $tableName are set dynamically based on the files that will be l
 #>
   [OutputType([Data.datatable])]
   param([Parameter(Position = 0,Mandatory = $true,ValueFromPipeline = $true)] [Data.datatable]$DataTable,[string[]]$columnOrder)
+  if(($columnOrder | Measure-Object | select -ExpandProperty COunt) -eq 0){
+    Write-Log "You need to pass a value to columnOrder" Error -ErrorAction stop
+    return
+  }
   $columnIndex = 0
   foreach ($column in $columnOrder) {
     if ($DataTable.Columns.Contains($column)) {
