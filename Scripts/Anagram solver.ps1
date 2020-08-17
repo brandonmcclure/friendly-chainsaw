@@ -50,6 +50,7 @@ Function Get-StringPermutation {
     Param(
         [parameter(ValueFromPipeline=$True)]
         [string]$String = 'the'
+        ,[int]$Size = 0
     )
     Begin {
         #region Internal Functions
@@ -81,7 +82,9 @@ Function Get-StringPermutation {
         #endregion Internal Functions
     }
     Process {
-        $size = $String.length
+        if ($Size -eq 0 ){
+            $Size = $String.length
+        }
         $stringBuilder = New-Object System.Text.StringBuilder -ArgumentList $String
         New-Anagram -NewSize $Size
     }
@@ -90,48 +93,71 @@ Function Get-StringPermutation {
 
 Set-logTargets -Speech 0
 Set-LogFormattingOptions -PrefixTimestamp 1 -PrefixCallingFunction 1 -AutoTabCallsFromFunctions 1
-Set-LogLevel verbose
-$anagrams = @("grihas","spogsi","fruuet","luteml","tryhow")
-$minLength = 10
-$maxLength = 0
-foreach ($a in $anagrams)
-{
-    if ($a.length -lt $minLength){$minLength = $a.Length}
-    if ($a.length -gt $maxLength){$maxLength = $a.Length}
+Set-LogLevel Info
+$anagrams = @("urwimdoootevnahyy")
+$dictionaryPath = "E:\Git\friendly-chainsaw\words_dictionary_withCharCount.json"
+$wordMeta = @{1=3;2=4;3=2;4=4;5=2;6=2;}
+if($wordMeta[1] -eq 0){
+    $minLength = $anagrams | select -ExpandProperty Length | sort | select -First 1
+    $maxLength = $anagrams | select -ExpandProperty Length | sort -Descending | select -First 1
+    $wordMeta[1] = $maxLength
 }
-write-Log "Loading dictionary" Verbose
-$dictionary = (Get-Content C:\Users\brandon\Downloads\words_dictionary.json -Raw | ConvertFrom-Json) | where {$_.Length -ge $minLength -and $_.Length -le $maxLength}
+else{
+$minLength = $wordMeta.Values | sort | select -First 1
+$maxLength = $wordMeta.Values | sort -Descending | select -First 1
+}
+
+write-Log "Loading main dictionary" Verbose
+if ($script:Dictionary -eq $null){
+    $dictionary = (Get-Content $dictionaryPath -Raw | ConvertFrom-Json) 
+    $script:Dictionary = $dictionary
+}
+else{
+    $dictionary = $script:Dictionary | where {$_.Length -ge $minLength -and $_.Length -le $maxLength}
+}
 $dictionaryCount = $dictionary | Measure-Object | select -ExpandProperty count
-write-Log "Done Loading dictionary. Loaded $dictionaryCount words with a length between $minLength and $maxLength" Verbose
-$stringResults = @()
+if ($dictionaryCount -eq 0 ){
+    Write-Log "There was an error loading the dictionary at $dictionaryPath" Error -ErrorAction Stop
+}
+write-Log "Done Loading main dictionary. Loaded $dictionaryCount words with a length between $minLength and $maxLength" Verbose
+$wordResults = @()
+$script:filteredDictionaries = @()
+  foreach($word in $wordMeta.Values){
+
+        Write-Log "Filtering dictionary for this word" Verbose
+            Write-Log "Filtering main data base and saving to memory" Verbose
+            $filteredDictionary = $dictionary | where {$_.Length -eq $word} | select -ExpandProperty Name -Unique
+            $dict = new-object psobject
+            $dict | Add-Member -type NoteProperty -Name length -Value $word
+            $dict | Add-Member -type NoteProperty -Name dictionary -Value $filteredDictionary  | select -ExpandProperty Name -Unique
+            $script:filteredDictionaries += $dict
+        Write-Log "Done Filtering dictionary for this word" Verbose
 foreach ($string in $anagrams){
 Write-Log "Checking for $string"
+
 $outObj = New-Object PSObject
 $outObj | Add-Member -type NoteProperty -Name "StringName" -Value $string
-$outObj | Add-Member -type NoteProperty -Name "anagramMatches"  -Value @()
+$outObj | Add-Member -type NoteProperty -Name "words"  -Value @()
 
-$APIThrottlePerMinute = 60
+        $permiations = Get-StringPermutation -String $string | select -ExpandProperty Permutation | foreach {$_.Substring(0,$word)} | select -Unique
 
-$permiations = Get-StringPermutation -String $string
+        Write-Log "Found $($permiations | Measure-Object | Select-Object -ExpandProperty Count) permiations of $string" verbose
+        
+        $calls = @()
+                                        foreach ($perm in $permiations){
 
-Write-Log "Found $($permiations | Measure-Object | Select-Object -ExpandProperty Count) permiations of $string" verbose
-Write-Log "Filtering dictionary for this word" Verbose
-$filteredDictionary = $dictionary | where {$_.Length -eq $string.Length} | select -ExpandProperty Name
+        Write-Log "Checking for $perm in dictionary" Debug
+        if ($perm -in $filteredDictionary){
+            Set-logTargets -Speech 1
+            Write-Log "Found real word: $($dictionary |where Name -eq $perm | select -ExpandProperty Name )"
+            $outObj.words += $perm;
+            Set-logTargets -Speech 0
+        }
+        Write-Log "done checking dictionary" Verbose
+        }
 
-$calls = @()
-foreach ($perm in $permiations | select -ExpandProperty Permutation){
-
-    Write-Log "Checking for $perm in dictionary" Debug
-    if ($perm -in $filteredDictionary){
-        Set-logTargets -Speech 1
-        Write-Log "Found real word: $($dictionary |where Name -eq $perm | select -ExpandProperty Name )"
-        $outObj.anagramMatches += $perm
-        Set-logTargets -Speech 0
+        $wordResults += $outObj
     }
-    Write-Log "done checking dictionary" debug
-}
-
-$stringResults += $outObj
 }
 
 $stringResults | ft

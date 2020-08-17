@@ -54,35 +54,45 @@ Function Get-FileMetaData
  #Requires -Version 2.0
  #>
  [CmdletBinding(SupportsShouldProcess=$true)] 
- Param([Parameter(ValueFromPipeline)][object[]]$file)
- process{
+ Param([Parameter(Mandatory=$true,ValueFromPipeline)][object[]]$file,[string[]]$properties)
 
- foreach($sfile in $file)
-  {
-   $a = 0
+    [int]$TotItems = $file.Count
+        [int]$Count = 0
+
+    if ($file -eq $null){
+    return $null
+    }
    Remove-Variable objShell -ErrorAction Ignore | Out-Null
-   $myFolder = $($sfile.FullName |Split-Path -Parent)
+   $myFolder = $($file.FullName |Split-Path -Parent)
    $objFolder = Get-ShellFolder -folder $myFolder
-   $objShell = New-Object -ComObject Shell.Application
-        $outThing = $objShell.namespace("$myFolder")
-
-   foreach ($File in $objFolder.items() | where {$_.Name -eq $sfile.name })
+   $shellProperties = New-Object PSObject
+   #https://msdn.microsoft.com/en-us/library/windows/desktop/bb774094(v=vs.85).aspx
+   if($logLevel -eq "Debug"){
+    Write-Log '$objFolder:' Debug
+    $objFolder.items() | fl
+   }
+   $Count++
+            [int]$percentComplete = ($Count/$TotItems* 100)
+            
+   foreach ($_File in $objFolder.items() | where {$_.Name -eq $file.name })
     { 
         Remove-Variable FileMetaData -ErrorAction Ignore | Out-Null
      $FileMetaData = New-Object PSOBJECT
-      for ($a ; $a  -le 266; $a++)
+      for ($a = 0 ; $a  -le 266; $a++)
        { 
-         if($objFolder.getDetailsOf($File, $a))
+       
+         if([string]::IsNullOrEmpty($properties) -or $objFolder.getDetailsOf($objFolder.items, $a) -in $properties){
+         if($objFolder.getDetailsOf($_File, $a))
            {
              $hash += @{$($objFolder.getDetailsOf($objFolder.items, $a))  =
-                   $($objFolder.getDetailsOf($File, $a)) }
-            $FileMetaData | Add-Member $hash
+                   $($objFolder.getDetailsOf($_File, $a)) }
+            $shellProperties | Add-Member $hash
             $hash.clear() 
            } #end if
+       }
        } #end for 
-     $a=0
-     Write-Output (,$FileMetaData)
+       $file | Add-Member -type NoteProperty -name ShellProperties -value $shellProperties
+     Write-Output $file
     } #end foreach $file
-  } #end foreach $sfolder
-}
+
 }Export-ModuleMEmber -Function Get-FileMetaData
