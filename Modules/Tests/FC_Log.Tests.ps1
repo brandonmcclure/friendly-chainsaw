@@ -57,3 +57,12 @@ Context 'Multiple messages'{
             }
         }
 }
+
+Describe 'Set-LogLevel'{
+    COntext 'Valid input'{
+        it 'Debug'{
+            Set-LogLevel Debug
+            Write-Log "Debug Test" Debug | Should -be "Debug Test"
+        }
+    }
+}
