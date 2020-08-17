@@ -51,5 +51,6 @@ Write-Output $response.value
 }
 catch{
       Set-LogLevel $currentLogLevel
+      throw
 }
 } Export-ModuleMember -Function Get-TFSIterations

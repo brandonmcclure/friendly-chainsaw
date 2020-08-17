@@ -40,7 +40,7 @@ None
     [Parameter(Position = 6,Mandatory = $false)] [int32]$QueryTimeout = 0,
     [Parameter(Position = 7,Mandatory = $false)] [int32]$ConnectionTimeout = 15
   )
-
+  $ErrorActionPreference = "Stop"
   $conn = New-Object System.Data.SqlClient.SQLConnection
 
   if ($databaseCredentials)
@@ -50,23 +50,22 @@ None
 
   $conn.ConnectionString = $ConnectionString
 
-  try
-  {
     $conn.Open()
+    #$a = $Data.Columns | select -ExpandProperty Ordinal, ColumnName
     $bulkCopy = New-Object ("Data.SqlClient.SqlBulkCopy") $connectionString
     $bulkCopy.DestinationTableName = $tableName
     if ($BatchSize -gt 0) {
       $bulkCopy.BatchSize = $BatchSize
     }
     $bulkCopy.BulkCopyTimeout = $QueryTimeOut
-    $bulkCopy.WriteToServer($Data)
+    try{
+    $bcOutput = $bulkCopy.WriteToServer($Data)
+    }
+    catch{
+    throw
+    }
+    finally{
     $conn.Close()
-  }
-  catch
-  {
-    $ex = $_.Exception
-    Write-Error "$ex.Message"
-    continue
-  }
+    }
 
 } Export-ModuleMember -Function Write-DataTable

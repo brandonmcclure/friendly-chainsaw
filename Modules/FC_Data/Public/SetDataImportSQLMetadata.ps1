@@ -9,15 +9,17 @@
 
   $out = New-Object myOut
   
- 
+    Write-Log "Quering sql server to get target schema" Verbose
   $metaDataSQL = "Select count(*) 'cnt' from sys.objects obj
   inner join sys.schemas sch on obj.schema_id = sch.schema_id and sch.name = '$($a.schemaName)'
 where obj.name = '$($a.tableName)';"
   $tableMetaData = Invoke-Sqlcmd -ServerInstance $a.destServerName -Database $a.destDatabase -Query $metaDataSQL | Select-Object -ExpandProperty cnt
 
+  Write-Log "Generating the sql to create a new SQL table from this data table" Verbose
   $a.sqlprojCreateScript = New-SQLTableStatementFromDataTable -dataTable $dataAsDataTable -FQTableName $a.FQTableName -VarcharMax:$VarcharMax
   #If table does not exist, generate create table sql
   if ($tableMetaData -eq 0) {
+    Write-Log "Doing this stuff" Verbose
     $SQLCreateTable = New-SQLTableStatementFromDataTable -dataTable $dataAsDataTable -FQTableName $a.FQTableName -VarcharMax:$VarcharMax
 
     $a.sqlCommand = $SQLCreateTable
@@ -31,12 +33,12 @@ where obj.name = '$($a.tableName)';"
   }
   #else, check to see if we need to add any columns
   else {
-
+Write-Log "Doing that" Verbose
 
     #Query the database to modify the local DataTable to match the deployed schema. Generate alter scripts to get the deployed shema to match any new columns
     $dbOrdered = @()
 
-    $importSumamry = New-Object DataImportFileSummary
+    $importSumamry = Get-DataImportFileSummary
     function QueryDB {
       $noChanges = $true
       $sqlQuery = "select col.name, column_id  from sys.columns col 
@@ -88,7 +90,7 @@ ADD [$($columnName)] VARCHAR(MAX);"
     }
     QueryDB
 
-
+    Write-Log "Getting import summary packaged together" Verbose
     $a.ImportSummary = $importSumamry
 
     #Write-DataTable -ServerInstance $destServerName -Database $destDatabase -TableName $FQTableName -data $dataAsDataTable

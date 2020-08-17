@@ -139,6 +139,8 @@ Get-SSASTabularDatabases:serverName
 Import-Excel:FileName
 Import-Excel:WorksheetName
 Import-Excel:DisplayProgress
+Invoke-AddCOlumnsToDataTable:datatable
+Invoke-AddCOlumnsToDataTable:Columns_ToAdd
 Invoke-DataTableColumnReorder:DataTable
 Invoke-DataTableColumnReorder:columnOrder
 Invoke-DataTableColumnReorder:Verbose
@@ -163,6 +165,7 @@ Invoke-DataTableColumnReorder:OutBuffer
 Invoke-DataTableColumnReorder:ob
 Invoke-DataTableColumnReorder:PipelineVariable
 Invoke-DataTableColumnReorder:pv
+Invoke-DuplicateColumnNames:colNames
 Invoke-ReplaceSQLTags:tagInfoObject
 Invoke-ReplaceSQLTags:replaceWithSubquery
 Invoke-ReplaceSQLTags:replaceFile
@@ -260,6 +263,12 @@ New-AlterSQLTableStatementFromColumn:OutBuffer
 New-AlterSQLTableStatementFromColumn:ob
 New-AlterSQLTableStatementFromColumn:PipelineVariable
 New-AlterSQLTableStatementFromColumn:pv
+New-DataImportReport:objStore
+New-DataImportReport:outputFilePath
+New-DataImportReport:emailTo
+New-DataImportReport:emailFrom
+New-DataImportReport:smtpServer
+New-DataImportReport:OpenInIE
 New-SQLImportValuesStatementFromDataTable:dataTable
 New-SQLImportValuesStatementFromDataTable:FQTableName
 New-SQLImportValuesStatementFromDataTable:ColumnMetaData

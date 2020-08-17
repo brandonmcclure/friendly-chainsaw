@@ -25,16 +25,16 @@
         Output: dcef3a70cc28d9dfa058c8f86183cef6e78a6df5
 
     .EXAMPLE
-        Get the most recent commit hash of a specific directory (named SSAS_TabularModels), for the current branch
+        Get the most recent commit hash of a specific directory (named SSAS/SSAS_TabularModels), for the current branch
 
-        Get-GitLastCommit "SSAS_TabularModels"
+        Get-GitLastCommit "SSAS/SSAS_TabularModels"
 
         Output: 798bbd1d8d27b99ea27ff2e38e3ae86f4b02c317
 
     .EXAMPLE
-        Get the most recent commit hash of a specific file in a subdirectory (named SSAS_TabularModels\.gitgnore on windows...), for the current branch
+        Get the most recent commit hash of a specific file in a subdirectory (named SSAS/SSAS_TabularModels\.gitgnore on windows...), for the current branch
 
-        Get-GitLastCommit "SSAS_TabularModels/.gitignore"
+        Get-GitLastCommit "SSAS/SSAS_TabularModels/.gitignore"
 
         Output: 6cb5d7854d5b81b407d475972ee602de9c7ddca3
 
@@ -50,15 +50,18 @@
     ,[Parameter(Position = 1)] [switch]$masterBranch = $false
   )
 
-  function HandleGitOutput([Parameter(ValueFromPipeline)] $o){
-    Write-Log "$($return.stdout)" Verbose
+  function HandleGitOutput([Parameter(ValueFromPipeline)] $output){
+    Write-Log "$($output.stdout)" Verbose
     
-    if ($return.sterr -ne $null){
-        Write-Log "$($return.sterr)" Warning
+    if ($output.sterr -ne $null){
+        Write-Log "$($output.sterr)" Warning
         Write-Log "There was an error of some type. See warning above for more info" Error -ErrorAction Stop
     }
+    Write-Output $output.stdout
   }
-  Write-Verbose "Current Location: $(Get-Location)"
+  $origLocation = $(Get-Location)
+  Write-Verbose "Current Location: $origLocation"
+
   $oldErrorAction = $ErrorActionPreference
   $ErrorActionPreference = "Stop"
   try {
@@ -69,22 +72,22 @@
       #When I outputted the call I am making, I was able to execute it on the command line just fine. Come find out the parameter that was located where "master" or "head" are is what was causing it. For the meantime, this works for my purposes. 
       #If theuser specifies, then get the commit from master. If not, get the commit of the current branch (HEAD)
       if ($masterBranch) {
-        Write-Verbose "git rev-parse master:""$path"""
+        Write-Verbose "git rev-parse master^:""$path"""
         $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse master:'""'$path'""'" -ErrorAction Stop | HandleGitOutput 
       }
       else {
-        Write-Verbose "git rev-parse head:""$path"""
-        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse head:'""'$path'""'" -ErrorAction Stop | HandleGitOutput 
+        Write-Verbose "git rev-parse HEAD^:""$path"""
+        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse head^:'$path'" -ErrorAction Stop | HandleGitOutput 
       }
     }
     else {
       if ($masterBranch) {
-        Write-Verbose "git rev-parse master"
-        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse master" -ErrorAction Stop | HandleGitOutput 
+        Write-Verbose "git rev-parse master^"
+        $gitLogOutput = Start-MyProcess -EXEPath "git" -options 'log -n 1 --pretty="%H" -- "."' -ErrorAction Stop | HandleGitOutput 
       }
       else {
-        Write-Verbose "git rev-parse HEAD"
-        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse HEAD" -ErrorAction Stop | HandleGitOutput 
+        Write-Verbose "git rev-parse HEAD^"
+        $gitLogOutput = Start-MyProcess -EXEPath "git" -options "rev-parse HEAD^" -ErrorAction Stop | HandleGitOutput 
       }
 
     }
