@@ -28,10 +28,15 @@ Get-FileMetaData:WhatIf
 Get-FileMetaData:wi
 Get-UserLoggedOn:computerName
 Invoke-IncrementalFileBackup:logLevel
-Invoke-IncrementalFileBackup:source
+Invoke-IncrementalFileBackup:SourceDirectory
 Invoke-IncrementalFileBackup:BackupToRootPath
 Invoke-IncrementalFileBackup:BackupName
 Invoke-IncrementalFileBackup:BackupInstanceFormat
+Invoke-IncrementalFileBackup:ExcludeDirectories
+Invoke-IncrementalFileBackup:NumberOfIncrementalBeforeFull
+Invoke-IncrementalFileBackup:ForceFull
+Invoke-IncrementalFileBackup:NumberOfBackupsToKeep
+Invoke-IncrementalFileBackup:compressFiles
 Invoke-IncrementalFileBackup:Verbose
 Invoke-IncrementalFileBackup:vb
 Invoke-IncrementalFileBackup:Debug

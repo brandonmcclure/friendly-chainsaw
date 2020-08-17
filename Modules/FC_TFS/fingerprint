@@ -21,10 +21,10 @@ Abandon-TFSPullRequest:OutBuffer
 Abandon-TFSPullRequest:ob
 Abandon-TFSPullRequest:PipelineVariable
 Abandon-TFSPullRequest:pv
-Abandon-TFSPullRequest:WhatIf
-Abandon-TFSPullRequest:wi
 Abandon-TFSPullRequest:Confirm
 Abandon-TFSPullRequest:cf
+Abandon-TFSPullRequest:WhatIf
+Abandon-TFSPullRequest:wi
 Get-CurrentIteration:pipelineInput
 Get-CurrentIteration:PRDescription
 Get-CurrentIteration:type
