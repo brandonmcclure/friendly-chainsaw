@@ -1,0 +1,38 @@
+trigger:
+  batch: true
+  branches:
+    include:
+    - master
+    
+pool:
+  vmImage: windows-latest
+
+stages:
+- stage: NugetPublish
+  displayName: 
+  jobs:
+    - job: SignFiles
+      steps:
+        - checkout: self
+        - task: PowerShell@1
+          displayName: 'Build-PowershelScripts'
+          inputs:
+              scriptName: 'Modules/Build-AllFCModules.ps1'
+        - task: NuGetToolInstaller@1
+          inputs:
+            versionSpec: '5.x'
+        - task: NuGetCommand@2
+          displayName: 'NuGet pack'
+          inputs:
+            command: pack
+            packagesToPack: '**\*.nuspec'
+        - task: CopyFiles@2
+          inputs:
+            SourceFolder: '$(agent.builddirectory)'
+            Contents: '*'
+            TargetFolder: '$(build.artifactstagingdirectory)'
+        - task: PublishBuildArtifacts@1
+          inputs:
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+            ArtifactName: 'nupkg'
+            publishLocation: 'Container'

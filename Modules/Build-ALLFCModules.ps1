@@ -9,7 +9,19 @@ param(
     ,[switch] $skipScriptAnalyzer = $true
     )
 
-Import-Module BuildHelpers, PSScriptAnalyzer,PSHTMLTable -ErrorAction Stop
+function ManageModule($moduleName){
+if (Get-Module -ListAvailable -Name $moduleName) {
+    Import-Module $moduleName -ErrorAction Stop
+} 
+else {
+    Install-Module $moduleName -Force -Verbose -Scope CurrentUser
+    Import-Module $moduleName -ErrorAction Stop
+}
+}
+
+ManageModule 'BuildHelpers'
+ManageModule 'PSScriptAnalyzer'
+ManageModule 'PSHTMLTable'
 $pathToSearch = (Split-Path $PSCommandPath -Parent)
 . $pathToSearch\BuildFunctions.ps1
 $origLocation = Get-Location
