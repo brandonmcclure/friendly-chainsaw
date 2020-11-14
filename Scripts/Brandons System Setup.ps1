@@ -96,27 +96,29 @@ param([switch]$updateHelp = $false
   ,[string]$notepadPlusPlusPath = "C:\Program Files (x86)\Notepad++\notepad++.exe"
   ,[string]$otherStuffToAdd = $null
   ,[switch]$VSCommandPrompt = $false
-  ,[switch]$SSASAssemblies = $false
 )
 
 if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole]"Administrator")) {
   Write-Error "Please rerun this script as an admin" -ErrorAction Stop
 }
 
-if (![System.Diagnostics.EventLog]::SourceExists("FC Powershell Scripts")) {
-  Write-Host "Creating Windows Event log source named: FC Powershell Scripts"
-  New-EventLog -LogName Application -Source "FC Powershell Scripts"
-}
-else {
-  Write-Host "Windows Event log already exists for source: FC Powershell Scripts"
-}
+#if (![System.Diagnostics.EventLog]::SourceExists("FC Powershell Scripts")) {
+#  Write-Host "Creating Windows Event log source named: FC Powershell Scripts"
+#  New-EventLog -LogName Application -Source "FC Powershell Scripts"
+#}
+#else {
+#  Write-Host "Windows Event log already exists for source: FC Powershell Scripts"
+#}
 
 
 if ($alluserProfile -eq $true) {
   $ProfileDir32 = "$env:windir\system32\WindowsPowerShell\v1.0\profile.ps1"
   $profileDir64 = "$env:windir\SysWOW64\WindowsPowerShell\v1.0\profile.ps1"
+  $pwshProfileDir = "$env:windir\System32\WindowsPowerShell\v1.0\profile.ps1"
   New-Item –Path $ProfileDir32 –Type File –Force
   New-Item –Path $ProfileDir64 –Type File –Force
+  New-Item –Path $pwshProfileDir –Type File –Force
+  
 }
 else {
   $ProfileDir32 = "$env:USERPROFILE\Documents\WindowsPowerShell\profile.ps1"
@@ -124,6 +126,8 @@ else {
   New-Item –Path $ProfileDir –Type File –Force
 }
 
+$profilePaths = @()
+$profilePaths+=$ProfileDir32,$profileDir64,$pwshProfileDir
 $NOW = Get-Date
 "<#
     This is a automaticly generated file created by the script 'Brandons System Setup.ps1' Any changes to this file will be overwritten the next time this script is run. 
@@ -131,30 +135,30 @@ $NOW = Get-Date
 
     Generated: $NOW
  #>
- " | Add-Content -Path $ProfileDir32,$profileDir64
+ " | Add-Content -Path $profilePaths
 
 if ($updateHelp -eq $true) {
   #TODO: Run this in the background as a job
-  "Update-Help" | Add-Content -Path $ProfileDir32,$profileDir64
+  "Update-Help" | Add-Content -Path $profilePaths
 }
 
 if (!([string]::IsNullOrEmpty($moduleDirs))) {
   foreach ($dir in $moduleDirs) {
     'if (!($env:PSModulePath -Like "*;' + $dir + '\*")){
                     $env:PSModulePath = $env:PSModulePath + ";' + $dir + ';"
-        }' | Add-Content -Path $ProfileDir32,$profileDir64
+        }' | Add-Content -Path $profilePaths
   }
 }
 
 $validModules = (Get-Module).Name
 if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))) {
   foreach ($module in $ModulesToImportInProfile) {
-    if ($module -in $validModules) {
+    #if ($module -in $validModules) {
       "Import-Module $module -DisableNameChecking" | Add-Content -Path $ProfileDir32,$profileDir64
-    }
-    else {
-      Write-Warning "$module is not a valid modulename"
-    }
+    #}
+    #else {
+    #  Write-Warning "$module is not a valid modulename"
+    #}
   }
 }
 
@@ -181,12 +185,12 @@ if (!([string]::IsNullOrEmpty($quickDirectories))) {
   }
   $output += "}
 "
-  $output | Add-Content $ProfileDir32,$profileDir64
+  $output | Add-Content $profilePaths
 }
 
 if (Test-Path $notepadPlusPlusPath) {
   Write-Verbose "Creating an alias for notepad ++"
-  "New-Alias npp '$notepadPlusPlusPath'" | Add-Content $ProfileDir32,$profileDir64
+  "New-Alias npp '$notepadPlusPlusPath'" | Add-Content $profilePaths
 }
 
 if ($installISEScriptSignAddOn) {
@@ -207,7 +211,7 @@ if ($installISEScriptSignAddOn) {
     elseif ($psISE.CurrentPowerShellTab.AddOnsMenu.Submenus.Action.Contains("RunISE-DTWBeautifyScript")) {
         $psISE.CurrentPowerShellTab.AddOnsMenu.submenus.add("Beautify Script", {RunISE-DTWBeautifyScript},$null) | Out-Null
     }
-    ' | Add-Content -Path $ProfileDir32,$profileDir64
+    ' | Add-Content -Path $profilePaths
 }
 
 if ($VSCommandPrompt) {
@@ -220,22 +224,9 @@ foreach {
   }
 }
 popd
-    ' | Add-Content -Path $ProfileDir32,$profileDir64
-}
-
-if ($SSASAssemblies) {
-  '
-    try{
-    Write-Log "loading Microsoft.AnalysisServices assemblies that we need" Debug
-[System.Reflection.Assembly]::LoadWithPartialName("Microsoft.AnalysisServices.Core") | Out-Null
-[System.Reflection.Assembly]::LoadWithPartialName("Microsoft.AnalysisServices.Tabular") | Out-Null
-}
-catch{
-    Write-Log "Could not load the needed assemblies... TODO: Figure out and document how to install the needed assemblies. (I would start with the SQL feature pack)" Error
-}
-' | Add-Content -Path $ProfileDir32,$profileDir64
+    ' | Add-Content -Path $profilePaths
 }
 
 if (![string]::IsNullOrEmpty($otherStuffToAdd)) {
-  $otherStuffToAdd | Add-Content -Path $ProfileDir32,$profileDir64
+  $otherStuffToAdd | Add-Content -Path $profilePaths
 }
