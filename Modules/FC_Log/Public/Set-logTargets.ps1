@@ -17,14 +17,13 @@
         When set to 1, Write-Log will Send the log to the windows event log. It will use the $script:LogSource value as set in FC_Log.psm1
         When set to 0, it will explicitly turn off that target
 	.PARAMETER File
-        Default: -1
+        Default: null
         Position:  2
 
-		When set to 1, Write-Log will send the log message to a file
-        When set to 0, it will explicitly turn off that target
+		When set to a valid path, Write-Log will send the log to the specified file
 	.PARAMETER Speech
         Default: -1
-        Position:  2
+        Position:  3
 
 		When set to 1, Write-Log will use microsoft's speech synthesis to speek the message to you. 
         When set to 0, it will explicitly turn off that target
@@ -46,11 +45,18 @@
     }
     elseif (![string]::IsNullOrEmpty($File)){
         foreach($File2 in $File){
-            $fileParentDir = Split-Path $file2 -Parent
-            if (-not (Test-Path $fileParentDir)){
-                New-Item -Path $fileParentDir -ItemType Directory -Force
+            if ($file2 -notin $script:logTargetFileNames){
+                $fileParentDir = Split-Path $file2 -Parent
+                if (-not (Test-Path $fileParentDir)){
+                    try{
+                        New-Item -Path $fileParentDir -ItemType Directory -Force
+                    }
+                    catch{
+                        throw "Could not set log target to: $fileParentDir. Path does not exist"
+                    }
+                }
+                $script:logTargetFileNames += $File2
             }
-            $script:logTargetFileNames += $File2
         }
         $script:logTargets['File'] = 1
     }
