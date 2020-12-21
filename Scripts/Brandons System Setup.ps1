@@ -90,10 +90,11 @@ param([switch]$updateHelp = $false
   ,[string]$scriptPaths = $null
   ,[switch]$installGitFetchJob = $false
   ,[switch]$installISEScriptSignAddOn = $false
-  ,[string[]]$ModulesToImportInProfile = @("FC_Log","FC_Git","FC_Core")
+  ,[string[]]$ModulesToInstall = @("dockercompletion","posh-git")
+  ,[string[]]$ModulesToImportInProfile = @("FC_Log","FC_Git","FC_Core","dockercompletion","posh-git")
   ,$quickDirectories = $null
   ,[string[]]$moduleDirs = $null
-  ,[string]$notepadPlusPlusPath = "C:\Program Files (x86)\Notepad++\notepad++.exe"
+  ,[string]$notepadPlusPlusPath = "C:\Program Files\Notepad++\notepad++.exe"
   ,[string]$otherStuffToAdd = $null
   ,[switch]$VSCommandPrompt = $false
 )
@@ -114,7 +115,7 @@ if (!([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]:
 if ($alluserProfile -eq $true) {
   $ProfileDir32 = "$env:windir\system32\WindowsPowerShell\v1.0\profile.ps1"
   $profileDir64 = "$env:windir\SysWOW64\WindowsPowerShell\v1.0\profile.ps1"
-  $pwshProfileDir = "$env:windir\System32\WindowsPowerShell\v1.0\profile.ps1"
+  $pwshProfileDir = "$env:ProgramFiles\PowerShell\7\profile.ps1"
   New-Item –Path $ProfileDir32 –Type File –Force
   New-Item –Path $ProfileDir64 –Type File –Force
   New-Item –Path $pwshProfileDir –Type File –Force
@@ -126,8 +127,10 @@ else {
   New-Item –Path $ProfileDir –Type File –Force
 }
 
-$profilePaths = @()
-$profilePaths+=$ProfileDir32,$profileDir64,$pwshProfileDir
+[string[]]$profilePaths = @()
+$profilePaths+=$ProfileDir32
+$profilePaths+=$profileDir64
+$profilePaths+=$pwshProfileDir
 $NOW = Get-Date
 "<#
     This is a automaticly generated file created by the script 'Brandons System Setup.ps1' Any changes to this file will be overwritten the next time this script is run. 
@@ -150,22 +153,22 @@ if (!([string]::IsNullOrEmpty($moduleDirs))) {
   }
 }
 
-$validModules = (Get-Module).Name
+if (!([string]::IsNullOrEmpty($ModulesToInstall))) {
+  foreach ($module in $ModulesToInstall) {
+      Install-Module $module
+  }
+}
+
 if (!([string]::IsNullOrEmpty($ModulesToImportInProfile))) {
   foreach ($module in $ModulesToImportInProfile) {
-    #if ($module -in $validModules) {
-      "Import-Module $module -DisableNameChecking" | Add-Content -Path $ProfileDir32,$profileDir64
-    #}
-    #else {
-    #  Write-Warning "$module is not a valid modulename"
-    #}
+      "Import-Module $module -DisableNameChecking" | Add-Content -Path $profilePaths
   }
 }
 
 if (!([string]::IsNullOrEmpty($scriptPaths))) {
   "
     Set-Location ""$scriptPaths""
-    " | Add-Content -Path $ProfileDir32,$profileDir64
+    " | Add-Content -Path $profilePaths
 }
 #Create a scheduled job (see about_scheduledjobs) that will run my script that fetches remote branch information for all my git repos at 2am (+ or - 1 hour) every day
 if ($installGitFetchJob) {
