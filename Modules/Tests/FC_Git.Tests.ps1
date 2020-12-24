@@ -1,4 +1,4 @@
-Remove-Module FC_Git -Force -ErrorAction Ignore | Out-Null
+﻿Remove-Module FC_Git -Force -ErrorAction Ignore | Out-Null
 Import-Module FC_Git -Force
 Remove-Module FC_Core -Force -ErrorAction Ignore | Out-Null
 Import-Module FC_Core -Force
@@ -9,7 +9,7 @@ Describe "Sync-GitRepo"{
         $script:testBranchName = 'master'
         It "Null Inputs throws error"{
             $scriptBlock = {Sync-GitRepo -ErrorAction Stop }
-            $scriptBlock | Should throw "Parameter set cannot be resolved using the specified named parameters."
+            $scriptBlock | Should -throw "Parameter set cannot be resolved using the specified named parameters."
         }
         It "Not on master, fails when checking master out"{
              mock Set-Location {}
@@ -19,7 +19,7 @@ stderr = "Error checking out $script:testBranchName"
 stdout = "Error checking out $script:testBranchName"
 }} -Verifiable
            $scriptBlock = {Sync-GitRepo -repoPath $testRepoPath -branchName $script:testBranchName -ErrorAction Stop }
-           $scriptBlock | Should throw "     [HandleSTdOut<Process>] There was an error: Error checking out "
+           $scriptBlock | Should -throw "     [HandleSTdOut<Process>] There was an error: Error checking out "
            Assert-MockCalled -ModuleName FC_Git Start-MyProcess -Exactly 1
         }
     }

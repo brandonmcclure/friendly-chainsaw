@@ -1,5 +1,5 @@
-﻿Remove-Module FC_TFS -Force | Out-Null
-Import-Module FC_TFS -Force
+﻿Remove-Module FC_TFS -Force -ErrorAction Ignore | Out-Null
+Import-Module "$(Split-Path (Split-Path $MyInvocation.MyCommand.Path -PArent) -Parent)\FC_TFS\FC_TFS" -Force
 
 describe 'Get-TFSRestURL_Team'{
     Context 'Parameter Validation'{

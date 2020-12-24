@@ -1,7 +1,6 @@
 Get-GitAllBranchStatus:sourceBranchName
 Get-GitAllBranchStatus:targetBranch
 Get-GitAllBranchStatus:full
-Get-GitBranch:returnAllBranches
 Get-GitBranchesComparedToRemote:branchName
 Get-GitBranchesComparedToRemote:remoteName
 Get-GitBranchesComparedToRemote:Verbose
