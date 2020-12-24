@@ -52,7 +52,7 @@ function Invoke-DockerImageBuild{
             Write-Log "imageName: $($imageName.ToLower())" Debug
             Write-Log "tag: $($tag)" Debug
     
-            $FQImageName = "$(if([string]::IsNullOrEmpty($registry)){''}elseif($registry.EndsWith("/")){$registry}else{$registry+"/"})$repository/$($imageName.ToLower()):$($tag)"
+            $FQImageName = "$(if([string]::IsNullOrEmpty($registry)){''}elseif($registry.EndsWith("/")){$registry}else{$registry+"/"})$(if([string]::IsNullOrEmpty($repository)){''}elseif($repository.EndsWith("/")){$repository}else{$repository+"/"})$($imageName.ToLower()):$($tag)"
             Write-Log "FQImageName: $FQImageName" Debug
             Write-Log "buildargString: $buildargString" Debug
     

@@ -1,0 +1,8 @@
+Invoke-DockerImageBuild:registry
+Invoke-DockerImageBuild:repository
+Invoke-DockerImageBuild:isLatest
+Invoke-DockerImageBuild:workingDir
+Invoke-DockerImageBuild:imageName
+Invoke-DockerImageBuild:buildArgs
+Invoke-DockerImageBuild:customTags
+Invoke-DockerImageBuild:logLevel
