@@ -6,7 +6,6 @@ trigger:
     
 pool:
   vmImage: ubuntu-latest
-
 stages:
 - stage: Build
   displayName: Build Modules
@@ -14,10 +13,10 @@ stages:
     - job: BuildModules
       steps:
         - checkout: self
-        - task: PowerShell@1
+        - task: PowerShell@2
           displayName: 'Build-PowershelScripts'
           inputs:
-              scriptName: 'Modules/Build-AllFCModules.ps1'
+              filePath: 'Modules/Build-AllFCModules.ps1'
         - task: PublishBuildArtifacts@1
           inputs:
             PathtoPublish: '$(agent.builddirectory)'
