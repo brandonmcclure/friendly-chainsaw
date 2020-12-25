@@ -1,5 +1,4 @@
-Import-Module FC_Core
-Function Remove-FilesOlderThan{
+function Remove-FilesOlderThan{
 <#
     .SYNOPSIS
         Deletes all files older than X (Days,Months or Years), and all empty directories inside of a given directory. This is helpful for managing archived copies of flat files that we send to third parties. 
