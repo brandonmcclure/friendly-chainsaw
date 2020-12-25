@@ -8,16 +8,48 @@ pool:
   vmImage: windows-latest
 
 stages:
-- stage: NugetPublish
-  displayName: 
+- stage: Build
+  displayName: Build Modules
   jobs:
-    - job: SignFiles
+    - job: BuildModules
       steps:
         - checkout: self
         - task: PowerShell@1
           displayName: 'Build-PowershelScripts'
           inputs:
               scriptName: 'Modules/Build-AllFCModules.ps1'
+        - task: PublishBuildArtifacts@1
+          inputs:
+            PathtoPublish: '$(agent.builddirectory)'
+            ArtifactName: 'builtSource'
+            publishLocation: 'Container'
+    - job: TestModules
+      steps:
+        - checkout: none
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'builtSource'
+            targetPath: '$(Pipeline.Workspace)'
+        - task: DockerInstaller@0
+          inputs:
+            dockerVersion: '17.09.0-ce'
+        - task: PowerShell@2
+          inputs:
+            targetType: 'inline'
+            script: 'docker build -t bmcclure89/fc_pwsh_tests Modules/Tests/.'
+        - task: PowerShell@2
+          inputs:
+            targetType: 'inline'
+            script: 'docker run --rm -it -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_tests'
+    - job: PackageModules
+      steps:
+        - checkout: none
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            buildType: 'current'
+            artifactName: 'builtSource'
+            targetPath: '$(Pipeline.Workspace)'
         - task: NuGetToolInstaller@1
           inputs:
             versionSpec: '5.x'
@@ -34,5 +66,5 @@ stages:
         - task: PublishBuildArtifacts@1
           inputs:
             PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-            ArtifactName: 'nupkg'
+            ArtifactName: 'builtSource'
             publishLocation: 'Container'
