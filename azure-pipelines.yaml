@@ -21,9 +21,18 @@ stages:
           displayName: 'Build-PowershelScripts'
           inputs:
               filePath: 'Modules/Build-ALLFCModules.ps1'
+        - task: PowerShell@2
+          displayName: Copy Source to artifact dir
+          inputs:
+            targetType: 'inline'
+            script: |
+              $excludes = ".git","docs" 
+              Get-ChildItem -Directory | 
+              Where-Object{$_.Name -notin $excludes} | 
+              Copy-Item -Destination $(agent.builddirectory)\a\sourcePrep -Recurse -Force
         - task: PublishBuildArtifacts@1
           inputs:
-            PathtoPublish: '$(agent.builddirectory)'
+            PathtoPublish: '$(agent.builddirectory)\s'
             ArtifactName: 'builtSource'
             publishLocation: 'Container'
     - job: TestModules
