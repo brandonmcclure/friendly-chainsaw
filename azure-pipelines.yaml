@@ -60,10 +60,12 @@ stages:
           inputs:
             dockerVersion: '17.09.0-ce'
         - task: PowerShell@2
+          displayName: Build docker image for tests
           inputs:
             targetType: 'inline'
-            script: 'docker build -t bmcclure89/fc_pwsh_tests builtSource/Modules/Tests/.'
+            script: 'gci; docker build -t bmcclure89/fc_pwsh_tests builtSource/Modules/Tests/.'
         - task: PowerShell@2
+          displayName: Run docker image for tests
           inputs:
             targetType: 'inline'
             script: 'docker run --rm -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_tests'
