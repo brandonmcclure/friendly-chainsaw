@@ -40,9 +40,8 @@ stages:
             script: |
               $excludes = ".git","docs" 
               Get-Location
-              Get-ChildItem $(agent.builddirectory)\s -Directory | `
-              Where-Object{$_.Name -notin $excludes} | `
-              Copy-Item -Destination $(agent.builddirectory)\a\sourcePrep -Recurse -Force   
+              Get-ChildItem  -Directory 
+               
         - task: PublishBuildArtifacts@1
           inputs:
             PathtoPublish: '$(agent.builddirectory)\a\sourcePrep'
