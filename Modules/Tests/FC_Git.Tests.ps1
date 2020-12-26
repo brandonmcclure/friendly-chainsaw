@@ -1,7 +1,7 @@
 ﻿Remove-Module FC_Git -Force -ErrorAction Ignore | Out-Null
-Import-Module FC_Git -Force
+Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Git" -Force
 Remove-Module FC_Core -Force -ErrorAction Ignore | Out-Null
-Import-Module FC_Core -Force
+Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
 
 Describe "Sync-GitRepo"{
     Context "Parameter Validation"{

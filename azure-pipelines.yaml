@@ -13,13 +13,26 @@ stages:
     - job: BuildModules
       steps:
         - checkout: self
-        - task: PowerShell@2
-          displayName: 'Build-PowershelScripts'
+        - task: DockerInstaller@0
           inputs:
-              filePath: 'Modules/Build-AllFCModules.ps1'
+            dockerVersion: '17.09.0-ce'
+        - task: PowerShell@2
+          displayName: run docker image for build
+          inputs:
+            targetType: 'inline'
+            script: 'gci; docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build'
+        - task: PowerShell@2
+          displayName: Copy Source to artifact dir
+          inputs:
+            targetType: 'inline'
+            script: |
+              $excludes = ".git","docs" 
+              $dropPath = "$(agent.builddirectory)\a\sourcePrep"
+              if(-not(Test-Path $dropPath)){New-Item $dropPath -type Directory}
+              Get-ChildItem  -Directory | Where-Object{$_.Name -notin $excludes} |  Copy-Item -Destination $dropPath -Recurse -Force   
         - task: PublishBuildArtifacts@1
           inputs:
-            PathtoPublish: '$(agent.builddirectory)'
+            PathtoPublish: '$(agent.builddirectory)/a/sourcePrep'
             ArtifactName: 'builtSource'
             publishLocation: 'Container'
     - job: TestModules
@@ -30,18 +43,19 @@ stages:
           inputs:
             buildType: 'current'
             artifactName: 'builtSource'
-            targetPath: '$(Pipeline.Workspace)'
+            targetPath: '$(Pipeline.Workspace)/builtSource'
         - task: DockerInstaller@0
           inputs:
             dockerVersion: '17.09.0-ce'
         - task: PowerShell@2
+          displayName: Run docker image for tests
           inputs:
             targetType: 'inline'
-            script: 'docker build -t bmcclure89/fc_pwsh_tests Modules/Tests/.'
-        - task: PowerShell@2
+            script: 'Set-Location $(Pipeline.Workspace)/builtSource; docker run --rm -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_test'
+        - task: PublishTestResults@2
           inputs:
-            targetType: 'inline'
-            script: 'docker run --rm -it -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_tests'
+            testResultsFormat: 'NUnit'
+            testResultsFiles: '$(Pipeline.Workspace)/builtSource/PesterResults.xml'
     - job: PackageModules
       dependsOn: TestModules
       steps:
@@ -50,22 +64,27 @@ stages:
           inputs:
             buildType: 'current'
             artifactName: 'builtSource'
-            targetPath: '$(Pipeline.Workspace)'
+            targetPath: '$(Pipeline.Workspace)/builtSource'
         - task: NuGetToolInstaller@1
           inputs:
             versionSpec: '5.x'
+        - task: PowerShell@2
+          displayName: Run docker image for tests
+          inputs:
+            targetType: 'inline'
+            script: 'Get-Location; gci $(Pipeline.Workspace)/builtSource -Recurse | where {$_extension -eq ".nuspec"}'
         - task: NuGetCommand@2
           displayName: 'NuGet pack'
           inputs:
             command: pack
-            packagesToPack: '**\*.nuspec'
+            packagesToPack: '$(Pipeline.Workspace)/builtSource/**/*.nuspec'
         - task: CopyFiles@2
           inputs:
             SourceFolder: '$(agent.builddirectory)'
-            Contents: '*'
+            Contents: '$(Pipeline.Workspace)/builtSource/**/*.nupkg'
             TargetFolder: '$(build.artifactstagingdirectory)'
         - task: PublishBuildArtifacts@1
           inputs:
             PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-            ArtifactName: 'builtSource'
+            ArtifactName: 'nupkg'
             publishLocation: 'Container'
