@@ -62,7 +62,7 @@ stages:
         - task: PowerShell@2
           inputs:
             targetType: 'inline'
-            script: 'docker build -t bmcclure89/fc_pwsh_tests Modules/Tests/.'
+            script: 'docker build -t bmcclure89/fc_pwsh_tests builtSource/Modules/Tests/.'
         - task: PowerShell@2
           inputs:
             targetType: 'inline'
@@ -91,10 +91,10 @@ stages:
         - task: CopyFiles@2
           inputs:
             SourceFolder: '$(agent.builddirectory)'
-            Contents: '*'
+            Contents: '**/*.nupkg'
             TargetFolder: '$(build.artifactstagingdirectory)'
         - task: PublishBuildArtifacts@1
           inputs:
             PathtoPublish: '$(Build.ArtifactStagingDirectory)'
-            ArtifactName: 'builtSource'
+            ArtifactName: 'nupkg'
             publishLocation: 'Container'
