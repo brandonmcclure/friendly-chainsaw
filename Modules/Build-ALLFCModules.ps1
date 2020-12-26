@@ -113,7 +113,7 @@ try {
 		$moduleVersion = Get-Metadata $ManifestPath
 		   
 		$a = $nugetHack.replace("1.0.0" , $moduleVersion) 
-		$a | Set-Content "$ModuleName.nuspec" -Force
+		$a | Set-Content "$moduleDir\$ModuleName.nuspec" -Force
 	}
 }
 catch {

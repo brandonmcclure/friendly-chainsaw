@@ -17,11 +17,6 @@ stages:
           inputs:
             dockerVersion: '17.09.0-ce'
         - task: PowerShell@2
-          displayName: Build docker image for build
-          inputs:
-            targetType: 'inline'
-            script: 'docker build -t bmcclure89/fc_pwsh_build Build/.'
-        - task: PowerShell@2
           displayName: run docker image for build
           inputs:
             targetType: 'inline'
@@ -52,11 +47,6 @@ stages:
         - task: DockerInstaller@0
           inputs:
             dockerVersion: '17.09.0-ce'
-        - task: PowerShell@2
-          displayName: Build docker image for tests
-          inputs:
-            targetType: 'inline'
-            script: 'Set-Location $(Pipeline.Workspace)/builtSource; docker build -t bmcclure89/fc_pwsh_tests Modules/Tests/.'
         - task: PowerShell@2
           displayName: Run docker image for tests
           inputs:
