@@ -16,7 +16,7 @@ stages:
         - task: PowerShell@2
           inputs:
             targetType: 'inline'
-            script: 'Install-Module PSScriptAnalyzer,PSHTMLTable -Force'
+            script: '[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; Install-Module PSScriptAnalyzer,PSHTMLTable -Force'
         - task: PowerShell@2
           displayName: 'Build-PowershelScripts'
           inputs:
