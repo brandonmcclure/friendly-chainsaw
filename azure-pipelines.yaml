@@ -78,6 +78,11 @@ stages:
         - task: NuGetToolInstaller@1
           inputs:
             versionSpec: '5.x'
+        - task: PowerShell@2
+          displayName: Run docker image for tests
+          inputs:
+            targetType: 'inline'
+            script: 'Get-Location; gci'
         - task: NuGetCommand@2
           displayName: 'NuGet pack'
           inputs:
