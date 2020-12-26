@@ -17,22 +17,15 @@ stages:
           inputs:
             dockerVersion: '17.09.0-ce'
         - task: PowerShell@2
+          displayName: Build docker image for build
           inputs:
             targetType: 'inline'
             script: 'docker build -t bmcclure89/fc_pwsh_build Build/.'
         - task: PowerShell@2
+          displayName: run docker image for build
           inputs:
             targetType: 'inline'
             script: 'gci; docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build'
-        # - task: PowerShell@2
-        #   displayName: Install-Modules
-        #   inputs:
-        #     targetType: 'inline'
-        #     script: '[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; Install-Module PSScriptAnalyzer,PSHTMLTable -Force'
-        # - task: PowerShell@2
-        #   displayName: 'Build-PowershelScripts'
-        #   inputs:
-        #       filePath: 'Modules/Build-ALLFCModules.ps1'
         - task: PowerShell@2
           displayName: Copy Source to artifact dir
           inputs:
@@ -72,7 +65,7 @@ stages:
         - task: PublishTestResults@2
           inputs:
             testResultsFormat: 'NUnit'
-            testResultsFiles: '**/PesterResults.xml'
+            testResultsFiles: '$(Pipeline.Workspace)/builtSource/PesterResults.xml'
     - job: PackageModules
       dependsOn: TestModules
       steps:
@@ -89,11 +82,11 @@ stages:
           displayName: 'NuGet pack'
           inputs:
             command: pack
-            packagesToPack: '**\*.nuspec'
+            packagesToPack: '$(Pipeline.Workspace)/builtSource/**/*.nuspec'
         - task: CopyFiles@2
           inputs:
             SourceFolder: '$(agent.builddirectory)'
-            Contents: '**/*.nupkg'
+            Contents: '$(Pipeline.Workspace)/builtSource/**/*.nupkg'
             TargetFolder: '$(build.artifactstagingdirectory)'
         - task: PublishBuildArtifacts@1
           inputs:
