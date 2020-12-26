@@ -21,7 +21,6 @@ else {
 
 ManageModule 'BuildHelpers'
 ManageModule 'PSScriptAnalyzer'
-ManageModule 'PSHTMLTable'
 $pathToSearch = (Split-Path $PSCommandPath -Parent)
 . $pathToSearch\BuildFunctions.ps1
 $origLocation = Get-Location
