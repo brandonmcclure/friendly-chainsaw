@@ -63,7 +63,7 @@ stages:
           displayName: Build docker image for tests
           inputs:
             targetType: 'inline'
-            script: 'gci; docker build -t bmcclure89/fc_pwsh_tests builtSource/Modules/Tests/.'
+            script: 'Get-Location; gci; docker build -t bmcclure89/fc_pwsh_tests builtSource/Modules/Tests/.'
         - task: PowerShell@2
           displayName: Run docker image for tests
           inputs:
