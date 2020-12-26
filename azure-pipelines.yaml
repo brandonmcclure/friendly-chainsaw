@@ -63,12 +63,12 @@ stages:
           displayName: Build docker image for tests
           inputs:
             targetType: 'inline'
-            script: 'Get-Location; gci; docker build -t bmcclure89/fc_pwsh_tests builtSource/Modules/Tests/.'
+            script: 'Set-Location $(Pipeline.Workspace)/builtSource; docker build -t bmcclure89/fc_pwsh_tests Modules/Tests/.'
         - task: PowerShell@2
           displayName: Run docker image for tests
           inputs:
             targetType: 'inline'
-            script: 'docker run --rm -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_tests'
+            script: 'Set-Location $(Pipeline.Workspace)/builtSource; docker run --rm -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_tests'
         - task: PublishTestResults@2
           inputs:
             testResultsFormat: 'NUnit'
