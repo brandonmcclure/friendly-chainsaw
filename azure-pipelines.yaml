@@ -39,9 +39,9 @@ stages:
             targetType: 'inline'
             script: |
               $excludes = ".git","docs" 
-              Get-Location
-              Get-ChildItem  -Directory 
-               
+              $dropPath = "$(agent.builddirectory)\a\sourcePrep"
+              if(-not(Test-Path $dropPath)){New-Item $dropPath -type Directory}
+              Get-ChildItem  -Directory | Where-Object{$_.Name -notin $excludes} |  Copy-Item -Destination $dropPath -Recurse -Force   
         - task: PublishBuildArtifacts@1
           inputs:
             PathtoPublish: '$(agent.builddirectory)\a\sourcePrep'
