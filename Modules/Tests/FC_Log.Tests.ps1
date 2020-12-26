@@ -1,4 +1,4 @@
-﻿Remove-Module FC_Log -Force | Out-Null
+﻿Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
 Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
 Describe 'Write-Log to file' {
 
@@ -65,11 +65,86 @@ Describe 'Write-Log to file' {
     }
 }
 
+Describe "Write-Log to event log"{
+	Context "Error on pqsh core"{
+		It 'Throws error on pwsh core'{
+			Set-logTargets -WindowsEventLog 1 -ErrorAction Ignore;
+			{Write-Log "Test"} | should -throw "I cannot log to the Windows Event Log on pwsh core without some workarounds. See https://github.com/brandonmcclure/friendly-chainsaw/issues/61"
+		}
+	}
+}
 Describe 'Set-LogLevel' {
-    COntext 'Valid input' {
-        it 'Debug' {
+    COntext 'Debug' {
+        it 'Out Verbose stream - Is there' {
             Set-LogLevel Debug
-            Write-Log "Debug Test" Debug | Should --Be "Debug Test"
+            Write-Log "Debug Test" Debug 4>&1 | Should -Be "[DEBUG] Debug Test"
+        }
+		it 'Out Verbose stream - Nothing on Output/success stream' {
+            Set-LogLevel Debug
+            Write-Log "Debug Test" Debug | Should -BeNullOrEmpty
         }
     }
+	Context 'Verbose'{
+		it 'Verbose' {
+            Set-LogLevel Verbose
+            Write-Log "Verbose Test" Verbose 4>&1 | Should -Be " Verbose Test"
+        }
+	}
+	Context 'Info'{
+		it 'Out Info stream' {
+            Set-LogLevel Info
+            Write-Log "Test" Info  6>&1| Should -Be "Test"
+        }
+	}
+	Context 'Warning'{
+		it 'Warning Stream - Is There' {
+            Set-LogLevel Warning
+            Write-Log "Test" Warning 3>&1 | Should -Be "[WARNING] Test"
+        }
+	}
+	Context 'Error'{
+		it 'Error Stream - Is there' {
+            Set-LogLevel Error
+            Write-Log "Test" Error 2>&1 | Should -Be "Test"
+        }
+	}
+	Context 'Disable'{
+		it 'Debug - Nothing on Output' {
+            Set-LogLevel Disable
+            Write-Log "Test" Debug | Should -BeNullOrEmpty
+		}
+		it 'Verbose - Nothing on Output' {
+            Set-LogLevel Disable
+            Write-Log "Test" Verbose | Should -BeNullOrEmpty
+		}
+		it 'Info - Nothing on Output' {
+            Set-LogLevel Disable
+            Write-Log "Test" Info | Should -BeNullOrEmpty
+		}
+		it 'Warning - Nothing on Output' {
+            Set-LogLevel Disable
+            Write-Log "Test" Warning | Should -BeNullOrEmpty
+		}
+		it 'Error - Nothing on Output' {
+            Set-LogLevel Disable
+            Write-Log "Test" Error | Should -BeNullOrEmpty
+        }
+	}
+}
+
+Describe 'Set-LogTarget'{
+	Context 'Speach'{
+		it 'does not work on core'{
+			{Set-logTargets -Speech 1 }| Should -throw "I cannot log to the Speech on pwsh core"
+		}
+	}
+	Context 'Windows Event Log'{
+		it 'does not work on core (non terminating error, made to terminate)'{
+			{Set-logTargets -WindowsEventLog 1 -ErrorAction Stop }| Should -throw "I cannot log to the Windows Event Log on pwsh core without some workarounds. See https://github.com/brandonmcclure/friendly-chainsaw/issues/61"
+		}
+		it 'does not work on core (non terminating error)'{
+			Set-logTargets -WindowsEventLog 1 -ErrorAction Ignore | Should -BeNullOrEmpty
+		}
+	}
+	
 }
