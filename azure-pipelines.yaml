@@ -46,6 +46,10 @@ stages:
           inputs:
             targetType: 'inline'
             script: 'docker run --rm -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_tests'
+        - task: PublishTestResults@2
+          inputs:
+            testResultsFormat: 'NUnit'
+            testResultsFiles: '**/PesterResults.xml'
     - job: PackageModules
       dependsOn: TestModules
       steps:
