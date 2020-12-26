@@ -105,7 +105,7 @@ try {
 			Invoke-ScriptAnalyserWithReport -moduleDir $moduleDir
 		}
 
-		Write-Log "Creating the nuget package"
+		Write-Verbose "Creating the nuget package"
 		#https://roadtoalm.com/2017/05/02/using-vsts-package-management-as-a-private-powershell-gallery/#comments
 		nuget spec $ModuleName -Force
 
