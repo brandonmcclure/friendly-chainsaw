@@ -55,7 +55,7 @@ stages:
           inputs:
             buildType: 'current'
             artifactName: 'builtSource'
-            targetPath: '$(Pipeline.Workspace)'
+            targetPath: '$(Pipeline.Workspace)/builtSource'
         - task: DockerInstaller@0
           inputs:
             dockerVersion: '17.09.0-ce'
@@ -79,7 +79,7 @@ stages:
           inputs:
             buildType: 'current'
             artifactName: 'builtSource'
-            targetPath: '$(Pipeline.Workspace)'
+            targetPath: '$(Pipeline.Workspace)/builtSource'
         - task: NuGetToolInstaller@1
           inputs:
             versionSpec: '5.x'
