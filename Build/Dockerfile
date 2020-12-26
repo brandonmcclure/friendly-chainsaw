@@ -18,5 +18,4 @@ RUN ["pwsh", "-c", "Install-Module PSScriptAnalyzer,PSHTMLTable -Force"]
 WORKDIR /build
 
 VOLUME "/build"
-CMD ["pwsh","-c", "/build/Modules/Build-AllFCModules.ps1"]
-#cmd [ "tail","-f", "/dev/null" ]
+CMD ["pwsh","-c", "gci; /build/Modules/Build-AllFCModules.ps1"]
