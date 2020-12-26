@@ -13,15 +13,26 @@ stages:
     - job: BuildModules
       steps:
         - checkout: self
+        - task: DockerInstaller@0
+          inputs:
+            dockerVersion: '17.09.0-ce'
         - task: PowerShell@2
-          displayName: Install-Modules
           inputs:
             targetType: 'inline'
-            script: '[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; Install-Module PSScriptAnalyzer,PSHTMLTable -Force'
+            script: 'docker build -t bmcclure89/fc_pwsh_build Build/.'
         - task: PowerShell@2
-          displayName: 'Build-PowershelScripts'
           inputs:
-              filePath: 'Modules/Build-ALLFCModules.ps1'
+            targetType: 'inline'
+            script: 'docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build'
+        # - task: PowerShell@2
+        #   displayName: Install-Modules
+        #   inputs:
+        #     targetType: 'inline'
+        #     script: '[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; Install-Module PSScriptAnalyzer,PSHTMLTable -Force'
+        # - task: PowerShell@2
+        #   displayName: 'Build-PowershelScripts'
+        #   inputs:
+        #       filePath: 'Modules/Build-ALLFCModules.ps1'
         - task: PowerShell@2
           displayName: Copy Source to artifact dir
           inputs:
@@ -29,9 +40,7 @@ stages:
             script: |
               $excludes = ".git","docs" 
               Get-Location
-              Get-ChildItem $(agent.builddirectory)\s -Directory  | 
-              Where-Object{$_.Name -notin $excludes} | 
-              Copy-Item -Destination $(agent.builddirectory)\a\sourcePrep -Recurse -Force
+              Get-ChildItem $(agent.builddirectory)\s -Directory   
         - task: PublishBuildArtifacts@1
           inputs:
             PathtoPublish: '$(agent.builddirectory)\a\sourcePrep'
