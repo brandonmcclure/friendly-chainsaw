@@ -28,7 +28,8 @@ stages:
             targetType: 'inline'
             script: |
               $excludes = ".git","docs" 
-              Get-ChildItem -Directory | 
+              Get-Location
+              Get-ChildItem $(agent.builddirectory)\s -Directory  | 
               Where-Object{$_.Name -notin $excludes} | 
               Copy-Item -Destination $(agent.builddirectory)\a\sourcePrep -Recurse -Force
         - task: PublishBuildArtifacts@1
