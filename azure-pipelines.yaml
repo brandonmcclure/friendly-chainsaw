@@ -23,7 +23,7 @@ stages:
         - task: PowerShell@2
           inputs:
             targetType: 'inline'
-            script: 'docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build'
+            script: 'gci; docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build'
         # - task: PowerShell@2
         #   displayName: Install-Modules
         #   inputs:
@@ -40,7 +40,9 @@ stages:
             script: |
               $excludes = ".git","docs" 
               Get-Location
-              Get-ChildItem $(agent.builddirectory)\s -Directory   
+              Get-ChildItem $(agent.builddirectory)\s -Directory | `
+              Where-Object{$_.Name -notin $excludes} | `
+              Copy-Item -Destination $(agent.builddirectory)\a\sourcePrep -Recurse -Force   
         - task: PublishBuildArtifacts@1
           inputs:
             PathtoPublish: '$(agent.builddirectory)\a\sourcePrep'
