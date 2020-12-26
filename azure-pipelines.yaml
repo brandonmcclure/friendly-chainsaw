@@ -51,7 +51,7 @@ stages:
           displayName: Run docker image for tests
           inputs:
             targetType: 'inline'
-            script: 'Set-Location $(Pipeline.Workspace)/builtSource; docker run --rm -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_tests'
+            script: 'Set-Location $(Pipeline.Workspace)/builtSource; docker run --rm -w /tests -v ${PWD}:/tests bmcclure89/fc_pwsh_test'
         - task: PublishTestResults@2
           inputs:
             testResultsFormat: 'NUnit'
