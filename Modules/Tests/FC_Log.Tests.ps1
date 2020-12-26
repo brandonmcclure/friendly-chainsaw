@@ -1,5 +1,5 @@
 ﻿Remove-Module FC_Log -Force | Out-Null
-Import-Module FC_Log -Force
+Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
 Describe 'Write-Log to file' {
 
     Context 'Single File' {

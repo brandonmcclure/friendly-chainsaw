@@ -1,5 +1,5 @@
 ﻿Remove-Module FC_Core -Force -ErrorAction Ignore | Out-Null
-Import-Module "$(Split-Path (Split-Path $MyInvocation.MyCommand.Path -PArent) -Parent)\FC_Core\FC_Core" -Force
+Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
 Describe 'ConvertTo-HashTable'{
 
     Context 'Parameter validation'{
