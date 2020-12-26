@@ -82,7 +82,7 @@ stages:
           displayName: Run docker image for tests
           inputs:
             targetType: 'inline'
-            script: 'Get-Location; gci $(Pipeline.Workspace)/builtSource | where {$_extension -eq ".nuspec"}'
+            script: 'Get-Location; gci $(Pipeline.Workspace)/builtSource -Recurse | where {$_extension -eq ".nuspec"}'
         - task: NuGetCommand@2
           displayName: 'NuGet pack'
           inputs:
