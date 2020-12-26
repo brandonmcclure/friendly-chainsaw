@@ -3,6 +3,8 @@ A collection of PowerShell scripts that I use a lot. There are functions to help
 
 All the modules and scripts use my logging framework and a few other core functions from FC_Log and FC_Core. You are welcome to use the code/modules themselves or copy paste bits that suite you. 
 
+[![Build Status](https://dev.azure.com/brandonmcclure89/friendly-chainsaw/_apis/build/status/brandonmcclure.friendly-chainsaw?branchName=master)](https://dev.azure.com/brandonmcclure89/friendly-chainsaw/_build/latest?definitionId=10&branchName=master)
+
 # Getting Started
 ## Slower/Better/Less up to date
 
@@ -26,7 +28,12 @@ Clone the repository locally and add the /Modules/ directory into your `$env:PSM
 
 ## Running the tests
 
-TODO: Create some pester tests!
+Use `make test` to automate. 
+
+This will build the Dockerfile in this repo and run it like:
+```
+docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests
+```
 
 ## Contributing
 

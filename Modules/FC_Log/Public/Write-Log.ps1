@@ -100,7 +100,12 @@
             }
         }
         if ($script:logTargets['WindowsEventLog'] -eq 1) {
-          Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
+          if ($PSVersionTable.PSVersion -le 5.1){
+            Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
+          }
+          else{
+            Write-Error "I cannot log to the Windows event log with the PS version: $($PSVersionTable.PSVersion)" -ErrorAction Stop
+          }
         }
         if ($script:logTargets['Speech'] -eq 1) {
           Add-Type -AssemblyName System.speech
@@ -210,6 +215,14 @@
 
       if ($script:logTargets['File'] -eq 1) {
         foreach($file in $script:logTargetFileNames){
+          if (-not (Test-Path (Split-Path $file -Parent))){
+              try{
+                  New-Item -Path (Split-Path $file -Parent) -ItemType Directory -Force
+              }
+              catch{
+                  throw "Could not set log target to: $(Split-Path $file -Parent). Path does not exist"
+              }
+          }
             $FormatMessage | Add-Content $file
         }
       }

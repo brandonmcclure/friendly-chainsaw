@@ -1,10 +1,10 @@
 ﻿Remove-Module FC_SysAdmin -Force -ErrorAction Ignore | Out-Null
-Import-Module FC_SysAdmin -Force
+Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_SysAdmin" -Force
 Describe 'Get-FileMetadata'{
 
     Context 'Parameter validation'{
         it "Null Inputs"{
-            Get-FileMetaData | Should Be $null
+            Get-FileMetaData | Should -be $null
             }
     }
     Context 'sdg'{
@@ -47,7 +47,7 @@ Describe 'Get-FileMetadata'{
                         $result = $false
                     }
  
-                    $result | Should Be $true
+                    $result | Should -be $true
                 }
             }
         }
