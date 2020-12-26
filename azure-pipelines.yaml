@@ -14,6 +14,7 @@ stages:
       steps:
         - checkout: self
         - task: PowerShell@2
+          displayName: Install-Modules
           inputs:
             targetType: 'inline'
             script: '[Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12; Install-Module PSScriptAnalyzer,PSHTMLTable -Force'
@@ -32,7 +33,7 @@ stages:
               Copy-Item -Destination $(agent.builddirectory)\a\sourcePrep -Recurse -Force
         - task: PublishBuildArtifacts@1
           inputs:
-            PathtoPublish: '$(agent.builddirectory)\s'
+            PathtoPublish: '$(agent.builddirectory)\a\sourcePrep'
             ArtifactName: 'builtSource'
             publishLocation: 'Container'
     - job: TestModules
