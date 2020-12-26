@@ -44,7 +44,7 @@ stages:
               Get-ChildItem  -Directory | Where-Object{$_.Name -notin $excludes} |  Copy-Item -Destination $dropPath -Recurse -Force   
         - task: PublishBuildArtifacts@1
           inputs:
-            PathtoPublish: '$(agent.builddirectory)\a\sourcePrep'
+            PathtoPublish: '$(agent.builddirectory)/a/sourcePrep'
             ArtifactName: 'builtSource'
             publishLocation: 'Container'
     - job: TestModules
