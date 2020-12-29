@@ -13,6 +13,5 @@ build:
 	./Modules/Build-ALLFCModules.ps1 -moduleName @('$*.psm1')
 
 test: 
-	docker build -t bmcclure89/fc_pwsh_tests Modules/Tests/.
 	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests
 
