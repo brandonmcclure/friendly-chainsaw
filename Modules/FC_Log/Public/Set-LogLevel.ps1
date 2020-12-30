@@ -14,8 +14,9 @@
         Setting the log level in a script, allowing the Logger to default to "Info" if nothing is passed to the script.
         param([string] $logLevel = $null)
 
-        Import-Module Logger
+        Import-Module FC_Log
 
+        if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Warning"}
         Set-LogLevel $logLevel
     #>
 Param([Parameter(Position=0, ParameterSetName="string")][ValidateScript({		 
