@@ -1,6 +1,8 @@
 # friendly-chainsaw
 A collection of PowerShell scripts that I use a lot. There are functions to help with my git workflow (FC_Git module), setting up/administering windows PCs (FC_SysAdmin), querying/administering SQL server and generally working with data (Excel/Flat files, ssas, ssis, crystal reports etc. inside of FC_Data), as well as other more fun stuff (render a Blender file, wrappers for GBA emulator, etc. in FC_Misc). I comment in the code when I have gotten inspiration (or just plain copied the code) from others. 
 
+I am attempting to convert these to pwsh core compatible. Most are already, although ymmv. 
+
 All the modules and scripts use my logging framework and a few other core functions from FC_Log and FC_Core. You are welcome to use the code/modules themselves or copy paste bits that suite you. 
 
 [![Build Status](https://dev.azure.com/brandonmcclure89/friendly-chainsaw/_apis/build/status/brandonmcclure.friendly-chainsaw?branchName=master)](https://dev.azure.com/brandonmcclure89/friendly-chainsaw/_build/latest?definitionId=10&branchName=master)
@@ -15,6 +17,7 @@ The 2 main modules that you need are:
 * [FC_Core](https://www.powershellgallery.com/packages/FC_Core)
 
 The other modules are independant of each other.
+* [FC_Docker](https://www.powershellgallery.com/packages/FC_Docker/1.0.0)
 * [FC_Git](https://www.powershellgallery.com/packages/FC_Git)
 * [FC_Data](https://www.powershellgallery.com/packages/FC_Data)
 * [FC_MicrosoftGraph](https://www.powershellgallery.com/packages/FC_MicrosoftGraph)
@@ -26,14 +29,13 @@ The other modules are independant of each other.
 
 Clone the repository locally and add the /Modules/ directory into your `$env:PSModulePath`
 
-## Running the tests
+## Building/Running the tests
 
-Use `make test` to automate. 
+Use `make build` and `make test` to automate. 
 
-This will build the Dockerfile in this repo and run it like:
-```
-docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests
-```
+This will run some helper docker images ([src](https://github.com/brandonmcclure/friendly-chainsaw-docker))
+
+You can run the tests manually with pester as well
 
 ## Contributing
 
