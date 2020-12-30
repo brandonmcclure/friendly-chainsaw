@@ -2,8 +2,9 @@ trigger:
   batch: true
   branches:
     include:
-    - master
-    
+    - main
+pr:
+  - main
 pool:
   vmImage: ubuntu-latest
 stages:
