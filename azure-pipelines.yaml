@@ -89,6 +89,9 @@ stages:
             PathtoPublish: '$(Build.ArtifactStagingDirectory)'
             ArtifactName: 'nupkg'
             publishLocation: 'Container'
+        - task: ManualValidation@0
+          inputs:
+            notifyUsers: 'brandon'
         - task: PowerShell@2
           inputs:
             filePath: 'Modules\Publish-FCModules.ps1'
