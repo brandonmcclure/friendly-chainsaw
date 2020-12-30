@@ -95,5 +95,5 @@ stages:
       steps:
       - task: PowerShell@2
         inputs:
-          filePath: 'Modules\Publish-FCModules.ps1'
+          filePath: '$(Pipeline.Workspace)/builtSource/Modules/Publish-FCModules.ps1'
           arguments: '-apiKey $(PSGallery_API_Key)'
