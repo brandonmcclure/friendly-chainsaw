@@ -89,3 +89,7 @@ stages:
             PathtoPublish: '$(Build.ArtifactStagingDirectory)'
             ArtifactName: 'nupkg'
             publishLocation: 'Container'
+        - task: PowerShell@2
+          inputs:
+            filePath: 'Modules\Publish-FCModules.ps1'
+            arguments: '-apiKey $(PSGallery_API_Key)'
