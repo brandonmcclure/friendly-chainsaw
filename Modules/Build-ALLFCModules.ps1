@@ -2,7 +2,7 @@
 param(
 	[ValidateSet("Debug", "Info", "Warning", "Error", "Disable")][string] $logLevel = "Debug",
 
-	[parameter(Mandatory = $false)][string[]] $moduleName = @()
+	[parameter(Mandatory = $false)][string[]] $moduleName = @("FC_Core.psm1")
 	, [parameter(Mandatory = $false)][string]$moduleDescription = $null
 	, [string] $moduleAuthor = "Brandon McClure"
 	, [switch] $forceConfigUpdate = $true
@@ -36,8 +36,11 @@ try {
 		$ModuleName = $module.BaseName 
 		$modulePath = $module.FullName
 		$moduleDir = Split-Path $module.FullName -Parent
+		Write-Verbose "moduleDir: $moduleDir"
 		$ManifestPath = "$moduleDir\$moduleName.psd1"
+		Write-Verbose "ManifestPath: $ManifestPath"
 		$ManifestConfigPath = "$moduleDir\moduleManifest.json"
+		Write-Verbose "ManifestConfigPath: $ManifestConfigPath"
 		$updateManifestFromConfig = 0
         
 		Write-Host "Checking the $ModuleName module"
@@ -95,7 +98,9 @@ try {
 		$oldFingerprint | Where { $_ -notin $fingerprint } | 
 		ForEach-Object { $bumpVersionType = 'Major'; "  $_" }
 
-		Set-Content -Path "$moduleDir\fingerprint" -Value $fingerprint
+		$fingerprintPath = "$moduleDir\fingerprint" 
+		Write-Verbose "fingerprintPath: $fingerprintPath"
+		Set-Content -Path $fingerprintPath -Value $fingerprint
 
 		if (!([string]::IsNullOrEmpty($bumpVersionType))) {
 			Step-ModuleVersion -Path $ManifestPath -By $bumpVersionType
