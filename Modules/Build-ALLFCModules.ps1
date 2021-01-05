@@ -87,6 +87,9 @@ try {
 		if ( Test-Path "$moduleDir\fingerprint" ) {
 			$oldFingerprint = Get-Content "$moduleDir\fingerprint"
 		}
+
+		Write-Verbose "There are $($fingerprint | Measure-Object | Select -ExpandProperty Count) Fingerprint items"
+		Write-Verbose "There are $($oldFingerprint | Measure-Object | Select -ExpandProperty Count) oldFingerprint items"
 		$bumpVersionType = ''
 
 		$fingerprint | Where { $_ -notin $oldFingerprint } | 
