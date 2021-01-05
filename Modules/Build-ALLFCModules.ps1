@@ -70,9 +70,10 @@ try {
 			}
 		}
 
+		Remove-Module $moduleName -Force -ErrorAction Ignore
 		Import-Module $modulePath -Force -ErrorAction Stop
-		$commandList = Get-Command -Module $ModuleName
-		Remove-Module $ModuleName
+		$commandList = Get-Command -Module $moduleName
+		Remove-Module $moduleName -Force -ErrorAction Ignore
 
 		Update-ModuleManifest -Path $ManifestPath -FunctionsToExport $commandList
 
