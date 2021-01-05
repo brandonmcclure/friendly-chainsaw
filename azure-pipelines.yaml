@@ -21,7 +21,7 @@ stages:
           displayName: run docker image for build
           inputs:
             targetType: 'inline'
-            script: 'gci; docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build'
+            script: 'gci; docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build -verbose'
         - task: PowerShell@2
           displayName: Copy Source to artifact dir
           inputs:
@@ -70,7 +70,7 @@ stages:
           inputs:
             versionSpec: '5.x'
         - task: PowerShell@2
-          displayName: Run docker image for tests
+          displayName: Logging
           inputs:
             targetType: 'inline'
             script: 'Get-Location; gci $(Pipeline.Workspace)/builtSource -Recurse | where {$_extension -eq ".nuspec"}'
