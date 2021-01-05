@@ -98,6 +98,7 @@ try {
 		$oldFingerprint | Where { $_ -notin $fingerprint } | 
 		ForEach-Object { $bumpVersionType = 'Major'; "  $_" }
 
+		Write-Verbose "Bumpversion: $bumpVersionType"
 		$fingerprintPath = "$moduleDir\fingerprint" 
 		Write-Verbose "fingerprintPath: $fingerprintPath"
 		Set-Content -Path $fingerprintPath -Value $fingerprint
