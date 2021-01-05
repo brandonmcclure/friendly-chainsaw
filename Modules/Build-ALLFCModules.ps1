@@ -72,6 +72,7 @@ try {
 
 		Remove-Module $moduleName -Force -ErrorAction Ignore
 		Import-Module $modulePath -Force -ErrorAction Stop
+		Get-Module $moduleName
 		$commandList = Get-Command -Module $moduleName
 		Remove-Module $moduleName -Force -ErrorAction Ignore
 
