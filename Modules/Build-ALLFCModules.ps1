@@ -2,7 +2,7 @@
 param(
 	[ValidateSet("Debug", "Info", "Warning", "Error", "Disable")][string] $logLevel = "Debug",
 
-	[parameter(Mandatory = $false)][string[]] $moduleName = @()
+	[parameter(Mandatory = $false)][string[]] $moduleName = @("FC_Core.psm1")
 	, [parameter(Mandatory = $false)][string]$moduleDescription = $null
 	, [string] $moduleAuthor = "Brandon McClure"
 	, [switch] $forceConfigUpdate = $true
@@ -32,6 +32,7 @@ try {
 	else {
 		$modules = Get-ChildItem -Path $pathToSearch  -Recurse | where { $_.Extension -eq '.psm1' -and $_.Name -in $moduleName }
 	}
+	Write-Host "Found $($modules | Measure-Object | Select -ExpandProperty Count) modules"
 	foreach ($module in $modules) {
 		$ModuleName = $module.BaseName 
 		$modulePath = $module.FullName
@@ -71,7 +72,10 @@ try {
 		$commandList = Get-Command -Module $ModuleName
 		Remove-Module $ModuleName
 
-		Update-ModuleManifest -Path $ManifestPath -FunctionsToExport $commandList
+		if([string]::IsNullorEmpty($commandList)){
+			Write-Error "commandList is empty!!!" -ErrorAction Stop
+		}
+		Update-ModuleManifest -Path $ManifestPath -FunctionsToExport $commandList -CmdletsToExport $commandList
 
 		Write-Output 'Calculating fingerprint'
 		$fingerprint = foreach ( $command in $commandList ) {
