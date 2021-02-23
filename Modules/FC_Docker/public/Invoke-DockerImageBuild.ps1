@@ -7,7 +7,9 @@ function Invoke-DockerImageBuild{
     ,$imageName
     ,$buildArgs = @{}
     ,$customTags = @()
+    ,$tagPrefix
     ,$logLevel
+    ,[switch] $gitTag
     )
     
     if($null -eq $registry){
@@ -29,12 +31,14 @@ function Invoke-DockerImageBuild{
         $oldLocation = Get-Location
         Set-Location $workingDir
         $tags = @()
+        if($gitTag){
         try{
             $tags += "$((Get-GitStatus | select -ExpandProperty Branch) -replace "/","_")-$((Get-GitLastCommit).SubString(0,4))"
         }
         catch{
             Write-Warning "Could not Get-GitStatus or Get-GitLastCommit"
         }
+    }
         if($isLatest){
             $tags += 'latest'
         }
@@ -42,17 +46,26 @@ function Invoke-DockerImageBuild{
         foreach ($tag in $customTags){
             $tags += $tag
         }
-    
+
+        $legitTags = @()
+        if (-not[string]::IsNullOrEmpty($tagPrefix)){
+            foreach ($t in $tags){
+                $legitTags += "$tagPrefix$t"
+            }
+        }
+        else{
+            $legitTags = $tags
+        }
         
     
-        foreach($tag in $tags){
+        foreach($tag in $legitTags){
             Write-Log "FQ Image Parts" Debug
             Write-Log "registry: $($registry.TrimEnd('\'))" Debug
             Write-Log "repository: $repository" Debug
             Write-Log "imageName: $($imageName.ToLower())" Debug
-            Write-Log "tag: $($tag)" Debug
+            Write-Log "tag: $($tag.ToLower())" Debug
     
-            $FQImageName = "$(if([string]::IsNullOrEmpty($registry)){''}elseif($registry.EndsWith("/")){$registry}else{$registry+"/"})$(if([string]::IsNullOrEmpty($repository)){''}elseif($repository.EndsWith("/")){$repository}else{$repository+"/"})$($imageName.ToLower()):$($tag)"
+            $FQImageName = "$(if([string]::IsNullOrEmpty($registry)){''}elseif($registry.EndsWith("/")){$registry}else{$registry+"/"})$(if([string]::IsNullOrEmpty($repository)){''}elseif($repository.EndsWith("/")){$repository}else{$repository+"/"})$($imageName.ToLower()):$($tag.ToLower())"
             Write-Log "FQImageName: $FQImageName" Debug
             Write-Log "buildargString: $buildargString" Debug
     
