@@ -5,4 +5,6 @@ Invoke-DockerImageBuild:workingDir
 Invoke-DockerImageBuild:imageName
 Invoke-DockerImageBuild:buildArgs
 Invoke-DockerImageBuild:customTags
+Invoke-DockerImageBuild:tagPrefix
 Invoke-DockerImageBuild:logLevel
+Invoke-DockerImageBuild:gitTag
