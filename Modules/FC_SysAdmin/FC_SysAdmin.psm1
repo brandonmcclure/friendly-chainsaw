@@ -100,3 +100,35 @@ foreach ( $folder in @( 'private', 'public', 'classes' ) )
              ForEach-Object { Write-Verbose $_.name; . $_.FullName } 
                   } 
  } 
+ class BackupJob{
+    [string]$name
+	[string]$SourcePath
+	[string]$DestinationPath
+	[BackupProvider]$BackupProvider
+	
+	BackupJob([string] $ProviderName,[string] $SourcePath,[string]$DestinationPath,[BackupProvider]$BackupProvider){
+        $this.name = $ProviderName
+		$this.SourcePath = $SourcePath
+		$this.DestinationPath = $DestinationPath
+		$this.BackupProvider = $BackupProvider
+    }
+}
+class BackupProvider{
+    [string]$name
+	BackupProvider([string] $ProviderName){
+        $this.name = $ProviderName
+    }
+}
+$Script:BackupJobs = @()
+$Script:BackupJobPath = "$env:USERPROFILE\.friendly-chainsaw\backupJobs.json"
+
+$Script:AllowedBackupProviders = @()
+$Script:AllowedBackupProviders += [BackupProvider]::new("pwsh")
+$Script:AllowedBackupProviders += [BackupProvider]::new("duplicati")
+
+if (Test-Path $Script:BackupJobPath ){
+	Read-BackupJobRepository
+}
+else{
+	New-Item $Script:BackupJobPath -ItemType File -Force
+}
