@@ -1,3 +1,7 @@
+Get-DockerFQName:Registry
+Get-DockerFQName:Repository
+Get-DockerFQName:Image
+Get-DockerFQName:Tag
 Invoke-DockerImageBuild:registry
 Invoke-DockerImageBuild:repository
 Invoke-DockerImageBuild:isLatest
