@@ -1,3 +1,7 @@
+Get-DockerFQName:Registry
+Get-DockerFQName:Repository
+Get-DockerFQName:Image
+Get-DockerFQName:Tag
 Invoke-DockerImageBuild:registry
 Invoke-DockerImageBuild:repository
 Invoke-DockerImageBuild:isLatest
@@ -5,4 +9,6 @@ Invoke-DockerImageBuild:workingDir
 Invoke-DockerImageBuild:imageName
 Invoke-DockerImageBuild:buildArgs
 Invoke-DockerImageBuild:customTags
+Invoke-DockerImageBuild:tagPrefix
 Invoke-DockerImageBuild:logLevel
+Invoke-DockerImageBuild:gitTag

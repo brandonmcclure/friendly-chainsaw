@@ -9,6 +9,7 @@ function Invoke-DockerImageBuild{
     ,$customTags = @()
     ,$tagPrefix
     ,$logLevel
+    ,[switch] $gitTag
     )
     
     if($null -eq $registry){
@@ -30,12 +31,14 @@ function Invoke-DockerImageBuild{
         $oldLocation = Get-Location
         Set-Location $workingDir
         $tags = @()
+        if($gitTag){
         try{
             $tags += "$((Get-GitStatus | select -ExpandProperty Branch) -replace "/","_")-$((Get-GitLastCommit).SubString(0,4))"
         }
         catch{
             Write-Warning "Could not Get-GitStatus or Get-GitLastCommit"
         }
+    }
         if($isLatest){
             $tags += 'latest'
         }

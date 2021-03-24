@@ -8,7 +8,7 @@ If (-Not (Test-Path $directory)){
     Write-Error "Could not find directory at $directory" -ErrorAction Stop
 }
 Write-Verbose "Ensuring unix/lf line endings in text files"
-$files = Get-ChildItem -Path $directory -Recurse -File -ErrorAction Stop | Where {$_.Extension -notin $excludeExtensions}
+$files = Get-ChildItem -Path $directory -File -ErrorAction Stop -Recurse | Where {$_.Extension -notin $excludeExtensions}
 foreach ($file in $files) {
     if ($file.Length -gt $maxSize) {
         Write-Warning "I can't process a file larger than 1 MB, skipping"

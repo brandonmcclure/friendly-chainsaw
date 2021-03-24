@@ -8,7 +8,7 @@
     [Parameter(position = 0,ValueFromPipelineByPropertyName)] [string]$SourceDirectory = $null,
     [Parameter(position = 1,ValueFromPipelineByPropertyName)] [string]$BackupToRootPath = $null
     ,[Parameter(position = 2,ValueFromPipelineByPropertyName)] [string]$BackupName = $null
-    ,[Parameter(position = 3,ValueFromPipelineByPropertyName)] [string]$BackupInstanceFormat = $null
+    ,[Parameter(position = 3,ValueFromPipelineByPropertyName)] [string]$BackupInstanceFormat = "yyyy.MM.dd_HH.mm.ss"
     ,[Parameter(position = 4,ValueFromPipelineByPropertyName)] [string[]]$ExcludeDirectories = $null
     ,[Parameter(position = 5,ValueFromPipelineByPropertyName)] [int]$NumberOfIncrementalBeforeFull = 10
     ,[switch]$ForceFull
@@ -189,7 +189,7 @@ for ($Index = 0; $Index -lt $length; $Index += $SplitSize)
     $outputObj | ConvertTo-Json -Depth 5 | Set-Content $outBackupDataPath
 
     Write-Log "Performing metadata file cleaning"
-    $TotalbackupCount = (Get-Content "$anchorBackupDirectory\FC_RootBackup.log" | Measure-Object).Count
+    $TotalbackupCount = ((Get-Content "$anchorBackupDirectory\FC_RootBackup.log" -ErrorAction SilentlyContinue) | Measure-Object).Count
     "$BackupInstanceName,$TotalbackupCount" | Add-Content "$anchorBackupDirectory\FC_RootBackup.log"
     $clearLastNBackups = 10
     $numberOfBackupsToDelete = $TotalbackupCount - $clearLastNBackups
