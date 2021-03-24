@@ -36,8 +36,11 @@ try {
 		$ModuleName = $module.BaseName 
 		$modulePath = $module.FullName
 		$moduleDir = Split-Path $module.FullName -Parent
+		Write-Verbose "moduleDir: $moduleDir"
 		$ManifestPath = "$moduleDir\$moduleName.psd1"
+		Write-Verbose "ManifestPath: $ManifestPath"
 		$ManifestConfigPath = "$moduleDir\moduleManifest.json"
+		Write-Verbose "ManifestConfigPath: $ManifestConfigPath"
 		$updateManifestFromConfig = 0
         
 		Write-Host "Checking the $ModuleName module"
@@ -67,9 +70,11 @@ try {
 			}
 		}
 
+		Remove-Module $moduleName -Force -ErrorAction Ignore
 		Import-Module $modulePath -Force -ErrorAction Stop
-		$commandList = Get-Command -Module $ModuleName
-		Remove-Module $ModuleName
+		Get-Module $moduleName
+		$commandList = Get-Command -Module $moduleName
+		Remove-Module $moduleName -Force -ErrorAction Ignore
 
 		Update-ModuleManifest -Path $ManifestPath -FunctionsToExport $commandList
 
@@ -84,6 +89,9 @@ try {
 		if ( Test-Path "$moduleDir\fingerprint" ) {
 			$oldFingerprint = Get-Content "$moduleDir\fingerprint"
 		}
+
+		Write-Verbose "There are $($fingerprint | Measure-Object | Select -ExpandProperty Count) Fingerprint items"
+		Write-Verbose "There are $($oldFingerprint | Measure-Object | Select -ExpandProperty Count) oldFingerprint items"
 		$bumpVersionType = ''
 
 		$fingerprint | Where { $_ -notin $oldFingerprint } | 
@@ -95,7 +103,10 @@ try {
 		$oldFingerprint | Where { $_ -notin $fingerprint } | 
 		ForEach-Object { $bumpVersionType = 'Major'; "  $_" }
 
-		Set-Content -Path "$moduleDir\fingerprint" -Value $fingerprint
+		Write-Verbose "Bumpversion: $bumpVersionType"
+		$fingerprintPath = "$moduleDir\fingerprint" 
+		Write-Verbose "fingerprintPath: $fingerprintPath"
+		Set-Content -Path $fingerprintPath -Value $fingerprint
 
 		if (!([string]::IsNullOrEmpty($bumpVersionType))) {
 			Step-ModuleVersion -Path $ManifestPath -By $bumpVersionType

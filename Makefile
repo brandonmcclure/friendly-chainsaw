@@ -8,9 +8,9 @@ endif
 all: build
 
 build: 
-	./Modules/Build-ALLFCModules.ps1
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build
 %:
-	./Modules/Build-ALLFCModules.ps1 -moduleName @('$*.psm1')
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build -logLevel Info -pathToSearch /build -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
 
 test: 
 	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests
