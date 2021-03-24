@@ -127,7 +127,7 @@ $Script:AllowedBackupProviders += [BackupProvider]::new("pwsh")
 $Script:AllowedBackupProviders += [BackupProvider]::new("duplicati")
 
 if (Test-Path $Script:BackupJobPath ){
-	$Script:BackupJobs = Get-Content $Script:BackupJobPath | ConvertFrom-Json -Depth 5
+	Read-BackupJobRepository
 }
 else{
 	New-Item $Script:BackupJobPath -ItemType File -Force
