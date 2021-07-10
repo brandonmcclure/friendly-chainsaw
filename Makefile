@@ -13,6 +13,9 @@ PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
 
 all: build
 
+getcommitid: 
+	$(eval COMMITID = $(shell git log -1 --pretty=format:"%H"))
+
 build: 
 	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build
 %:
@@ -21,8 +24,8 @@ build:
 test: 
 	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests
 
-docker_build:
-	docker build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) .
+docker_build: getcommitid
+	docker build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(COMMITID) .
 
 docker_build_multiarch:
 	docker buildx build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) --platform $(PLATFORMS) .

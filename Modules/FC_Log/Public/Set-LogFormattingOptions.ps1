@@ -45,4 +45,4 @@
     if ($PrefixScriptName -eq 1 -or $PrefixScriptName -eq 0){
         $script:logFormattingOptions['PrefixScriptName'] = $PrefixScriptName
     }
-}export-modulemember -Function Set-LogFormattingOptions
+}

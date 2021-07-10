@@ -41,4 +41,4 @@ Param([Parameter(Position=0, ParameterSetName="string")][ValidateScript({
 		Write-Log "Error setting the log level." 
 	}
 
-}export-modulemember -function Set-LogLevel
+}

@@ -228,4 +228,4 @@
       }
     }
   }
-} Export-ModuleMember -Function Write-Log
+}
