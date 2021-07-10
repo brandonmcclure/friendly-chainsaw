@@ -11,13 +11,13 @@ IMAGE_NAME := fc_powershell
 TAG := :latest
 PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
 
-all: build
+all: build docker_build
 
 getcommitid: 
 	$(eval COMMITID = $(shell git log -1 --pretty=format:"%H"))
 
 build: 
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build -moduleAuthor BrandonMcClure
 %:
 	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build -logLevel Info -pathToSearch /build -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
 
@@ -29,7 +29,8 @@ docker_build: getcommitid
 
 docker_build_multiarch:
 	docker buildx build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) --platform $(PLATFORMS) .
-
+	
+run: docker_run
 docker_run:
 	docker run -it $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG)
 

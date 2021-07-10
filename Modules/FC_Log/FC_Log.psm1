@@ -25,3 +25,8 @@ foreach ( $folder in @( 'private','Private', 'public','Public', 'classes','Class
              ForEach-Object { Write-Verbose $_.name; . $_.FullName } 
                   } 
  } 
+
+ Write-Verbose -Message 'Exporting Public functions...'
+$functions = Get-ChildItem -Path "$PSScriptRoot\Public" -Filter '*.ps1' -Recurse
+
+Export-ModuleMember -Function $functions.BaseName
