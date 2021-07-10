@@ -152,4 +152,4 @@
         }
 
     } # end
-} Export-ModuleMember -Function Get-CallerPreference
+}

@@ -9,17 +9,24 @@ $script:logTargets = @{"Console" = 1; "WindowsEventLog" = 0; "File" =0; "Speech"
 Write-Verbose "Importing Functions" 
  
 # Import everything in sub folders folder 
-foreach ( $folder in @( 'private', 'public', 'classes' ) ) 
+foreach ( $folder in @( 'private','Private', 'public','Public', 'classes','Classes' ) ) 
 { 
-    $root = Join-Path -Path $PSScriptRoot -ChildPath $folder 
+	
+	$root = Join-Path -Path $PSScriptRoot -ChildPath $folder 
+	Write-Verbose "Looking for files to import from $root"
     if ( Test-Path -Path $root ) 
     { 
         Write-Verbose "processing folder $root" 
         $files = Get-ChildItem -Path $root -Filter *.ps1 
  
- 
+		Write-Verbose "Found $($files |Measure-Object | select -ExpandProperty Count) files"
          # dot source each file 
          $files | where-Object { $_.name -NotLike '*.Tests.ps1' } | 
              ForEach-Object { Write-Verbose $_.name; . $_.FullName } 
                   } 
  } 
+
+ Write-Verbose -Message 'Exporting Public functions...'
+$functions = Get-ChildItem -Path "$PSScriptRoot\Public" -Filter '*.ps1' -Recurse
+
+Export-ModuleMember -Function $functions.BaseName

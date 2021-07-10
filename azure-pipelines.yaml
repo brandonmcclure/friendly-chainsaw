@@ -21,7 +21,7 @@ stages:
           displayName: run docker image for build
           inputs:
             targetType: 'inline'
-            script: 'gci; docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build -verbose'
+            script: 'gci; docker run --rm -w /build -v ${PWD}:/build bmcclure89/fc_pwsh_build -moduleAuthor BrandonMcClure -verbose'
         - task: PowerShell@2
           displayName: Copy Source to artifact dir
           inputs:

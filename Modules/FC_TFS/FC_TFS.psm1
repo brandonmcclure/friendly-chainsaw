@@ -5,7 +5,7 @@ $script:apiVersion = '3.0'
 $script:TFSlocalAutoGitRepo = ""
 
 # Import everything in sub folders folder 
-foreach ( $folder in @( 'private', 'public', 'classes' ) ) 
+foreach ( $folder in @( 'Private', 'Public', 'Classes' ) ) 
 { 
     $root = Join-Path -Path $PSScriptRoot -ChildPath $folder 
     if ( Test-Path -Path $root ) 
