@@ -1,6 +1,9 @@
-﻿Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
-Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+﻿
 Describe 'Write-Log to file' {
+	beforeall {
+		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+	}
 
     Context 'Single File' {
         BeforeEach{
@@ -29,20 +32,23 @@ Describe 'Write-Log to file' {
         }
     }
     Context 'Create Folder if it does not exist' {
-        BeforeEach {
-            $file1 = "TestDrive:\FCTests\FCNewFolder\FCLogTest01.log"
-            $file2 = "TestDrive:\FCTests\FCNewFolder\ANotherNewFolder\FCLogTest02.log"
-            $filePath = $file1, $file2
+
+        it "Parent new folder" {
+			$file = "TestDrive:\FCTests\FCNewFolder\FCLogTest01.log"
+            $filePath = $file
             Remove-Item TestDrive:\* -Recurse -Force -ErrorAction Ignore | Out-Null
             Set-logTargets -File $filePath -Console 0
             Write-Log "Testing"
+            Get-Content $file | Should -Be "Testing"
         }
+        it "Nested new folders" {
+			$file = "TestDrive:\FCTests\FCNewFolder\ANotherNewFolder\FCLogTest02.log"
+			$filePath = $file
+            Remove-Item TestDrive:\* -Recurse -Force -ErrorAction Ignore | Out-Null
+            Set-logTargets -File $filePath -Console 0
+            Write-Log "Testing"
 
-        it "File 1" {
-            Get-Content $file1 | Should -Be "Testing"
-        }
-        it "File 2" {
-            Get-Content $file2 | Should -Be "Testing"
+            Get-Content $file | Should -Be "Testing"
         }
     }
 
@@ -66,14 +72,24 @@ Describe 'Write-Log to file' {
 }
 
 Describe "Write-Log to event log"{
+	beforeall {
+		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+	}
+
 	Context "Error on pqsh core"{
-		It 'Throws error on pwsh core'{
+		It 'Throws error on pwsh core (non terminating error, made to terminate)'{
 			Set-logTargets -WindowsEventLog 1 -ErrorAction Ignore;
-			{Write-Log "Test"} | should -throw "I cannot log to the Windows Event Log on pwsh core without some workarounds. See https://github.com/brandonmcclure/friendly-chainsaw/issues/61"
+			{Write-Log "Test" -ErrorAction Stop} | should -throw "I cannot log to the Windows Event Log on pwsh core without some workarounds. See https://github.com/brandonmcclure/friendly-chainsaw/issues/61"
 		}
 	}
 }
 Describe 'Set-LogLevel' {
+	beforeall {
+		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+	}
+
     COntext 'Debug' {
         it 'Out Verbose stream - Is there' {
             Set-LogLevel Debug
@@ -133,6 +149,12 @@ Describe 'Set-LogLevel' {
 }
 
 Describe 'Set-LogTarget'{
+	beforeall {
+		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+	}
+	
+
 	Context 'Speach'{
 		it 'does not work on core'{
 			{Set-logTargets -Speech 1 }| Should -throw "I cannot log to the Speech on pwsh core"

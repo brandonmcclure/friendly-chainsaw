@@ -35,6 +35,12 @@
     [Parameter(Position=2)][string[]] $File = "-",
     [Parameter(Position=3)][int] $Speech = -1)
 
+	if( $PSVersionTable.PSEdition -eq 'core' -and $Speech -eq 1 ){
+		Write-Error "I cannot log to the Speech on pwsh core" -ErrorAction Stop
+	}
+	if( $PSVersionTable.PSEdition -eq 'core' -and $WindowsEventLog -eq 1 ){
+		Write-Error "I cannot log to the Windows Event Log on pwsh core without some workarounds. See https://github.com/brandonmcclure/friendly-chainsaw/issues/61"
+	}
     if ($Console -eq 1 -or $Console -eq 0){
         $script:logTargets['Console'] = $Console
     }
