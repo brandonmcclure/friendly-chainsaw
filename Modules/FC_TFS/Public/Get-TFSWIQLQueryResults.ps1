@@ -46,7 +46,7 @@ $requestBody = @"
 $queryOut = New-Object PSObject
 $queryOut | Add-Member -type NoteProperty -Name QueryText -Value $query
 $queryOut | Add-Member -type NoteProperty -Name QueryResult -Value $null
-$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method POST -Body $requestBody -ContentType "application/json" -Headers $script:AuthHeader
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method POST -Body $requestBody -ContentType "application/json" -Headers (Get-TFSHeader)
 $queryOut.QueryResult = $response
 if ([bool]($outputObj.PSobject.Properties.name -match "QueryResults")){
     $outputObj.QueryResults += $queryOut

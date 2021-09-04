@@ -1,19 +1,19 @@
 ﻿Function Set-TFSPersonalAccessToken{
-param([string] $PAT)
+param([securestring] $PAT)
 
 $user = ''
 $pass = $PAT
 
-$pair = "$($user):$($pass)"
+$pair = ""
 
-$encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($pair))
+$encodedCreds = 
 
-$basicAuthValue = "Basic $encodedCreds"
+$basicAuthValue = 
 
 $Headers = @{
-    Authorization = $basicAuthValue
-}
+    Authorization = $("Basic " +$([System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes("$($user):$($PAT | ConvertFrom-SecureString -AsPlainText)"))))
+} | ConvertTo-Json -Depth 2 | ConvertTo-SecureString -AsPlainText
 
-$script:AuthHeader = $Headers
+$script:AuthHeader = $Headers 
 
 }Export-ModuleMember -Function Set-TFSPersonalAccessToken

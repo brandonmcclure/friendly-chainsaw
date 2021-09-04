@@ -44,9 +44,9 @@ else{
 }
 $fullURL = $BaseTFSURL + $action
 Write-Log "URL we are calling: $fullURL" Debug
-$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json" -Headers $script:AuthHeader
-Write-Log "Test"
-$x = 0;
+
+$response = Invoke-RestMethod -UseDefaultCredentials -uri $fullURL -Method Get -ContentType "application/json" -Headers (Get-TFSHeader)
+
 Write-Output $response.value
 }
 catch{
