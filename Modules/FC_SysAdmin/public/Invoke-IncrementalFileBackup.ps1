@@ -101,7 +101,7 @@
 
 		Write-Log "root destination directory: $destination" -tabLevel 1
 
-		Write-Log "Scanning files ..."
+		Write-Log "Scanning files... at $SourceDirectory"
 
 		Set-Location $SourceDirectory
 		$hashAlgorithm = "SHA256"
@@ -112,6 +112,8 @@
 		$FilesToCopy | Add-Member -MemberType NoteProperty -Name "WasUpdated" -Value 0
 		$FilesToCopy | Add-Member -MemberType NoteProperty -Name "LastBackup" -Value "$backupInstant"
 		$fileCount = $FilesToCopy | Measure-Object | Select-Object -ExpandProperty Count
+
+		Write-Log "Found $fileCount files"
 		$fileCountIndex = 0
 
 		$parallelQueues = 5
@@ -119,7 +121,13 @@
 
 		$splitArrays = @()
 
-		$splitArrays = Split-Array -InputObject $FilesToCopy -SplitSize ($fileCount / 5)
+		if($fileCount -eq 1){
+			$splitArrays = $FilesToCopy
+		}
+		else{
+			$splitArrays = Split-Array -InputObject $FilesToCopy -SplitSize ($fileCount / 5)
+		}
+
 		$jobs = @()
 		$i = 0;
 		foreach ($array in $splitArrays) {
@@ -129,6 +137,7 @@
 			# $jobs += Start-Job {
 			# 	param($files, $hashAlgorithm, $destination, $PreviousBackup)
 			$files = $array
+			Write-Log "Looping over the files"
 				foreach ($file in $files) {
 
 					$file.FileHash = Get-FileHash -Path $file.FullName -Algorithm $hashAlgorithm | Select-Object -ExpandProperty Hash
@@ -210,7 +219,6 @@
 		}
 		Write-Log "Done cleaning up the metadata file"
 		Write-Log "File backup completed."
-
 	}
 	catch {
 		throw

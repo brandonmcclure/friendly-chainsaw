@@ -17,9 +17,9 @@ getcommitid:
 	$(eval COMMITID = $(shell git log -1 --pretty=format:"%H"))
 
 build: 
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build -moduleAuthor BrandonMcClure
-%:
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build -logLevel Info -pathToSearch /build -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:e563083c1439c3b55e9c59d31fab9d719615bef2 -pathToSearch '/build' -logLevel Info -moduleAuthor Brandon McClure
+build_%:
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:e563083c1439c3b55e9c59d31fab9d719615bef2 -pathToSearch '/build' -logLevel Info -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
 
 test: 
 	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests
@@ -43,3 +43,6 @@ docker_size:
 
 docker_publish:
 	docker login; docker push $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG); docker logout
+
+clean:
+	Get-ChildItem -Recurse -PAth . -File | where {$$_.Extension -eq '.nuspec'} |Remove-Item -Force
