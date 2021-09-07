@@ -23,4 +23,4 @@ Function Invoke-Beep{
 param([Parameter(position=0)]$pitch = 500, [Parameter(position=1)]$duration = 300)
 
 [console]::beep($pitch,$duration)
-}Export-ModuleMember -Function Invoke-Beep
+}

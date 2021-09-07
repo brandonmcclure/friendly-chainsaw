@@ -56,6 +56,12 @@
     #Set the Verbose preference to the value in the calling script
     Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
 
+	$isWindowsEventLogTarget = $script:logTargets['WindowsEventLog']
+	if( $PSVersionTable.PSEdition -eq 'core' -and $isWindowsEventLogTarget -eq 1 ){
+		Write-Error "I cannot log to the Windows Event Log on pwsh core without some workarounds. See https://github.com/brandonmcclure/friendly-chainsaw/issues/61"
+		$isWindowsEventLogTarget = 0
+	}
+
     $tabs = ''
     if ($script:logFormattingOptions['PrefixScriptName'] -eq 1) {
       $scriptName = Get-PSCallStack | Select-Object -Skip 1 -First 1 | Where-Object { $_.FunctionName -eq '<ScriptBlock>' } | select -ExpandProperty Command
@@ -99,13 +105,8 @@
               Write-Verbose "$FormatMessage"
             }
         }
-        if ($script:logTargets['WindowsEventLog'] -eq 1) {
-          if ($PSVersionTable.PSVersion -le 5.1){
-            Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
-          }
-          else{
-            Write-Error "I cannot log to the Windows event log with the PS version: $($PSVersionTable.PSVersion)" -ErrorAction Stop
-          }
+        if ($isWindowsEventLogTarget -eq 1) {
+          Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
         }
         if ($script:logTargets['Speech'] -eq 1) {
           Add-Type -AssemblyName System.speech
@@ -128,7 +129,7 @@
             $VerbosePreference = 'Continue'
             Write-Verbose "$FormatMessage"
         }
-        if ($script:logTargets['WindowsEventLog'] -eq 1) {
+        if ($isWindowsEventLogTarget -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
         }
         if ($script:logTargets['Speech'] -eq 1) {
@@ -152,7 +153,7 @@
             $InformationPreference = 'Continue'
             Write-Information $FormatMessage
         }
-        if ($script:logTargets['WindowsEventLog'] -eq 1) {
+        if ($isWindowsEventLogTarget -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Information" -EventId $eventID -Message "$FormatMessage"
         }
         if ($script:logTargets['Speech'] -eq 1) {
@@ -176,7 +177,7 @@
         if($script:logTargets['Console'] -eq 1){
             Write-Warning "$FormatMessage"
         }
-        if ($script:logTargets['WindowsEventLog'] -eq 1) {
+        if ($isWindowsEventLogTarget -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Warning" -EventId $eventID -Message "$FormatMessage"
         }
 
@@ -201,7 +202,7 @@
         if($script:logTargets['Console'] -eq 1){
             Write-Error "$FormatMessage"
         }
-        if ($script:logTargets['WindowsEventLog'] -eq 1) {
+        if ($isWindowsEventLogTarget -eq 1) {
           Write-EventLog -LogName Application -Source "$script:LogSource" -EntryType "Error" -EventId $eventID -Message "$FormatMessage"
         }
         if ($script:logTargets['Speech'] -eq 1) {
@@ -215,17 +216,18 @@
 
       if ($script:logTargets['File'] -eq 1) {
         foreach($file in $script:logTargetFileNames){
-          if (-not (Test-Path (Split-Path $file -Parent))){
-              try{
-                  New-Item -Path (Split-Path $file -Parent) -ItemType Directory -Force
-              }
-              catch{
-                  throw "Could not set log target to: $(Split-Path $file -Parent). Path does not exist"
-              }
-          }
-            $FormatMessage | Add-Content $file
+			$fileParentDir = Split-Path $file -Parent
+                if (-not (Test-Path $fileParentDir)){
+					try{
+						New-Item -Path $fileParentDir -ItemType Directory -Force
+					}
+					catch{
+						throw "Could not set log target to: $fileParentDir. Path does not exist"
+					}
+				}
+            $FormatMessage | Add-Content $file -ErrorAction Stop
         }
       }
     }
   }
-}
+} Export-ModuleMember -Function Write-Log
