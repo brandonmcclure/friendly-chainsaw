@@ -4,12 +4,12 @@ function Get-PrometheusPusher{
 param([switch]$logError)
 
 Add-Type -AssemblyName Prometheus.NetStandard -ErrorAction Stop
-
+Add-Type -AssemblyName System.Net.Http -ErrorAction Stop
 
 $headerValue = [System.Convert]::ToBase64String([System.Text.Encoding]::UTF8.GetBytes("$( ConvertFrom-SecureString -AsPlainText -SecureString ($script:PrometheusBasicAuthUser | ConvertTo-SecureString)):$( ConvertFrom-SecureString -AsPlainText -SecureString ($script:PrometheusBasicAuthPassword | ConvertTo-SecureString))"));
-Add-Type -AssemblyName System.Net.Http -ErrorAction Stop
-$httpClient = New-Object -TypeName System.Net.Http.HttpClient -ErrorAction Stop
 
+$httpClient = New-Object -TypeName System.Net.Http.HttpClient -ErrorAction Stop
+$httpClient.DefaultRequestHeaders.Clear()
 $httpClient.DefaultRequestHeaders.Authorization = New-object -TypeName System.Net.Http.Headers.AuthenticationHeaderValue -ArgumentList "Basic", $headerValue
 
 
@@ -40,23 +40,25 @@ if($logError){
 }
 
 
-$scriptName = Get-PSCallStack | Select-Object -Skip 1 -First 1 | Where-Object { $_.FunctionName -eq '<ScriptBlock>' } | select -ExpandProperty Command
 
-$jobName = $scriptName -replace '.ps1',''
+
+
 $options.Instance = $env:COMPUTERNAME
-$options.Job = $jobName
+$options.Job = $(New-Guid)
 if([string]::IsNullOrEmpty($options.Job)){
     $options.Job = "ad hoc"
 }
 $options.HttpClientProvider = {$httpClient}
 
-$outObj = $(New-Object -TypeName Prometheus.MetricPusher -ArgumentList $options)
+$outObj = New-Object -TypeName Prometheus.MetricPusher -ArgumentList $options
 
 $outObj.Start()
 
-$instanceCount = New-PrometheusMetricCounter -metricName "instance_start_total" -MetricDescription "Number of instances that have started"
-$instanceCount.Inc();
+$instanceCount = New-PrometheusMetricGauge -metricName "instance_start_total" -MetricDescription "Number of instances that have started"
+$instanceCount.set(1);
 $instanceCount.Publish();
+sleep 5
+$outObj.Stop()
 
 Write-Output $outObj
 }export-ModuleMember -function Get-PrometheusPusher
