@@ -17,6 +17,17 @@ Set-LogLevel $logLevel
 	
 Set-logTargets -Speech 1
 
+function Start-SleepWithProgress($seconds) {
+    $doneDT = (Get-Date).AddSeconds($seconds)
+    while($doneDT -gt (Get-Date)) {
+        $secondsLeft = $doneDT.Subtract((Get-Date)).TotalSeconds
+        $percent = ($seconds - $secondsLeft) / $seconds * 100
+        Write-Progress -Activity "Sleeping" -Status "Sleeping..." -SecondsRemaining $secondsLeft -PercentComplete $percent
+        [System.Threading.Thread]::Sleep(500)
+    }
+    Write-Progress -Activity "Sleeping" -Status "Sleeping..." -SecondsRemaining 0 -Completed
+}
+
 function Invoke-AlertMessage {
 	param($alertMessage)
 
@@ -39,10 +50,10 @@ function Invoke-AlertMessage {
 }
 
 Write-Log "Starting the pomodoro timer for $pomodoromDurationMin minutes"
-Start-Sleep -Seconds (60 * $pomodoromDurationMin)
+Start-SleepWithProgress -Seconds (60 * $pomodoromDurationMin)
 Invoke-AlertMessage -AlertMessage "The pomodoro timer is up, press enter to move to the break timer"
 
 Write-Log "Starting $breakDurationMin minute break"
-Start-Sleep -Seconds (60 * $breakDurationMin)
+Start-SleepWithProgress -Seconds (60 * $breakDurationMin)
 
 Invoke-AlertMessage -AlertMessage "The break timer is up, press enter to complete the cycle"
