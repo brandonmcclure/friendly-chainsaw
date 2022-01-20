@@ -1,5 +1,29 @@
 ﻿Remove-Module FC_Core -Force -ErrorAction Ignore | Out-Null
 Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
+
+Set-logTargets -WindowsEventLog 0
+
+Describe 'Get-FCSecret'{
+    Context "ContextName" {
+        It "Null Name Input throws error"{
+            $scriptBlock = {Get-FCSecret -ErrorAction Stop }
+            $scriptBlock | Should -throw "You must pass a value to the name parameter"
+        }
+        It "sleep for 10 seconds"{
+            Set-SecretStoreConfiguration -Authentication None -Confirm:$false -Interaction "None"
+
+            Unregister-SecretVault -Name "Pester_test" -ErrorAction SilentlyContinue
+            Register-SecretVault -Name "Pester_test" -ModuleName Microsoft.PowerShell.SecretStore 
+
+            
+
+            mock -ModuleName FC_Core Start-Sleep {} 
+             Get-FCSecret -Name "test" -VaultName "Pester_test" -ErrorAction Stop 
+            Assert-MockCalled -ModuleName FC_Core Start-Sleep -Exactly 10
+        }
+    }
+}
+
 Describe 'ConvertTo-HashTable'{
 
     Context 'Parameter validation'{
