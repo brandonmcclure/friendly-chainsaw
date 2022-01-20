@@ -17,12 +17,12 @@ getcommitid:
 	$(eval COMMITID = $(shell git log -1 --pretty=format:"%H"))
 
 build: 
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:e563083c1439c3b55e9c59d31fab9d719615bef2 -pathToSearch '/build' -logLevel Info -moduleAuthor Brandon McClure
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:2d312d66d8dbd7ecf57eac8d8391986092f90cfc -pathToSearch '/build' -logLevel Info -moduleAuthor Brandon McClure
 build_%:
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:e563083c1439c3b55e9c59d31fab9d719615bef2 -pathToSearch '/build' -logLevel Info -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:2d312d66d8dbd7ecf57eac8d8391986092f90cfc -pathToSearch '/build' -logLevel Info -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
 
 test: 
-	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests
+	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests:2d312d66d8dbd7ecf57eac8d8391986092f90cfc
 
 docker_build: getcommitid
 	docker build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(COMMITID) .
