@@ -4,7 +4,6 @@ function New-PrometheusMetricGauge{
         $MetricDescription = "Change Me",
         $domain = "friendlychainsaw",
         $subdomain = "default",
-        $jobType = "batch",
         $metricName
         )
 
@@ -25,5 +24,5 @@ function New-PrometheusMetricGauge{
 		$labels.Add("FileName",$jobName)
 		$config.StaticLabels = $labels
 
-    Write-Output ([Prometheus.Metrics]::CreateGauge("$($domain)_$($subdomain)_$($jobType)_$metricName",$MetricDescription,$config))
+    Write-Output ([Prometheus.Metrics]::CreateGauge("$($domain)_$($subdomain)_$metricName",$MetricDescription,$config))
 }Export-ModuleMember -Function New-PrometheusMetricGauge
