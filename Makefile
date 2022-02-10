@@ -22,10 +22,10 @@ build_%:
 	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:2d312d66d8dbd7ecf57eac8d8391986092f90cfc -pathToSearch '/build' -logLevel Info -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
 
 test: 
-	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_tests:2d312d66d8dbd7ecf57eac8d8391986092f90cfc
+	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:f9ca37b8dbb9665bdc525a2bddec0da0ad2720f9
 
 docker_build: getcommitid
-	docker build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(COMMITID) .
+	docker build --load -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(COMMITID) .
 
 docker_build_multiarch:
 	docker buildx build -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) --platform $(PLATFORMS) .
@@ -46,3 +46,6 @@ docker_publish:
 
 clean:
 	Get-ChildItem -Recurse -PAth . -File | where {$$_.Extension -eq '.nuspec'} |Remove-Item -Force
+
+new_module_%:
+	@./New-MyModule.ps1 -ModuleName $*
