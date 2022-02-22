@@ -5,21 +5,24 @@ Set-logTargets -WindowsEventLog 0
 
 Describe 'Get-FCSecret'{
     Context "ContextName" {
+        beforeEach{
+            Set-SecretStoreConfiguration -Authentication None -Confirm:$false -Interaction "None"
+
+            Unregister-SecretVault -Name "Pester_test" -ErrorAction SilentlyContinue
+            Register-SecretVault -Name "Pester_test" -ModuleName Microsoft.PowerShell.SecretStore 
+        }
         It "Null Name Input throws error"{
             $scriptBlock = {Get-FCSecret -ErrorAction Stop }
             $scriptBlock | Should -throw "You must pass a value to the name parameter"
         }
         It "sleep for 10 seconds"{
-            Set-SecretStoreConfiguration -Authentication None -Confirm:$false -Interaction "None"
-
-            Unregister-SecretVault -Name "Pester_test" -ErrorAction SilentlyContinue
-            Register-SecretVault -Name "Pester_test" -ModuleName Microsoft.PowerShell.SecretStore 
-
-            
-
             mock -ModuleName FC_Core Start-Sleep {} 
              Get-FCSecret -Name "test" -VaultName "Pester_test" -ErrorAction Stop 
             Assert-MockCalled -ModuleName FC_Core Start-Sleep -Exactly 10
+        }
+        it "Should error if cannot find secret"{
+            $scriptBlock = {Get-FCSecret -Name "Test" -VaultName "Pester_test" -ErrorAction Stop }
+            $scriptBlock | Should -throw "The secret test was not found."
         }
     }
 }
