@@ -5,6 +5,7 @@
 	[CmdletBinding(SupportsShouldProcess=$true)] 
 	param([Parameter(position=0)][ValidateSet("Debug","Info","Warning","Error", "Disable")][string] $logLevel = "Info"
 	,[string]$Path = ''
+	,$docType = 'recipies'
 	)
 	
 	Import-Module FC_Log
@@ -28,7 +29,7 @@
 			$frontMatter = '---
 title: "'+$file.BaseName+'"
 linkTitle: "'+$file.BaseName+'"
-type: docs
+type: '+$docType+'
 weight: 5
 ---
 '	
