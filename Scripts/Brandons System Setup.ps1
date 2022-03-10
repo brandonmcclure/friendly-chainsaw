@@ -145,6 +145,10 @@ if ($updateHelp -eq $true) {
   "Update-Help" | Add-Content -Path $profilePaths
 }
 
+if (!($env:PSModulePath -Like "*;/home/brandon/git/brandonmcclure/friendly-chainsaw/Modules/*")){
+  $env:PSModulePath = $env:PSModulePath + ";/home/brandon/git/brandonmcclure/friendly-chainsaw/Modules/;"
+}
+
 if (!([string]::IsNullOrEmpty($moduleDirs))) {
   foreach ($dir in $moduleDirs) {
     'if (!($env:PSModulePath -Like "*;' + $dir + '\*")){
