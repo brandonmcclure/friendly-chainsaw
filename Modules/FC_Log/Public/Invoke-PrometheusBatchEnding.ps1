@@ -2,7 +2,8 @@ function Invoke-PrometheusBatchEnding{
     param(
         $textFileDir = "C:\mcd\promMetrics",
     $SLO_InstanceShouldRunEveryXSeconds,
-    $SupportTeam = "Unsupported"
+    $SupportTeam = "Unsupported",
+    $domain = 'mcd'
     )
     $JobType = 'batch'
     if([string]::IsNullOrEmpty($SLO_InstanceShouldRunEveryXSeconds)){
@@ -12,8 +13,8 @@ function Invoke-PrometheusBatchEnding{
     $unixEpochTimer = [int]([DateTime]::UtcNow - (new-object DateTime 1970, 1, 1, 0, 0, 0,([DateTimeKind]::Utc))).TotalSeconds
 
     $metrics = @(
-        @{Name="mcd_data_instance_last_complete_epoch_seconds_diff"; Description="The last time this job finished";type="gauge"; value="$($unixEpochTimer.ToString())"}
-        ,@{Name="mcd_instance_last_complete_slo_target_seconds"; Description="The target SLO threshold for how frequently we are planning on running this batch (in seconds).";type="gauge"; value="$($SLO_InstanceShouldRunEveryXSeconds.ToString())"}
+        @{Name="$($domain)_data_instance_last_complete_epoch_seconds_diff"; Description="The last time this job finished";type="gauge"; value="$($unixEpochTimer.ToString())"}
+        ,@{Name="$($domain)_instance_last_complete_slo_target_seconds"; Description="The target SLO threshold for how frequently we are planning on running this batch (in seconds).";type="gauge"; value="$($SLO_InstanceShouldRunEveryXSeconds.ToString())"}
     )
 
     $labels = @("SupportTeam=`"$SupportTeam`"")
