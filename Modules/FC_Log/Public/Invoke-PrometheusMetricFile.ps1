@@ -1,5 +1,5 @@
 function Invoke-PrometheusMetricFile{
-param($labels, $metrics,$textFileDir)
+param($metrics,$textFileDir)
 
 $scriptName = ""
 if([string]::IsnullOrEmpty($scriptName)){
@@ -14,34 +14,35 @@ if([string]::IsnullOrEmpty($textFileDir)){
 }
 
 $Instance = $env:COMPUTERNAME
-$Job = "$(Get-Date -Format 'yyyy.MM.dd_HH.mm.ss')_$(New-Guid)"
 
-$textFilePath = "$textFileDir\$($scriptName)_$Job.prom"
+$textFilePath = "$textFileDir\$($scriptName).prom"
 
 if(-not (Test-Path $textFileDir)){
     New-Item -Path $textFileDir -ItemType Directory -Force -ErrorAction Stop #| Out-Null
 }
 
-$staticLabels = @(
+
+
+
+
+
+$metricData = ""
+foreach($metric in $metrics){
+    $staticLabels = @(
     "script_name=`"$scriptName`"",
-    "job=`"$Job`"",
     "job_type=`"$JobType`""
 )
 
-foreach ($label in $labels){
-$staticLabels += $label
-}
-
-$staticLabelsString = "{ $($staticLabels -join ',') }"
-$metricData = ""
-foreach($metric in $metrics){
     $Name = $metric.Name
     $Description = $metric.Description
     $type = $metric.type
     $value = $metric.value
 
+    foreach ($label in $metric.labels){
+        $staticLabels += $label
+    }
 
-
+    $staticLabelsString = "{ $($staticLabels -join ',') }"
 
 $metricData += "# HELP $name $Description
 # TYPE $Name $type
