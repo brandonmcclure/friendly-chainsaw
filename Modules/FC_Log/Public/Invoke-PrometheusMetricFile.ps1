@@ -1,7 +1,7 @@
 function Invoke-PrometheusMetricFile{
-param($metrics,$textFileDir)
+param($metrics,$textFileDir,$scriptName)
 
-$scriptName = ""
+
 if([string]::IsnullOrEmpty($scriptName)){
     $scriptName = Get-CallingScript
 }

@@ -4,7 +4,8 @@ function Invoke-PrometheusBatchEnding{
     $SLO_InstanceShouldRunEveryXSeconds,
     $SupportTeam = "Unsupported",
     $domain = 'mcd',
-    $metrics
+    $metrics,
+    $scriptName
     )
     $JobType = 'batch'
     if([string]::IsNullOrEmpty($SLO_InstanceShouldRunEveryXSeconds)){
@@ -15,10 +16,10 @@ function Invoke-PrometheusBatchEnding{
     $labels = @("SupportTeam=`"$SupportTeam`"")
     $metrics += @(
         @{Name="$($domain)_data_instance_last_complete_epoch_seconds_diff"; Description="The last time this job finished";type="gauge"; value="$($unixEpochTimer.ToString())";labels=$labels}
-        ,@{Name="$($domain)_instance_last_complete_slo_target_seconds"; Description="The target SLO threshold for how frequently we are planning on running this batch (in seconds).";type="gauge"; value="$($SLO_InstanceShouldRunEveryXSeconds.ToString())";labels=$labels}
+        ,@{Name="$($domain)_data_instance_last_complete_slo_target_seconds"; Description="The target SLO threshold for how frequently we are planning on running this batch (in seconds).";type="gauge"; value="$($SLO_InstanceShouldRunEveryXSeconds.ToString())";labels=$labels}
     )
 
     
-    Invoke-PrometheusMetricFile -metrics $metrics -textFileDir $textFileDir
+    Invoke-PrometheusMetricFile -metrics $metrics -textFileDir $textFileDir -scriptName $scriptName
     
 }
