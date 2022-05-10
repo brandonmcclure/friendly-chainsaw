@@ -34,6 +34,8 @@
     ,[switch]$async
     ,[int]$sleepTimer = 5
     ,[string]$workingDir
+    ,$stderrDelegate
+    ,$stdoutDelegate
   )
 
 
@@ -62,8 +64,18 @@
   $process = New-Object System.Diagnostics.Process
   $process.StartInfo = $pinfo
 
+  if ($async) {
+    # Register Object Events for stdin\stdout streams
+    if(![string]::IsNullOrEmpty($stdoutDelegate)){
+      Write-Output (Register-ObjectEvent -Action $stdoutDelegate -InputObject $Process -EventName OutputDataReceived -SourceIdentifier "$(Split-Path $EXEPath -Leaf) stdout |")
+    }
+    if(![string]::IsNullOrEmpty($stdoutDelegate)){
+      Write-Output (Register-ObjectEvent -Action $stderrDelegate -InputObject $Process -EventName ErrorDataReceived -SourceIdentifier "$(Split-Path $EXEPath -Leaf) stderr |")
+    }
+  
+  }
   Write-Log "Executing the following command" Debug
-  Write-Log "$($pinfo.FileName) $($pinfo.Arguments)" Debug
+  Write-Log " $($pinfo.Arguments)" Debug
   try {
     $process.Start() | Out-Null
   }
@@ -93,6 +105,8 @@
     $returnVal = $stdOutput
   }
   else {
+    $Process.BeginOutputReadLine()
+$Process.BeginErrorReadLine()
     $returnVal = $process
   }
 
