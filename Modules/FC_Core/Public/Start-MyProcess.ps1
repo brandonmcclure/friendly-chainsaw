@@ -86,8 +86,8 @@
     $stderr = $process.StandardError.ReadToEnd()
 
     $stdOutput = New-Object -TypeName PSObject
-    $stdOutput | Add-Member –MemberType NoteProperty –Name stderr –Value $stderr
-    $stdOutput | Add-Member –MemberType NoteProperty –Name stdout –Value $stdout
+    $stdOutput | Add-Member -MemberType NoteProperty -Name stderr -Value $stderr
+    $stdOutput | Add-Member -MemberType NoteProperty -Name stdout -Value $stdout
     $stdOutput | Add-Member -MemberType NoteProperty -Name exitCode -Value $process.ExitCode
 
     $returnVal = $stdOutput
