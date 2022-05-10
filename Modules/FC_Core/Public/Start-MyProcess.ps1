@@ -67,10 +67,10 @@
   if ($async) {
     # Register Object Events for stdin\stdout streams
     if(![string]::IsNullOrEmpty($stdoutDelegate)){
-      Write-Output (Register-ObjectEvent -Action $stdoutDelegate -InputObject $Process -EventName OutputDataReceived -SourceIdentifier "$(Split-Path $EXEPath -Leaf) stdout |")
+      Write-Output (Register-ObjectEvent -Action $stdoutDelegate -InputObject $Process -EventName OutputDataReceived -SourceIdentifier "$(Split-Path $EXEPath -Leaf)|stdout|$(New-Guid)|")
     }
     if(![string]::IsNullOrEmpty($stdoutDelegate)){
-      Write-Output (Register-ObjectEvent -Action $stderrDelegate -InputObject $Process -EventName ErrorDataReceived -SourceIdentifier "$(Split-Path $EXEPath -Leaf) stderr |")
+      Write-Output (Register-ObjectEvent -Action $stderrDelegate -InputObject $Process -EventName ErrorDataReceived -SourceIdentifier "$(Split-Path $EXEPath -Leaf)|stderr|$(New-Guid)|")
     }
   
   }
