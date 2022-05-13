@@ -21,7 +21,7 @@ if(-not (Test-Path $textFileDir)){
     New-Item -Path $textFileDir -ItemType Directory -Force -ErrorAction Stop #| Out-Null
 }
 
-
+$oldMetrics = Get-PrometheusMetricFile -path $textFilePath
 
 
 
@@ -32,7 +32,9 @@ foreach($metric in $metrics){
     "script_name=`"$scriptName`"",
     "job_type=`"$JobType`""
 )
-
+	if($metric.name -in $oldMetrics.name){
+		Write-Log "Metric already exists" debug
+	}
     $Name = $metric.Name
     $Description = $metric.Description
     $type = $metric.type
@@ -50,5 +52,6 @@ $Name $staticLabelsString $value
 " -replace "`r`n","`n"
 
 }
+
 Set-Content -Value "$metricData" -Path $textFilePath -NoNewline -Encoding UTF8
 }
