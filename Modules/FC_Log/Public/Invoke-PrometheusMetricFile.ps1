@@ -27,28 +27,34 @@ if(-not (Test-Path $textFileDir)){
 
 
 $metricData = ""
-foreach($metric in $metrics){
-    $staticLabels = @(
-    "script_name=`"$scriptName`"",
-    "job_type=`"$JobType`""
-)
 
-    $Name = $metric.Name
-    $Description = $metric.Description
-    $type = $metric.type
-    $value = $metric.value
+$metricNames = $metrics | Select-Object Name,description,type -Unique
+foreach($uniqueMetric in $metricNames){
+    $metricData += "# HELP $($uniqueMetric.name) $($uniqueMetric.description)
+# TYPE $($uniqueMetric.name) $($uniqueMetric.type)
+"
+    
+    foreach($metric in ($metrics | where {$uniqueMetric.Name -eq $_.Name})){
+        $staticLabels = @(
+        "script_name=`"$scriptName`"",
+        "job_type=`"$JobType`""
+    )
 
-    foreach ($label in $metric.labels){
-        $staticLabels += $label
-    }
+        $Name = $metric.Name
+        $Description = $metric.Description
+        $type = $metric.type
+        $value = $metric.value
 
-    $staticLabelsString = "{ $($staticLabels -join ',') }"
+        foreach ($label in $metric.labels){
+            $staticLabels += $label
+        }
 
-$metricData += "# HELP $name $Description
-# TYPE $Name $type
-$Name $staticLabelsString $value
+        $staticLabelsString = "{ $($staticLabels -join ',') }"
+
+    $metricData += "$Name $staticLabelsString $value
 " -replace "`r`n","`n"
 
+    }
 }
 Set-Content -Value "$metricData" -Path $textFilePath -NoNewline -Encoding UTF8
 }
