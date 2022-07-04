@@ -64,11 +64,21 @@
 
     $tabs = ''
     if ($script:logFormattingOptions['PrefixScriptName'] -eq 1) {
-      $scriptName = Get-PSCallStack | Select-Object -Skip 1 -First 1 | Where-Object { $_.FunctionName -eq '<ScriptBlock>' } | select -ExpandProperty Command
-      $x = 0;
+      $scriptName = ""
+      if([string]::IsnullOrEmpty($scriptName)){
+        $scriptName = Get-CallingScript
+    }
+    if([string]::IsnullOrEmpty($scriptName)){
+        Write-Error "Cannot set the scriptName" -ErrorAction Stop
+    }
+  }
+  $callingFunction = ""
+    if ($script:logFormattingOptions['PrefixCallingFunction'] -eq 1) {
+      $callingFunction = Get-CallingFunction
+
     }
     if ($script:logFormattingOptions['AutoTabCallsFromFunctions'] -eq 1) {
-      $callingFunction = (Get-PSCallStack | Select-Object FunctionName -Skip 1 -First 1).FunctionName | Where-Object { $_ -ne '<ScriptBlock>' }
+      $callingFunction = (Get-PSCallStack | Select-Object -Skip 1 -First 1 | Where-Object { $_.Command -ne '<ScriptBlock>' }).FunctionName 
       if (!([string]::IsNullOrEmpty($callingFunction))) {
         $tabLevel++
       }
@@ -225,7 +235,23 @@
 						throw "Could not set log target to: $fileParentDir. Path does not exist"
 					}
 				}
+        $i = 0;
+        $repeat = $true
+        while($repeat){
+          $i++;
+          if($i -gt 9){
+            $repeat = $false
+          }
+        try{
             $FormatMessage | Add-Content $file -ErrorAction Stop
+            $repeat = $false
+        }
+        catch{
+
+        }
+
+        
+      }
         }
       }
     }

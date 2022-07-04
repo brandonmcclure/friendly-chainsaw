@@ -17,12 +17,15 @@ getcommitid:
 	$(eval COMMITID = $(shell git log -1 --pretty=format:"%H"))
 
 build: 
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:2d312d66d8dbd7ecf57eac8d8391986092f90cfc -pathToSearch '/build' -logLevel Info -moduleAuthor Brandon McClure
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build' -logLevel Info -moduleAuthor Brandon McClure
 build_%:
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:2d312d66d8dbd7ecf57eac8d8391986092f90cfc -pathToSearch '/build' -logLevel Info -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build' -logLevel Info -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
 
 test: 
-	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:f9ca37b8dbb9665bdc525a2bddec0da0ad2720f9
+	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:main
+
+test_%: 
+	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:main pwsh -c Invoke-Pester -Path '/tests/Modules/**/$*.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
 
 docker_build: getcommitid
 	docker build --load -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(COMMITID) .

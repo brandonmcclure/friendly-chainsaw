@@ -3,6 +3,9 @@ Describe 'Write-Log to file' {
 	beforeall {
 		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
 		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+
+        Remove-Module FC_Core -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
 	}
 
     Context 'Single File' {
@@ -75,6 +78,9 @@ Describe "Write-Log to event log"{
 	beforeall {
 		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
 		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+
+        Remove-Module FC_Core -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
 	}
 
 	Context "Error on pqsh core"{
@@ -88,6 +94,9 @@ Describe 'Set-LogLevel' {
 	beforeall {
 		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
 		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+
+        Remove-Module FC_Core -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
 	}
 
     COntext 'Debug' {
@@ -152,6 +161,9 @@ Describe 'Set-LogTarget'{
 	beforeall {
 		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
 		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+
+        Remove-Module FC_Core -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
 	}
 	
 
@@ -169,4 +181,27 @@ Describe 'Set-LogTarget'{
 		}
 	}
 	
+}
+
+Describe 'LogFormatting' {
+    beforeall {
+		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+
+        Remove-Module FC_Core -Force -ErrorAction SilentlyContinue | Out-Null
+		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
+	}
+    Context "PrefixScriptName" {        
+        It "If can't Get-CallingScript, error" {
+            mock -moduleName fc_log Get-CallingScript {return $null}
+
+            Set-LogFormattingOptions -PrefixScriptName 1
+            {Write-Log "Testing" Info 6>&1} | should -throw "Cannot set the scriptName"
+        }
+        It "Basic scope should return [Pester]" {
+
+            Set-LogFormattingOptions -PrefixScriptName 1
+            Write-Log "Testing" Info 6>&1 | should -be "[Pester] Testing"
+        }
+    }
 }
