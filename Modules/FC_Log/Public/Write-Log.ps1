@@ -69,7 +69,7 @@
         $scriptName = Get-CallingScript
     }
     if([string]::IsnullOrEmpty($scriptName)){
-        #Write-Error "Cannot set the scriptName" -ErrorAction Stop
+        Write-Error "Cannot set the scriptName" -ErrorAction Stop
     }
   }
   $callingFunction = ""
