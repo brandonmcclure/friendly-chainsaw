@@ -1,0 +1,35 @@
+name: Package Modules
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main  # Trigger CI on main branch
+    paths: 
+      - 'Modules/**/*'
+      - '.github/workflows/package-module.yml'
+  pull_request:
+    branches:
+      - main  # Trigger gated pipeline on PR to main
+    paths:
+      - 'Modules/**/*'
+      - '.github/workflows/package-module.yml'
+
+jobs:
+  package_powershell:
+    runs-on: ubuntu-20.04
+    if: github.ref == 'refs/heads/main'
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Artifact prep - all
+        run: | 
+          sudo cp -r Modules/ bin/ 
+      - name: Archive production artifacts - all
+        uses: actions/upload-artifact@v3
+        with:
+          name: Powershell All
+          path: |
+            bin
