@@ -6,13 +6,13 @@ on:
     branches:
       - main  # Trigger CI on main branch
     paths: 
-      - 'Modules/*'
+      - 'Modules/**'
       - '.github/workflows/package-module.yml'
   pull_request:
     branches:
       - main  # Trigger gated pipeline on PR to main
     paths:
-      - 'Modules/*'
+      - 'Modules/**'
       - '.github/workflows/package-module.yml'
 
 jobs:
