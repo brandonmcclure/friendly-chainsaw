@@ -26,22 +26,22 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 1 
-      - uses: addnab/docker-run-action@v3
-        with:
-          username: bmcclure89
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          image: bmcclure89/fc_pwsh_build:main
-          options: -v ${{ github.workspace }}:/build
-          run: |
-            -pathToSearch '/build' -logLevel Info -moduleAuthor "Brandon McClure"
-      - uses: addnab/docker-run-action@v3
-        with:
-          username: bmcclure89
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-          image: bmcclure89/fc_pwsh_test:main
-          options: -v ${{ github.workspace }}:/test
-          run: |
-            Invoke-Pester -Path '/tests/Modules/**/fc_log.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
+      # - uses: addnab/docker-run-action@v3
+      #   with:
+      #     username: bmcclure89
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      #     image: bmcclure89/fc_pwsh_build:main
+      #     options: -v ${{ github.workspace }}:/build
+      #     run: |
+      #       -pathToSearch '/build' -logLevel Info -moduleAuthor "Brandon McClure"
+      # - uses: addnab/docker-run-action@v3
+      #   with:
+      #     username: bmcclure89
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      #     image: bmcclure89/fc_pwsh_test:main
+      #     options: -v ${{ github.workspace }}:/test
+      #     run: |
+      #       Invoke-Pester -Path '/tests/Modules/**/fc_log.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
       - name: Artifact prep - all
         run: | 
           sudo cp -r Modules/ bin/ 
