@@ -1,13 +1,18 @@
 function Invoke-PromTracker{
 param(
 	$trackingType,
-	[switch]$ShowMe
+	[switch]$ShowMe,
+	[switch]$OpenMe
 )
 $metrics = @()
 import-module FC_Log -force
 
 if(-not (Test-Path "$env:USERPROFILE\.friendly-chainsaw\tracker.json")){
 	New-Item "$env:USERPROFILE\.friendly-chainsaw\tracker.json"
+}
+if($OpenMe){
+	ii "$env:USERPROFILE\.friendly-chainsaw\tracker.json"
+	return
 }
 $mds = @()
 $t = Get-Content "$env:USERPROFILE\.friendly-chainsaw\tracker.json" -raw | ConvertFrom-Json -ErrorAction Stop
