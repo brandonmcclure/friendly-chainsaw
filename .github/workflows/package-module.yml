@@ -6,24 +6,42 @@ on:
     branches:
       - main  # Trigger CI on main branch
     paths: 
-      - 'Modules/**/*'
+      - 'Modules/**'
       - '.github/workflows/package-module.yml'
   pull_request:
     branches:
       - main  # Trigger gated pipeline on PR to main
     paths:
-      - 'Modules/**/*'
+      - 'Modules/**'
       - '.github/workflows/package-module.yml'
 
 jobs:
   package_powershell:
     runs-on: ubuntu-20.04
-    if: github.ref == 'refs/heads/main'
+    # if: github.ref == 'refs/heads/main'
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
       - uses: actions/checkout@v2
+        with:
+          fetch-depth: 1 
+      # - uses: addnab/docker-run-action@v3
+      #   with:
+      #     username: bmcclure89
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      #     image: bmcclure89/fc_pwsh_build:main
+      #     options: -v ${{ github.workspace }}:/build
+      #     run: |
+      #       -pathToSearch '/build' -logLevel Info -moduleAuthor "Brandon McClure"
+      # - uses: addnab/docker-run-action@v3
+      #   with:
+      #     username: bmcclure89
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
+      #     image: bmcclure89/fc_pwsh_test:main
+      #     options: -v ${{ github.workspace }}:/test
+      #     run: |
+      #       Invoke-Pester -Path '/tests/Modules/**/fc_log.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
       - name: Artifact prep - all
         run: | 
           sudo cp -r Modules/ bin/ 
