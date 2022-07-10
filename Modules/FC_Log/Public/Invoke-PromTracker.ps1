@@ -1,5 +1,17 @@
+Class PromTrackerItems : System.Management.Automation.IValidateSetValuesGenerator {
+    [string[]] GetValidValues() {
+
+		$mds = @()
+		$t = Get-Content "$env:USERPROFILE\.friendly-chainsaw\tracker.json" -raw | ConvertFrom-Json -ErrorAction Stop
+		foreach ($i in $t){
+			$mds += $i
+		}
+        return [string[]] ($mds | select -expandProperty name)
+    }
+}
 function Invoke-PromTracker{
 param(
+	[ValidateSet([PromTrackerItems])]
 	$trackingType,
 	[switch]$ShowMe,
 	[switch]$OpenMe
@@ -32,7 +44,7 @@ if([string]::IsNullOrEmpty($trackingType)){
 }
 
 if( [string]::IsNullOrEmpty($script:PrometheusMetricPath)){
-	Write-Log "You have not specified the Prometheus Metric Path with the Invoke-PrometheusConfig function"
+	Write-Log "You have not specified the Prometheus Metric Path with the Invoke-PrometheusConfig function" Error -ErrorAction Stop
 }
 
 $StaticLabels = @("SupportTeam=`"Unknown`"")
@@ -45,13 +57,16 @@ if($trackingType -notin ($mds | select -ExpandProperty name)){
 }
 
 
-foreach($md in $mds | where {$trackingType -in $_.name}){
+foreach($md in $mds){
 	$instanceLabel = $StaticLabels
 	$instanceLabel += @("tracker=`"$($md.name)`"")
-	$timestamp = Get-PrometheusEpochTimeStamp
-	$md.lastTrackedPromEpoch = $timestamp
+	if($trackingType -in $md.name){
+		
+		$timestamp = Get-PrometheusEpochTimeStamp
+		$md.lastTrackedPromEpoch = $timestamp
+	}
 	$metrics += @(
-		,@{Name="$($script:PrometheusDomain)_tracker"; Description="General tracker";type="gauge"; value=$timestamp;labels=$instanceLabel}
+		,@{Name="$($script:PrometheusDomain)_tracker"; Description="General tracker";type="gauge"; value=$md.lastTrackedPromEpoch;labels=$instanceLabel}
 		,@{Name="$($script:PrometheusDomain)_tracker_slo_seconds"; Description="Service level object for how frequently this general tracker should run";type="gauge"; value="$($md.slofrequency)";labels=$instanceLabel}
 	)
 }
