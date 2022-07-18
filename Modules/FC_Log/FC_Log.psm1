@@ -3,9 +3,6 @@ $script:LogSource = "FC Powershell Scripts"
 $script:logTargetFileDir = "logs\$($env:computername)\$(Get-Date -f yyyy-MM-dd)\"
  $script:logTargetFileNames = @()
 $script:logLevel = 10
-$script:PrometheusBasicAuthUser = ""
-$script:PrometheusBasicAuthPassword = ""
-$script:PrometheusPushURL
 $script:logFormattingOptions = @{"PrefixCallingFunction" = 0; "AutoTabCallsFromFunctions" = 0; "PrefixTimestamp" = 0;"PrefixScriptName" = 0} 
 $script:logTargets = @{"Console" = 1; "WindowsEventLog" = 0; "File" =0; "Speech" = 0}
 Write-Verbose "Importing Functions" 

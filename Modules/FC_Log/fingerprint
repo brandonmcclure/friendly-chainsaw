@@ -3,9 +3,16 @@ Invoke-PrometheusBatchEnding:SLO_InstanceShouldRunEveryXSeconds
 Invoke-PrometheusBatchEnding:SupportTeam
 Invoke-PrometheusBatchEnding:domain
 Invoke-PrometheusBatchEnding:metrics
+Invoke-PrometheusBatchEnding:scriptName
+Invoke-PrometheusConfig:promDomain
+Invoke-PrometheusConfig:promMetricPath
 Invoke-PrometheusMetricFile:metrics
 Invoke-PrometheusMetricFile:textFileDir
+Invoke-PrometheusMetricFile:scriptName
 Invoke-PrometheusPushSetup:pushGatewayURL
+Invoke-PromTracker:trackingType
+Invoke-PromTracker:ShowMe
+Invoke-PromTracker:OpenMe
 Set-LogFormattingOptions:PrefixCallingFunction
 Set-LogFormattingOptions:AutoTabCallsFromFunctions
 Set-LogFormattingOptions:PrefixTimestamp
