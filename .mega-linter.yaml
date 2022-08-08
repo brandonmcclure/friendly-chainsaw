@@ -8,6 +8,5 @@ ENABLE_LINTERS: # If you use ENABLE_LINTERS variable, all other linters will be 
   - POWERSHELL_POWERSHELL                  
 PRINT_ALL_FILES: false
 FILTER_REGEX_EXCLUDE: "(mountPoints/|backup/|backups/)"
-POWERSHELL_POWERSHELL_CLI_LINT_MODE: list_of_files
 SHOW_ELAPSED_TIME: true
 GITHUB_STATUS_REPORTER: true
