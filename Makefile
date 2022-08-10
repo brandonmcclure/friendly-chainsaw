@@ -12,6 +12,7 @@ TAG := :latest
 PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
 
 all: build docker_build
+.PHONY: all clean test
 
 getcommitid: 
 	$(eval COMMITID = $(shell git log -1 --pretty=format:"%H"))
