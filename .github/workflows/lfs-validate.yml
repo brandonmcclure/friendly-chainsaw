@@ -17,7 +17,7 @@ jobs:
     name: LFS Validation
     runs-on: ubuntu-latest
     steps:
-      - name
+      - name: lfs validate
         uses: actionsdesk/lfs-warning@v3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # Optional
