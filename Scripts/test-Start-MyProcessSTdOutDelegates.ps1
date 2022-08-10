@@ -2,10 +2,10 @@ Import-Module FC_Core -Force;
 $VerbosePreference = "Ignore"
 try{
     $stderrDel = {
-        Write-Host "$($Event.SourceIdentifier) $($Event.SourceEventArgs.Data)"
+        Write-Log "$($Event.SourceIdentifier) $($Event.SourceEventArgs.Data)"
     }
     $stdoutDel = {
-        Write-Host "$($Event.SourceIdentifier) $($Event.SourceEventArgs.Data)"
+        Write-Log "$($Event.SourceIdentifier) $($Event.SourceEventArgs.Data)"
     }
  $p = Start-MyProcess -EXEPath 'C:\Users\bmcclure\AppData\Local\prometheus\prometheus.exe' -options "--config.file=`"C:\Users\bmcclure\AppData\Local\prometheus\localwindows_exporter.prometheus.yml`"" -logLevel debug -async -stderrdelegate $stderrDel -stdOutdelegate $stdoutDel
 
@@ -31,5 +31,5 @@ finally{
         Write-Verbose "stopping process: $($i.id)"
         Stop-Process -Id $($i.id) -Verbose
     }
-    Write-Host "All Done"
+    Write-Log "All Done"
 }
