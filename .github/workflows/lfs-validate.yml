@@ -21,5 +21,4 @@ jobs:
         uses: actionsdesk/lfs-warning@v3.1
         with:
           token: ${{ secrets.GITHUB_TOKEN }} # Optional
-          with:
-            filesizelimit: 10MB
+          filesizelimit: 10MB
