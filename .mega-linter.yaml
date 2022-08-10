@@ -5,7 +5,8 @@ APPLY_FIXES: all # When active, APPLY_FIXES must also be defined as environment 
 ENABLE: # If you use ENABLE variable, all other languages/formats/tooling formats will be disabled by default
   - POWERSHELL
 ENABLE_LINTERS: # If you use ENABLE_LINTERS variable, all other linters will be disabled by default
-  - POWERSHELL_POWERSHELL                  
+  - POWERSHELL_POWERSHELL  
+  - MAKEFILE_CHECKMAKE                 
 PRINT_ALL_FILES: false
 FILTER_REGEX_EXCLUDE: "(mountPoints/|backup/|backups/)"
 SHOW_ELAPSED_TIME: true
