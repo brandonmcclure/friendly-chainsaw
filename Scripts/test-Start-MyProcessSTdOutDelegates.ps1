@@ -23,11 +23,11 @@ catch{
 }
 finally{
     Write-Log "Stopping Processes"
-    foreach ($i in ($p | Select Name,@{name='mytype'; Expression={$_.pstypenames[0]}} | where {$_.mytype -like 'System.Management.Automation.PSEventJob*'})){
+    foreach ($i in ($p | Select-Object Name,@{name='mytype'; Expression={$_.pstypenames[0]}} | where-Object {$_.mytype -like 'System.Management.Automation.PSEventJob*'})){
         Write-Verbose "Unregistering event: $($i.Name)"
         Unregister-Event -SourceIdentifier $i.Name
     }
-    foreach ($i in ($p | Select id,@{name='mytype'; Expression={$_.pstypenames[0]}} | where {$_.mytype -like 'System.Diagnostics.Proces*'})){
+    foreach ($i in ($p | Select-Object id,@{name='mytype'; Expression={$_.pstypenames[0]}} | where-Object {$_.mytype -like 'System.Diagnostics.Proces*'})){
         Write-Verbose "stopping process: $($i.id)"
         Stop-Process -Id $($i.id) -Verbose
     }
