@@ -35,8 +35,12 @@ function Invoke-AlertMessage {
 		Write-Log "You must specify a alertMessage" Error -ErrorAction Stop
 	}
 	$alarmStageActive = $true
+	$alarmStopwatch = [System.Diagnostics.Stopwatch]::StartNew()
 	while ($alarmStageActive) {
-		Write-Log $alertMessage
+		Write-Log "$alertMessage"
+		Set-logTargets -Speech 0
+		Write-Log "($($alarmStopwatch.Elapsed.Hours):$($alarmStopwatch.Elapsed.Minutes):$($alarmStopwatch.Elapsed.Seconds)) elapsed since timer"
+		Set-logTargets -Speech 1
 		if ([console]::KeyAvailable) {
 			
 			$x = [System.Console]::ReadKey() 
