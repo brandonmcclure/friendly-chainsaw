@@ -39,6 +39,7 @@ jobs:
           username: bmcclure89
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           image: bmcclure89/fc_pwsh_test:main
+          shell: pwsh
           options: -v ${{ github.workspace }}:/test
           run: |
             Invoke-Pester -Path '/tests/Modules/**/fc_log.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
