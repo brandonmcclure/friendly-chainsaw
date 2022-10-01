@@ -1,0 +1,17 @@
+{
+	"build":{
+		"dockerfile":"../Dockerfile",
+	"context":"..",
+	"target": "devcontainer"
+	},
+	"postStartCommand": "pwsh",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"ms-vscode.powershell",
+				"nhoizey.gremlins",
+				"exiasr.hadolint"
+			]
+		}
+	}
+}
