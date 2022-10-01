@@ -77,7 +77,7 @@ jobs:
       - id: lowercaseImageName
         uses: ASzc/change-string-case-action@v2
         with:
-          string: ${{ env.IMAGE_NAME }}
+          string: bmcclure89/${{ env.IMAGE_NAME }}
       - name: Save Docker Image archive to local filesystem
         run: "docker save --output fc_pwsh.tar ${{ steps.lowercaseImageName.outputs.lowercase }}"
       - name: Upload application's Docker Image as pipeline artifact
