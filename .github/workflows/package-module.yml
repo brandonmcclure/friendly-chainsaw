@@ -33,15 +33,16 @@ jobs:
       #     image: bmcclure89/fc_pwsh_build:main
       #     options: -v ${{ github.workspace }}:/build
       #     run: |
-      #       -pathToSearch '/build' -logLevel Info -moduleAuthor "Brandon McClure"
-      # - uses: addnab/docker-run-action@v3
-      #   with:
-      #     username: bmcclure89
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
-      #     image: bmcclure89/fc_pwsh_test:main
-      #     options: -v ${{ github.workspace }}:/test
-      #     run: |
-      #       Invoke-Pester -Path '/tests/Modules/**/fc_log.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
+      #       -pathToSearch '/build'
+      - uses: addnab/docker-run-action@v3
+        with:
+          username: bmcclure89
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          image: bmcclure89/fc_pwsh_test:main
+          shell: pwsh
+          options: -v ${{ github.workspace }}:/tests
+          run: |
+            Invoke-Pester -ErrorAction Stop -ci;
       - name: Artifact prep - all
         run: | 
           sudo cp -r Modules/ bin/ 
