@@ -40,8 +40,9 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
           image: bmcclure89/fc_pwsh_test:main
           shell: pwsh
+          options: -v ${{ github.workspace }}:/tests
           run: |
-            Get-Location
+            Set-Location /tests
             Get-ChildItem
             Invoke-Pester -OutputFile PesterResults.xml -OutputFormat NUnitXml;
       - name: Artifact prep - all
