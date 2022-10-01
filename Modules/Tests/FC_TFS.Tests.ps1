@@ -1,10 +1,10 @@
 ﻿
 describe 'Get-TFSRestURL_Team' {
 	BeforeEach{
-		Remove-Module FC_TFS -Force -ErrorAction Ignore | Out-Null
-		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_TFS" -Force
-
-		Import-Module FC_Log -Force
+		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
+		. "$functionPath"
+		LoadLocalModules
+		
 	}
 	Context 'Parameter Validation' {
 		it 'No team results in error' {
