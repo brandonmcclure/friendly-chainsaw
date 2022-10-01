@@ -97,9 +97,10 @@ Describe 'Backup Functionality' {
 		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
 		. "$functionPath"
 		LoadLocalModules
-		
+
 		Set-logTargets -WindowsEventLog 0 -Console 0
-		$testDir = "TestDrive:\src"
+		$srcPath = Join-Path "TestDrive:" "src"
+		$destPath = Join-Path "TestDrive:" "dest"
 		$numOfDirs = 5
 		$numOfFiles = 10
 		$j = $null
@@ -119,11 +120,11 @@ Describe 'Backup Functionality' {
 			}
 		}
 		foreach ($d in 1..$numOfDirs) {
-			$dirPath = "$testDir\$d"
+			$dirPath = "$srcPath\$d"
 			mkfile -dirPath $dirPath
 
 			foreach ($subDir in 1..$numOfDirs) {
-				$dirPath = "$testDir\$d\$subDir"
+				$dirPath = "$srcPath\$d\$subDir"
 				mkfile -dirPath $dirPath
 		
 			}
@@ -137,25 +138,27 @@ Describe 'Backup Functionality' {
 	# 	}
 	# }
 	Context 'New-BackupJob' {
-		It 'Got my data setup right' {
-			$files = Get-ChildITem -recurse -path TestDrive:\src -File
-			$ShouldCount = (($numOfDirs * $numOfDirs) * $numOfFiles ) + ($numOfDirs * $numOfFiles)
-			
-			($files | Measure-Object | Select -ExpandProperty Count ) | Should -Be $ShouldCount
+		BeforeEach{
+			mock Invoke-PrometheusMetricFile -ModuleName FC_Log
 		}
-		It 'Integration test' {
-			#Get-BackupJob -Name TestJob -ErrorAction SilentlyContinue | Remove-BackupJob -ErrorAction SilentlyContinue | Out-Null
-			New-BackupJob -Name TestJob -SourcePath TestDrive:\src -DestinationPath TestDrive:\dest -BackupProvider pwsh
-
-			Get-BackupJob TestJob | invoke-BackupJob 
-
-			$files = Get-ChildITem -recurse -path TestDrive:\dest -File
-			$ShouldCount = (($numOfDirs * $numOfDirs) * $numOfFiles ) + ($numOfDirs * $numOfFiles)+ 2
+		# It 'Got my data setup right' {
+		# 	$files = Get-ChildITem -recurse -path $srcPath -File
+		# 	$ShouldCount = (($numOfDirs * $numOfDirs) * $numOfFiles ) + ($numOfDirs * $numOfFiles)
 			
-			($files | Measure-Object | Select -ExpandProperty Count ) | Should -Be $ShouldCount
+		# 	($files | Measure-Object | Select -ExpandProperty Count ) | Should -Be $ShouldCount
+		# }
+		# It 'Integration test' {
+		# 	#Get-BackupJob -Name TestJob -ErrorAction SilentlyContinue | Remove-BackupJob -ErrorAction SilentlyContinue | Out-Null
+		# 	New-BackupJob -Name TestJob -SourcePath $srcPath -DestinationPath $destPath -BackupProvider pwsh
 
-			$x = 0;
-		}
+		# 	Get-BackupJob TestJob | invoke-BackupJob 
+
+		# 	Get-ChildITem -recurse -path $destPath
+		# 	$files = Get-ChildITem -recurse -path $destPath -File
+		# 	$ShouldCount = (($numOfDirs * $numOfDirs) * $numOfFiles ) + ($numOfDirs * $numOfFiles)+ 2
+			
+		# 	($files | Measure-Object | Select-Object -ExpandProperty Count ) | Should -Be $ShouldCount
+		# }
 	}
 
 }
