@@ -44,7 +44,7 @@ jobs:
           run: |
             Set-Location /tests
             Get-ChildItem
-            Invoke-Pester -OutputFile PesterResults.xml -OutputFormat NUnitXml;
+            Invoke-Pester -OutputFile PesterResults.xml -OutputFormat NUnitXml -ErrorAction Stop;
       - name: Artifact prep - all
         run: | 
           sudo cp -r Modules/ bin/ 
