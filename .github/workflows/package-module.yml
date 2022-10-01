@@ -42,8 +42,6 @@ jobs:
           shell: pwsh
           options: -v ${{ github.workspace }}:/tests
           run: |
-            Set-Location /tests
-            Get-ChildItem
             Invoke-Pester -ErrorAction Stop -ci;
       - name: Artifact prep - all
         run: | 
