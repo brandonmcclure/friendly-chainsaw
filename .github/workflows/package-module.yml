@@ -33,7 +33,7 @@ jobs:
           image: bmcclure89/fc_pwsh_build:main
           options: -v ${{ github.workspace }}:/build
           run: |
-            -pathToSearch '/build' -logLevel Info -moduleAuthor "Brandon McClure"
+            -pathToSearch '/build'
       - uses: addnab/docker-run-action@v3
         with:
           username: bmcclure89
