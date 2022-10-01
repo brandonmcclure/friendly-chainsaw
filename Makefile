@@ -20,9 +20,9 @@ getbranchname:
 	$(eval BRANCH_NAME = $(shell (git branch --show-current ) -replace '/','.'))
 
 build: 
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build' -logLevel Info -moduleAuthor Brandon McClure
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build'
 build_%:
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build' -logLevel Info -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
+	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build' -moduleName @('$*.psm1')
 
 test_image_pull:
 	docker pull bmcclure89/fc_pwsh_test:main
@@ -32,6 +32,9 @@ test: test_image_pull
 
 test_%: test_image_pull
 	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:main pwsh -c Invoke-Pester -Path '/tests/Modules/**/$*.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
+
+publish_%:
+	./Modules/Publish-FCModules.ps1 -moduleName $*
 
 docker_build: getcommitid getbranchname
 	docker build --load -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):latest -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(BRANCH_NAME) -t $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME):$(BRANCH_NAME).$(COMMITID) .
@@ -54,7 +57,7 @@ docker_publish:
 	docker login; docker push $(REGISTRY_NAME)$(REPOSITORY_NAME)$(IMAGE_NAME)$(TAG); docker logout
 
 clean:
-	Get-ChildItem -Recurse -PAth . -File | where {$$_.Extension -eq '.nuspec'} |Remove-Item -Force
+	Get-ChildItem -Recurse -PAth . -File | where {$$_.Extension -eq '.nuspec'} | Remove-Item -Force
 
 new_module_%:
 	@./New-MyModule.ps1 -ModuleName $*
