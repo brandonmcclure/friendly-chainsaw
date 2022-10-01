@@ -5,7 +5,7 @@ I am attempting to convert these to pwsh core compatible. Most are already, alth
 
 All the modules and scripts use my logging framework and a few other core functions from FC_Log and FC_Core. You are welcome to use the code/modules themselves or copy paste bits that suite you. 
 
-[![Build Status](https://dev.azure.com/brandonmcclure89/friendly-chainsaw/_apis/build/status/brandonmcclure.friendly-chainsaw?branchName=master)](https://dev.azure.com/brandonmcclure89/friendly-chainsaw/_build/latest?definitionId=10&branchName=master)
+[![Docker Stars](https://img.shields.io/docker/stars/bmcclure89/fc_powershell.svg?style=flat-square)](https://hub.docker.com/r/bmcclure89/fc_powershell/) [![Docker Pulls](https://img.shields.io/docker/pulls/bmcclure89/fc_powershell.svg?style=flat-square)](https://hub.docker.com/r/bmcclure89/fc_powershell/)
 
 # Getting Started
 ## Slower/Better/Less up to date
