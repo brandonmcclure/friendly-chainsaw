@@ -1,5 +1,5 @@
 function Deploy-ChocolateyPackagesToRepo{
-	[CmdletBinding(SupportsShouldProcess=$true)] 
+	[CmdletBinding(SupportsShouldProcess=$true)]
 	param([Parameter(position=0)][ValidateSet("Debug","Verbose","Info","Warning","Error", "Disable")][string] $logLevel = "Verbose",
 	$source = "MCD_Chocolatey"
 	,$directory = 'C:\Users\brandon\Downloads\n')
@@ -22,8 +22,6 @@ function Deploy-ChocolateyPackagesToRepo{
 					Write-Log "nuget stderr: $($result.stderr)" Warning
 				}
 				Write-Log "nuget stdout: $($result.stdout)" Verbose
-				
-				
 			}
 		}
 		catch{
