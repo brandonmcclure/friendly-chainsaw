@@ -11,7 +11,7 @@ IMAGE_NAME := fc_powershell
 TAG := :latest
 PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
 
-.PHONY: all clean test run lint
+.PHONY: all clean test run lint test_image_pull
 all: build docker_build
 
 getcommitid: 
@@ -24,10 +24,13 @@ build:
 build_%:
 	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build' -logLevel Info -moduleName @('$*.psm1') -moduleAuthor "Brandon McClure"
 
-test: 
+test_image_pull:
+	docker pull bmcclure89/fc_pwsh_test:main
+	
+test: test_image_pull
 	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:main
 
-test_%: 
+test_%: test_image_pull
 	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:main pwsh -c Invoke-Pester -Path '/tests/Modules/**/$*.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
 
 docker_build: getcommitid getbranchname
