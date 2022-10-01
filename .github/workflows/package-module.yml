@@ -42,6 +42,7 @@ jobs:
           shell: pwsh
           options: -v ${{ github.workspace }}:/test
           run: |
+            ls -l .
             Invoke-Pester -Path '/tests/Modules/**/fc_log.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
       - name: Artifact prep - all
         run: | 
