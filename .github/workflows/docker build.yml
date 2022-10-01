@@ -20,7 +20,7 @@ on:
       - 'Modules/*'
 
 env:
-  IMAGE_NAME: vsce
+  IMAGE_NAME: fc_powershell
 
 jobs:
   build-and-push-image:
