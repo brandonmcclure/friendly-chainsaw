@@ -41,7 +41,8 @@ jobs:
           image: bmcclure89/fc_pwsh_test:main
           shell: pwsh
           run: |
-            ls .
+            Get-Location
+            Get-ChildItem
             Invoke-Pester -OutputFile PesterResults.xml -OutputFormat NUnitXml;
       - name: Artifact prep - all
         run: | 
