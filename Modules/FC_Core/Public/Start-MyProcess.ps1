@@ -43,6 +43,13 @@ param(
     $logLevel = "Warning"
   }
   Set-LogLevel $logLevel
+  if([string]::IsNullOrEmpty($EXEPath)){
+    Write-Log "EXEPath not set" Error -ErrorAction Stop
+  }
+  if(-not (Test-Path $EXEPath)){
+    Write-Log "EXEPath not a valid path" Error -ErrorAction Stop
+  }
+  
   $EXE = $EXEPath.Substring($EXEPath.LastIndexOf("\") + 1,$EXEPath.Length - $EXEPath.LastIndexOf("\") - 1)
   $pinfo = New-Object System.Diagnostics.ProcessStartInfo
   if($IsWindows){
