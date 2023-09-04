@@ -16,10 +16,10 @@ $return = Start-MyProcess -EXEPath  $EXEPath -options $options
 
 if ($logLevel -eq "Debug"){
 	#Only show the stdout stream if we are in debugging logLevel
-	$return.stdout
+	$return.stddout
 }
-if ($return.sterr -ne $null){
-	Write-Log "$($return.sterr)" Warning
+if ($return.stderr -ne $null){
+	Write-Log "$($return.stderr)" Warning
 	Write-Log "There was an error of some type. See warning above for more info" Error
 }
 .OUTPUTS
@@ -36,8 +36,7 @@ param(
 ,$stderrDelegate
 ,$stdoutDelegate
 )
-if($PSCmdlet.ShouldProcess()){
-}
+
   Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
   $currentLogLevel = Get-LogLevel
   if ([string]::IsNullOrEmpty($logLevel)) {
@@ -46,7 +45,12 @@ if($PSCmdlet.ShouldProcess()){
   Set-LogLevel $logLevel
   $EXE = $EXEPath.Substring($EXEPath.LastIndexOf("\") + 1,$EXEPath.Length - $EXEPath.LastIndexOf("\") - 1)
   $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-  $pinfo.FileName = "`"$EXEPath`""
+  if($IsWindows){
+    $pinfo.FileName = "`"$EXEPath`""
+  }
+  else{
+    $pinfo.FileName = "$EXEPath"
+  }
   $pinfo.Arguments = "$options"
   $pinfo.UseShellExecute = $false
   $pinfo.CreateNoWindow = $true
