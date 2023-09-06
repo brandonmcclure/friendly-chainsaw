@@ -52,10 +52,75 @@ jobs:
           name: Powershell All
           path: |
             bin
-      - name: Publish PowerShell Module
+      - name: Publish FC_Core
         # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
         uses: natescherer/publish-powershell-action@v1
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_Core
+      - name: Publish FC_Core
+        # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Data
+      - name: Publish FC_Core
+        # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Docker
+      - name: Publish FC_Core
+        # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Git
+      - name: Publish FC_Core
+        # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Log
+      - name: Publish FC_Core
+        # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_MicrosoftGraph
+      - name: Publish FC_Core
+        # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Misc
+      - name: Publish FC_Core
+        # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_SysAdmin
+      - name: Publish FC_Core
+        # if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_TFS
