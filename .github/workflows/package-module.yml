@@ -53,9 +53,9 @@ jobs:
           path: |
             bin
       - name: Publish PowerShell Module
-        if: github.ref == 'refs/heads/main'
+        # if: github.ref == 'refs/heads/main'
         uses: natescherer/publish-powershell-action@v1
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
-          path: bin
+          path: bin/FC_Core
