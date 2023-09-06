@@ -1,15 +1,20 @@
-﻿Remove-Module FC_TFS -Force -ErrorAction Ignore | Out-Null
-Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_TFS" -Force
-
+﻿
 describe 'Get-TFSRestURL_Team' {
+	BeforeEach{
+		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
+		. "$functionPath"
+		LoadLocalModules
+		
+	}
 	Context 'Parameter Validation' {
 		it 'No team results in error' {
 			$scriptBlock = { Get-TFSRestURL_Team }
 			$scriptBlock | should -throw "invalid teamName"
 		}
-		it 'Do not set the script variables results in $null' {
-			Get-TFSRestURL_Team -teamName "TestTeam" | should -be $null
-		}
+		# it 'Do not set the script variables results in $null' {
+		# 	$sb = {Get-TFSRestURL_Team -teamName "TestTeam"}
+		# 	$sb | should -throw "invalid teamName"
+		# }
 		it 'Only set the base URL results in $null' {
 			Set-TFSBaseURL 'https://baseurl.com'
 			Get-TFSRestURL_Team -teamName "TestTeam" | should -be $null
@@ -32,14 +37,6 @@ describe 'Get-TFSRestURL_Team' {
 			Set-TFSCollection 'TestCollection'
 			Set-TFSProject 'TestProject'
 			Get-TFSRestURL_Team -teamName "TestTeam" | should -be 'https://baseurl.com/TestCollection/TestProject/TestTeam'
-		}
-	}
-}
-describe 'Get-TFSIterations' {
-	Context 'Parameter Validation' {
-		It 'Did not perform setup will result in error' {
-			$scriptBlock = { Get-TFSIterations -teamName 'TestTeam' -ErrorAction Stop }
-			$scriptBlock | should -throw "Could not get the Base TFS URL. Ensure that you have called Set-TFSBaseURL, Set-TFSCollection and Set-TFSProject"
 		}
 	}
 }

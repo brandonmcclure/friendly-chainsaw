@@ -4,7 +4,6 @@ function New-PrometheusMetricCounter{
         $MetricDescription = "Change Me",
         $domain = "friendlychainsaw",
         $subdomain = "default",
-        $jobType = "batch",
         $metricName
         )
 
@@ -26,5 +25,5 @@ function New-PrometheusMetricCounter{
 		$labels.Add("FileName",$jobName)
 		$config.StaticLabels = $labels
 
-    Write-Output ([Prometheus.Metrics]::CreateCounter("$($domain)_$($subdomain)_$($jobType)_$metricName",$MetricDescription,$config))
+    Write-Output ([Prometheus.Metrics]::CreateCounter("$($domain)_$($subdomain)_$metricName",$MetricDescription,$config))
 }Export-ModuleMember -Function New-PrometheusMetricCounter

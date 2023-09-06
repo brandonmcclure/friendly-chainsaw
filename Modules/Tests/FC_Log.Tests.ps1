@@ -1,8 +1,9 @@
 ﻿
 Describe 'Write-Log to file' {
 	beforeall {
-		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
-		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
+		. "$functionPath"
+		LoadLocalModules
 	}
 
     Context 'Single File' {
@@ -73,8 +74,9 @@ Describe 'Write-Log to file' {
 
 Describe "Write-Log to event log"{
 	beforeall {
-		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
-		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
+		. "$functionPath"
+		LoadLocalModules
 	}
 
 	Context "Error on pqsh core"{
@@ -86,8 +88,9 @@ Describe "Write-Log to event log"{
 }
 Describe 'Set-LogLevel' {
 	beforeall {
-		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
-		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
+		. "$functionPath"
+		LoadLocalModules
 	}
 
     COntext 'Debug' {
@@ -150,8 +153,9 @@ Describe 'Set-LogLevel' {
 
 Describe 'Set-LogTarget'{
 	beforeall {
-		Remove-Module FC_Log -Force -ErrorAction SilentlyContinue | Out-Null
-		Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Log" -Force
+		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
+		. "$functionPath"
+		LoadLocalModules
 	}
 	
 
@@ -169,4 +173,25 @@ Describe 'Set-LogTarget'{
 		}
 	}
 	
+}
+
+Describe 'LogFormatting' {
+    beforeall {
+		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
+		. "$functionPath"
+		LoadLocalModules
+	}
+    Context "PrefixScriptName" {        
+        It "If can't Get-CallingScript, error" {
+            mock -moduleName fc_log Get-CallingScript {return $null}
+
+            Set-LogFormattingOptions -PrefixScriptName 1
+            {Write-Log "Testing" Info 6>&1} | should -throw "Cannot set the scriptName"
+        }
+        It "Basic scope should return [Pester]" {
+
+            Set-LogFormattingOptions -PrefixScriptName 1
+            Write-Log "Testing" Info 6>&1 | should -be "[Pester] Testing"
+        }
+    }
 }
