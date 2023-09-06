@@ -1,5 +1,5 @@
 ﻿function Start-MyProcess {
-<#
+  <#
 .Synopsis
 Wraps up a call to execute a program using System.Diagnostics.Process. This allows us to redirect the stdout and stderr streams for better error handling. Specifcially this is used for quite a few MS utilities in our TFS build/deploy, as the utilities will usually throw warnings instead of terminating errors and we need to parse stdout to determine if there was an actuall error.
 .DESCRIPTION
@@ -16,37 +16,48 @@ $return = Start-MyProcess -EXEPath  $EXEPath -options $options
 
 if ($logLevel -eq "Debug"){
 	#Only show the stdout stream if we are in debugging logLevel
-	$return.stdout
+	$return.stddout
 }
-if ($return.sterr -ne $null){
-	Write-Log "$($return.sterr)" Warning
+if (-not [string]::ISnullOrEmpty($return.stderr)){
+	Write-Log "$($return.stderr)" Warning
 	Write-Log "There was an error of some type. See warning above for more info" Error
 }
 .OUTPUTS
 A object with 3 properties, stdout, stderr, and ExitCode. stdout and stderr are text streams that conatian output from the process. Generally if (stderr -eq $null) then there was some sort of error. You can also parse stdout to find errors, or check the ExitCode for non-success
 #>
-[CmdletBinding(SupportsShouldProcess=$true)]
-param(
-[Parameter(Position = 0)] [string]$EXEPath
-,[Parameter(Position = 1)][string]$options
-,[ValidateSet("Debug","Info","Warning","Error","Disable")] [string]$logLevel = "Warning"
-,[switch]$async
-,[int]$sleepTimer = 5
-,[string]$workingDir
-,$stderrDelegate
-,$stdoutDelegate
-)
-if($PSCmdlet.ShouldProcess()){
-}
+  [CmdletBinding(SupportsShouldProcess = $true)]
+  param(
+    [Parameter(Position = 0)] [string]$EXEPath
+    , [Parameter(Position = 1)][string]$options
+    , [ValidateSet("Debug", "Info", "Warning", "Error", "Disable")] [string]$logLevel = "Warning"
+    , [switch]$async
+    , [int]$sleepTimer = 5
+    , [string]$workingDir
+    , $stderrDelegate
+    , $stdoutDelegate
+  )
+
   Get-CallerPreference -Cmdlet $PSCmdlet -SessionState $ExecutionContext.SessionState
   $currentLogLevel = Get-LogLevel
   if ([string]::IsNullOrEmpty($logLevel)) {
     $logLevel = "Warning"
   }
   Set-LogLevel $logLevel
+  if([string]::IsNullOrEmpty($EXEPath)){
+    Write-Log "EXEPath not set" Error -ErrorAction Stop
+  }
+  if(-not (Test-Path $EXEPath)){
+    Write-Log "EXEPath not a valid path" Error -ErrorAction Stop
+  }
+  
   $EXE = $EXEPath.Substring($EXEPath.LastIndexOf("\") + 1,$EXEPath.Length - $EXEPath.LastIndexOf("\") - 1)
   $pinfo = New-Object System.Diagnostics.ProcessStartInfo
-  $pinfo.FileName = "`"$EXEPath`""
+  if ($IsWindows) {
+    $pinfo.FileName = "`"$EXEPath`""
+  }
+  else {
+    $pinfo.FileName = "$EXEPath"
+  }
   $pinfo.Arguments = "$options"
   $pinfo.UseShellExecute = $false
   $pinfo.CreateNoWindow = $true
@@ -65,10 +76,10 @@ if($PSCmdlet.ShouldProcess()){
 
   if ($async) {
     # Register Object Events for stdin\stdout streams
-    if(![string]::IsNullOrEmpty($stdoutDelegate)){
+    if (![string]::IsNullOrEmpty($stdoutDelegate)) {
       Write-Output (Register-ObjectEvent -Action $stdoutDelegate -InputObject $Process -EventName OutputDataReceived -SourceIdentifier "$(Split-Path $EXEPath -Leaf)|stdout|$(New-Guid)|")
     }
-    if(![string]::IsNullOrEmpty($stdoutDelegate)){
+    if (![string]::IsNullOrEmpty($stdoutDelegate)) {
       Write-Output (Register-ObjectEvent -Action $stderrDelegate -InputObject $Process -EventName ErrorDataReceived -SourceIdentifier "$(Split-Path $EXEPath -Leaf)|stderr|$(New-Guid)|")
     }
 
@@ -105,7 +116,7 @@ if($PSCmdlet.ShouldProcess()){
   }
   else {
     $Process.BeginOutputReadLine()
-$Process.BeginErrorReadLine()
+    $Process.BeginErrorReadLine()
     $returnVal = $process
   }
 

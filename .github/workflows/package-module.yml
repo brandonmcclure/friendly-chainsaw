@@ -23,7 +23,7 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 1 
       # - uses: addnab/docker-run-action@v3
@@ -33,15 +33,16 @@ jobs:
       #     image: bmcclure89/fc_pwsh_build:main
       #     options: -v ${{ github.workspace }}:/build
       #     run: |
-      #       -pathToSearch '/build' -logLevel Info -moduleAuthor "Brandon McClure"
-      # - uses: addnab/docker-run-action@v3
-      #   with:
-      #     username: bmcclure89
-      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
-      #     image: bmcclure89/fc_pwsh_test:main
-      #     options: -v ${{ github.workspace }}:/test
-      #     run: |
-      #       Invoke-Pester -Path '/tests/Modules/**/fc_log.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
+      #       -pathToSearch '/build'
+      - uses: addnab/docker-run-action@v3
+        with:
+          username: bmcclure89
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          image: bmcclure89/fc_pwsh_test:main
+          shell: pwsh
+          options: -v ${{ github.workspace }}:/tests
+          run: |
+            Invoke-Pester -ErrorAction Stop -ci;
       - name: Artifact prep - all
         run: | 
           sudo cp -r Modules/ bin/ 
@@ -51,3 +52,75 @@ jobs:
           name: Powershell All
           path: |
             bin
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Core
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Data
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Docker
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Git
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Log
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_MicrosoftGraph
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_Misc
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_SysAdmin
+      - name: Publish FC_Core
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: natescherer/publish-powershell-action@v1
+        with:
+          token: ${{ secrets.GALLERY_API_KEY }}
+          target: gallery
+          path: bin/FC_TFS
