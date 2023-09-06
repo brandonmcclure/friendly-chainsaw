@@ -43,7 +43,14 @@ A object with 3 properties, stdout, stderr, and ExitCode. stdout and stderr are 
     $logLevel = "Warning"
   }
   Set-LogLevel $logLevel
-  $EXE = $EXEPath.Substring($EXEPath.LastIndexOf("\") + 1, $EXEPath.Length - $EXEPath.LastIndexOf("\") - 1)
+  if([string]::IsNullOrEmpty($EXEPath)){
+    Write-Log "EXEPath not set" Error -ErrorAction Stop
+  }
+  if(-not (Test-Path $EXEPath)){
+    Write-Log "EXEPath not a valid path" Error -ErrorAction Stop
+  }
+  
+  $EXE = $EXEPath.Substring($EXEPath.LastIndexOf("\") + 1,$EXEPath.Length - $EXEPath.LastIndexOf("\") - 1)
   $pinfo = New-Object System.Diagnostics.ProcessStartInfo
   if ($IsWindows) {
     $pinfo.FileName = "`"$EXEPath`""
