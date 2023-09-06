@@ -18,7 +18,7 @@ if ($logLevel -eq "Debug"){
 	#Only show the stdout stream if we are in debugging logLevel
 	$return.stddout
 }
-if ($return.stderr -ne $null){
+if (-not [string]::ISnullOrEmpty($return.stderr)){
 	Write-Log "$($return.stderr)" Warning
 	Write-Log "There was an error of some type. See warning above for more info" Error
 }
