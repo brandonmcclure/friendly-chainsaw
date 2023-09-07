@@ -1,9 +1,9 @@
-Remove-Module FC_Core -Force -ErrorAction Ignore | Out-Null
-Import-Module "$(Split-Path $PSScriptRoot -Parent)\FC_Core" -Force
-
-Set-logTargets -WindowsEventLog 0
-
 Describe 'Get-FCSecret'{
+    beforeall {
+		$functionPath = Join-Path $PSScriptRoot ".functions.ps1"
+		. "$functionPath"
+		LoadLocalModules
+	}
     Context "ContextName" {
         beforeEach{
             Set-SecretStoreConfiguration -Authentication None -Confirm:$false -Interaction "None"
