@@ -1,0 +1,21 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+-   repo: local
+    hooks:
+    -   id: secretlint
+        name: secretlint
+        language: docker_image
+        entry: secretlint/secretlint:latest secretlint
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.4.0
+    hooks:
+    -   id: check-case-conflict
+    -   id: forbid-submodules
+    -   id: no-commit-to-branch
+        args: [--branch, main]
+- repo: https://gitlab.com/adam-moss/pre-commit-ssh-git-signing-key
+  rev: v1.0.0 # Use the ref you want to point at
+  hooks:
+    - id: add-ssh-git-signing-key
+    - id: remove-ssh-git-signing-key

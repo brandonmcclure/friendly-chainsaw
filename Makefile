@@ -72,3 +72,9 @@ lint_goodcheck_test:
 	docker run -t --rm -v $${PWD}:/work sider/goodcheck test
 lint_makefile:
 	docker run -v $${PWD}:/tmp/lint -e ENABLE_LINTERS=MAKEFILE_CHECKMAKE oxsecurity/megalinter-ci_light:v6.10.0
+lint_secrets:
+	docker run -t --rm --workdir /work -v $${PWD}:/work secretlint/secretlint secretlint --maskSecrets "**/*"
+precommit_install:
+	pre-commit install
+precommit_checkall: precommit_install
+	pre-commit run --all-files
