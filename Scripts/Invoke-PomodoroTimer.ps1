@@ -9,7 +9,21 @@ param([Parameter(position = 0)][ValidateSet("Debug", "Info", "Warning", "Error",
 	, $breakDurationMin = 5
 	, $pomodoromDurationMin = 25
 )
-	
+
+$Messages_pomTimerUp = @(
+	"The pomodoro timer is up, press enter to move to the break timer",
+	"The work timer is up, press enter to move to the break timer",
+	"I am evolving, the time is done. Press enter please",
+	"I have nothing better to do then to wait for you to press enter.",
+	"waiting for you to press enter"
+)
+$Messages_breakTimerUp = @(
+	"The break timer is up, press enter to complete the cycle",
+	"The break timer is up, press enter",
+	"I am evolving, the timer is done. Press enter finish",
+	"I have nothing better to do then to wait for you to press enter.",
+	"waiting for you to press enter"
+)
 Import-Module FC_Log
 	
 if ([string]::IsNullOrEmpty($logLevel)) { $logLevel = "Info" }
@@ -29,14 +43,17 @@ function Start-SleepWithProgress($seconds,$status = "Sleeping") {
 }
 
 function Invoke-AlertMessage {
-	param($alertMessage)
+	param([string[]]$alertMessage)
 
-	if ([string]::IsNullOrEmpty($alertMessage)) {
+	$numOfAlertMessages = $alertMessage | Measure-Object | Select-Object -ExpandProperty Count
+	if ($numOfAlertMessages -eq 0) {
 		Write-Log "You must specify a alertMessage" Error -ErrorAction Stop
 	}
+	
 	$alarmStageActive = $true
 	while ($alarmStageActive) {
-		Write-Log $alertMessage
+		$currentMessage = $alertMessage | Sort-Object {Get-Random -Minimum 1 -Maximum ($numOfAlertMessages+1)} | Select-Object -first 1
+		Write-Log $currentMessage
 		if ([console]::KeyAvailable) {
 			
 			$x = [System.Console]::ReadKey() 
@@ -51,9 +68,10 @@ function Invoke-AlertMessage {
 
 Write-Log "Starting the pomodoro timer for $pomodoromDurationMin minutes"
 Start-SleepWithProgress -Seconds (60 * $pomodoromDurationMin) -status "Pomodoroing"
-Invoke-AlertMessage -AlertMessage "The pomodoro timer is up, press enter to move to the break timer"
+
+Invoke-AlertMessage -AlertMessage $Messages_pomTimerUp
 
 Write-Log "Starting $breakDurationMin minute break"
 Start-SleepWithProgress -Seconds (60 * $breakDurationMin) -status "breaking"
 
-Invoke-AlertMessage -AlertMessage "The break timer is up, press enter to complete the cycle"
+Invoke-AlertMessage -AlertMessage $Messages_breakTimerUp
