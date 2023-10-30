@@ -75,7 +75,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }} 
       - id: lowercaseImageName
-        uses: ASzc/change-string-case-action@v5
+        uses: ASzc/change-string-case-action@v6
         with:
           string: bmcclure89/${{ env.IMAGE_NAME }}
       - name: Save Docker Image archive to local filesystem
