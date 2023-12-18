@@ -81,7 +81,7 @@ jobs:
       - name: Save Docker Image archive to local filesystem
         run: "docker save --output fc_pwsh.tar ${{ steps.lowercaseImageName.outputs.lowercase }}"
       - name: Upload application's Docker Image as pipeline artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           path: fc_pwsh.tar
           name: fc_pwsh.tar
