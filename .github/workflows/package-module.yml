@@ -47,7 +47,7 @@ jobs:
         run: | 
           sudo cp -r Modules/ bin/ 
       - name: Archive production artifacts - all
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Powershell All
           path: |
