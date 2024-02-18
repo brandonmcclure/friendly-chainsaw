@@ -55,7 +55,7 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -63,7 +63,7 @@ jobs:
       - name: Publish FC_Core - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
@@ -72,7 +72,7 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -80,7 +80,7 @@ jobs:
       - name: Publish FC_Data - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
@@ -89,7 +89,7 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -97,7 +97,7 @@ jobs:
       - name: Publish FC_Docker - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
@@ -106,7 +106,7 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -114,7 +114,7 @@ jobs:
       - name: Publish FC_Git - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
@@ -123,7 +123,7 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -131,7 +131,7 @@ jobs:
       - name: Publish FC_LOG - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
@@ -140,7 +140,7 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -148,7 +148,7 @@ jobs:
       - name: Publish FC_MicrosoftGraph - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
@@ -157,7 +157,7 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -165,7 +165,7 @@ jobs:
       - name: Publish FC_MISC - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
@@ -174,7 +174,7 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -182,7 +182,7 @@ jobs:
       - name: Publish FC_SysAdmin - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
@@ -191,7 +191,7 @@ jobs:
       - name: Publish FC_TFS - to PSGallery
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
@@ -199,7 +199,7 @@ jobs:
       - name: Publish FC_TFS - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
           target: nuget
