@@ -22,7 +22,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: brandonmcclure/fc_powershell
+  IMAGE_NAME: fc_powershell
   JUST_IMAGE_NAME: fc_powershell
 
 jobs:
@@ -62,7 +62,7 @@ jobs:
             type=sha,format=long
             type=raw,value=latest
           images: |
-            ghcr.io/brandonmcclure/friendly-chainsaw/${{ env.IMAGE_NAME }}
+            ghcr.io/brandonmcclure/${{ env.IMAGE_NAME }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta_dockerhub
         uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
