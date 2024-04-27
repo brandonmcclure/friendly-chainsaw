@@ -5,10 +5,11 @@ param(
     ,[string] $moduleAuthor = "Brandon McClure"
     ,[securestring]$apiKey
 	,$pathToSearch = '${PWD}'
+	,$repositoryName = 'PSGalery'
     )
 
 	if([string]::IsNullOrEmpty($apiKey)){
-		$apiKey = Read-Host -Prompt "Please enter PSGallery API key" -MaskInput | ConvertTo-SecureString -AsPlainText
+		$apiKey = Read-Host -Prompt "Please enter $repositoryName API key" -MaskInput | ConvertTo-SecureString -AsPlainText
 	}
 if ([string]::IsNullOrEmpty($logLevel)){$logLevel = "Info"}
 Set-LogLevel $logLevel
@@ -24,7 +25,7 @@ $origLocation = Get-Location
 	Write-Log "Found $moduleCount modules."
 	foreach ($module in $modules) {
 		Write-Log "Publishing module: $module"
-    	Publish-Module -Name $module -NuGetApiKey ($apiKey | ConvertFrom-SecureString -AsPlainText) -ErrorAction Continue
+    	Publish-Module -repository $repositoryName -Name $module -NuGetApiKey ($apiKey | ConvertFrom-SecureString -AsPlainText) -ErrorAction Continue
     }
 
 

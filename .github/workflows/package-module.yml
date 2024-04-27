@@ -23,7 +23,7 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 1 
       # - uses: addnab/docker-run-action@v3
@@ -47,7 +47,7 @@ jobs:
         run: | 
           sudo cp -r Modules/ bin/ 
       - name: Archive production artifacts - all
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: Powershell All
           path: |
@@ -55,72 +55,153 @@ jobs:
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_Core
+      - name: Publish FC_Core - To my forge
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
+          path: bin/FC_Core
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_Data
+      - name: Publish FC_Data - To my forge
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
+          path: bin/FC_Data
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_Docker
+      - name: Publish FC_Docker - To my forge
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
+          path: bin/FC_Docker
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_Git
+      - name: Publish FC_Git - To my forge
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
+          path: bin/FC_Git
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_Log
+      - name: Publish FC_LOG - To my forge
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
+          path: bin/FC_LOG
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_MicrosoftGraph
+      - name: Publish FC_MicrosoftGraph - To my forge
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
+          path: bin/FC_MicrosoftGraph
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_Misc
+      - name: Publish FC_MISC - To my forge
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
+          path: bin/FC_MISC
       - name: Publish FC_Core
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
           path: bin/FC_SysAdmin
-      - name: Publish FC_Core
+      - name: Publish FC_SysAdmin - To my forge
         if: github.ref == 'refs/heads/main'
         continue-on-error: true
-        uses: natescherer/publish-powershell-action@v1
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
+          path: bin/FC_SysAdmin
+      - name: Publish FC_TFS - to PSGallery
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
         with:
           token: ${{ secrets.GALLERY_API_KEY }}
           target: gallery
+          path: bin/FC_TFS
+      - name: Publish FC_TFS - To my forge
+        if: github.ref == 'refs/heads/main'
+        continue-on-error: true
+        uses: brandonmcclure/publish-powershell-action@bmcclure/RandoNugetName
+        with:
+          token: ${{ secrets.FORGEJO_GALLERY_API_KEY }}
+          target: nuget
+          nugetUrl: https://forgejo.mchotfoot.duckdns.org/api/packages/brandon/nuget/index.json
           path: bin/FC_TFS

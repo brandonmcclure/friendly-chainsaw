@@ -7,7 +7,7 @@ Wrapper for calling processes
 .EXAMPLE
 This example sets up a executable path, and options, then passes them to the function while captureing the returning stdout and stderr streams.
 
-Assume that $dacDinDir, $DestFile, $ConnectionString are all set to sueful values.
+Assume that $dacBinDir, $DestFile, $ConnectionString are all set to useful values.
 
 $EXEPath = "$dacBinDir\SqlPackage.exe"
 $options = "/Action:Extract /OverwriteFiles:True /tf:$DestFile /scs:$ConnectionString"
@@ -22,6 +22,25 @@ if (-not [string]::ISnullOrEmpty($return.stderr)){
 	Write-Log "$($return.stderr)" Warning
 	Write-Log "There was an error of some type. See warning above for more info" Error
 }
+.EXAMPLE
+This example sets up a executable path, and options, then passes them to the function while captureing the returning stdout and stderr streams.
+
+Assume that $dacBinDir, $DestFile, $ConnectionString are all set to useful values. Inside the delegates, $Event is a special variable that will have the event data (ie the stdout and stderr data)
+
+$stderrDel = {
+    Write-Log "$($Event.SourceIdentifier) $($Event.SourceEventArgs.Data)"
+}
+$stdoutDel = {
+    Write-Log "$($Event.SourceIdentifier) $($Event.SourceEventArgs.Data)"
+}
+$EXEPath = "$dacBinDir\SqlPackage.exe"
+$options = "/Action:Extract /OverwriteFiles:True /tf:$DestFile /scs:$ConnectionString"
+
+$runningProc = Start-MyProcess -async -stderrdelegate $stderrDel -stdOutdelegate $stdoutDel -EXEPath  $EXEPath -options $options
+
+# You could also use while(-not $runningProc.HasExited). Here we just wait 2 seconds and then force kill the process. 
+sleep 2 
+Stop-Process -Id $proc.id -ErrorAction Continue | Out-Null
 .OUTPUTS
 A object with 3 properties, stdout, stderr, and ExitCode. stdout and stderr are text streams that conatian output from the process. Generally if (stderr -eq $null) then there was some sort of error. You can also parse stdout to find errors, or check the ExitCode for non-success
 #>
@@ -99,10 +118,10 @@ A object with 3 properties, stdout, stderr, and ExitCode. stdout and stderr are 
   if (!$async) {
     if (!$process.HasExited) {
       # Wait a while for the process to exitn
-      Write-Log "$EXE is not done, let's wait $sleepTimer more seconds"
+      Write-Log "$EXE is not done, let's wait $sleepTimer more seconds" Debug
       Start-Sleep -Seconds $sleepTimer
     }
-    Write-Log "$EXE has completed."
+    Write-Log "$EXE has completed." Debug
     # get output from stdout and stderr
     $stdout = $process.StandardOutput.ReadToEnd()
     $stderr = $process.StandardError.ReadToEnd()

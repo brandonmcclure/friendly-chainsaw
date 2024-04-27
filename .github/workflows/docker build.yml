@@ -1,26 +1,29 @@
+---
 name: Docker build image
 
 on:
   workflow_dispatch:
-  schedule: 
+  schedule:
     - cron: '0 0 * * 0'
   push:
     branches:
-      - main  # Trigger CI on main branch
-    paths: 
+      - main
+    paths:
       - 'Dockerfile'
       - '.github/workflows/docker build.yml'
       - 'Modules/*'
   pull_request:
     branches:
-      - main  # Trigger gated pipeline on PR to main
+      - main
     paths:
       - 'Dockerfile'
       - '.github/workflows/docker build.yml'
       - 'Modules/*'
 
 env:
+  REGISTRY: ghcr.io
   IMAGE_NAME: fc_powershell
+  JUST_IMAGE_NAME: fc_powershell
 
 jobs:
   build-and-push-image:
@@ -31,22 +34,27 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
+        with:
+          lfs: true
 
       - name: Log in to the Github Container registry
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
         with:
           registry: ghcr.io
+
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to DockerHub
-        uses: docker/login-action@465a07811f14bebb1938fbed4728c6a1ff8901fc
+        uses: docker/login-action@e92390c5fb421da1463c202d546fed0ec5c39f20
         with:
           username: bmcclure89
+
           password: ${{ secrets.DOCKERHUB_TOKEN }}
+        if: github.ref == 'refs/heads/main'
       - name: Extract metadata (tags, labels) for Docker
-        id: meta
-        uses: docker/metadata-action@818d4b7b91585d195f67373fd9cb0332e31a7175
+        id: meta_github
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
         with:
           tags: |
             type=ref,event=pr
@@ -55,33 +63,42 @@ jobs:
             type=raw,value=latest
           images: |
             ghcr.io/brandonmcclure/${{ env.IMAGE_NAME }}
-            bmcclure89/${{ env.IMAGE_NAME }}
-
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta_dockerhub
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81
+        with:
+          tags: |
+            type=ref,event=pr
+            type=ref,event=branch
+            type=sha,format=long
+            type=raw,value=latest
+          images: |
+            bmcclure89/${{ env.JUST_IMAGE_NAME }}
+        if: github.ref == 'refs/heads/main'
       - name: Build Docker image (non main branch)
-        uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         if: github.ref != 'refs/heads/main'
         with:
           context: .
-          load: true
-          push: false
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }} 
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta_github.outputs.tags }}
+          labels: ${{ steps.meta_github.outputs.labels }} 
       - name: Build and push Docker image (main branch)
-        uses: docker/build-push-action@2eb1c1961a95fc15694676618e422e8ba1d63825
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
         if: github.ref == 'refs/heads/main'
         with:
           context: .
+          file: Dockerfile
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }} 
-      - id: lowercaseImageName
-        uses: ASzc/change-string-case-action@v5
+          tags: ${{ steps.meta_dockerhub.outputs.tags }}
+          labels: ${{ steps.meta_dockerhub.outputs.labels }}
+      - name: Build and push Docker image (main branch)
+        uses: docker/build-push-action@2cdde995de11925a030ce8070c3d77a52ffcf1c0
+        if: github.ref == 'refs/heads/main'
         with:
-          string: bmcclure89/${{ env.IMAGE_NAME }}
-      - name: Save Docker Image archive to local filesystem
-        run: "docker save --output fc_pwsh.tar ${{ steps.lowercaseImageName.outputs.lowercase }}"
-      - name: Upload application's Docker Image as pipeline artifact
-        uses: actions/upload-artifact@v3
-        with:
-          path: fc_pwsh.tar
-          name: fc_pwsh.tar
+          context: .
+          file: Dockerfile
+          push: true
+          tags: ${{ steps.meta_github.outputs.tags }}
+          labels: ${{ steps.meta_github.outputs.labels }}
