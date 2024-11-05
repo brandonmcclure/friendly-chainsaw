@@ -11,7 +11,7 @@ IMAGE_NAME := fc_powershell
 TAG := :latest
 PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
 
-.PHONY: all clean test run lint test_image_pull
+.PHONY: all clean test run lint test_image_pull build
 all: build docker_build
 
 getcommitid: 
