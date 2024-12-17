@@ -23,7 +23,7 @@ jobs:
       group: ${{ github.workflow }}-${{ github.ref }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           fetch-depth: 1 
       # - uses: addnab/docker-run-action@v3
@@ -34,7 +34,7 @@ jobs:
       #     options: -v ${{ github.workspace }}:/build
       #     run: |
       #       -pathToSearch '/build'
-      - uses: addnab/docker-run-action@v3
+      - uses: addnab/docker-run-action@4f65fabd2431ebc8d299f8e5a018d79a769ae185 # v3
         with:
           username: bmcclure89
           password: ${{ secrets.DOCKERHUB_TOKEN }}
@@ -47,7 +47,7 @@ jobs:
         run: | 
           sudo cp -r Modules/ bin/ 
       - name: Archive production artifacts - all
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4
         with:
           name: Powershell All
           path: |

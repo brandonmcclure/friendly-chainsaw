@@ -1,4 +1,4 @@
-ARG TARGET_IMAGE=mcr.microsoft.com/powershell:lts-ubuntu-22.04
+ARG TARGET_IMAGE=mcr.microsoft.com/powershell:lts-ubuntu-22.04@sha256:029c44ac7eaf304b05957e0c9e9e2487a367ce8d7548a7b4d1b00b453ce94f1e
 FROM $TARGET_IMAGE as base
 WORKDIR /root
 RUN apt-get update && apt-get install inetutils-ping dnsutils net-tools nano -y --no-install-recommends
