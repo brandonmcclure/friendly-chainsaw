@@ -76,7 +76,7 @@ jobs:
             bmcclure89/${{ env.JUST_IMAGE_NAME }}
         if: github.ref == 'refs/heads/main'
       - name: Build Docker image (non main branch)
-        uses: docker/build-push-action@11be14d908760a0756f045980728ec5fb7880f74
+        uses: docker/build-push-action@7e094594beda23fc8f21fa31049f4b203e51096b
         if: github.ref != 'refs/heads/main'
         with:
           context: .
@@ -85,7 +85,7 @@ jobs:
           tags: ${{ steps.meta_github.outputs.tags }}
           labels: ${{ steps.meta_github.outputs.labels }} 
       - name: Build and push Docker image (main branch)
-        uses: docker/build-push-action@11be14d908760a0756f045980728ec5fb7880f74
+        uses: docker/build-push-action@7e094594beda23fc8f21fa31049f4b203e51096b
         if: github.ref == 'refs/heads/main'
         with:
           context: .
@@ -94,7 +94,7 @@ jobs:
           tags: ${{ steps.meta_dockerhub.outputs.tags }}
           labels: ${{ steps.meta_dockerhub.outputs.labels }}
       - name: Build and push Docker image (main branch)
-        uses: docker/build-push-action@11be14d908760a0756f045980728ec5fb7880f74
+        uses: docker/build-push-action@7e094594beda23fc8f21fa31049f4b203e51096b
         if: github.ref == 'refs/heads/main'
         with:
           context: .
