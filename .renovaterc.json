@@ -2,18 +2,19 @@
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
     "config:best-practices",
-    ":approveMajorUpdates",
     "group:linters", 
-    ":dependencyDashboard"
+    ":dependencyDashboard",
+    "docker:enableMajor",
+    "docker:pinDigests"
+
   ],
-  "ignorePresets": [
-    ":semanticPrefixFixDepsChoreOthers",
-    "docker:pinDigests",
-    "helpers:pinGitHubActionDigests"
-  ],
+  "ignorePresets": [],
   "semanticCommits": "disabled",
   "platformAutomerge": false,
   "prConcurrentLimit": 10,
+  "vulnerabilityAlerts": {
+    "enabled": true
+  },
   "osvVulnerabilityAlerts": true,
   "ignorePaths": [
       ".forgejo/workflows/*"
