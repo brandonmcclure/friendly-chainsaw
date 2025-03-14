@@ -39,14 +39,14 @@ jobs:
           lfs: true
 
       - name: Log in to the Github Container registry
-        uses: docker/login-action@7ca345011ac4304463197fac0e56eab1bc7e6af0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
         with:
           registry: ghcr.io
 
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to DockerHub
-        uses: docker/login-action@7ca345011ac4304463197fac0e56eab1bc7e6af0
+        uses: docker/login-action@74a5d142397b4f367a81961eba4e8cd7edddf772
         with:
           username: bmcclure89
 
