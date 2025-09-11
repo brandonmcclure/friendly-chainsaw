@@ -34,19 +34,19 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
         with:
           lfs: true
 
       - name: Log in to the Github Container registry
-        uses: docker/login-action@7ca345011ac4304463197fac0e56eab1bc7e6af0
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
         with:
           registry: ghcr.io
 
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to DockerHub
-        uses: docker/login-action@7ca345011ac4304463197fac0e56eab1bc7e6af0
+        uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1
         with:
           username: bmcclure89
 
@@ -54,7 +54,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
       - name: Extract metadata (tags, labels) for Docker
         id: meta_github
-        uses: docker/metadata-action@0de3687b53cd804b63dd87819f7bda043569ce4a
+        uses: docker/metadata-action@032a4b3bda1b716928481836ac5bfe36e1feaad6
         with:
           tags: |
             type=ref,event=pr
@@ -65,7 +65,7 @@ jobs:
             ghcr.io/brandonmcclure/${{ env.IMAGE_NAME }}
       - name: Extract metadata (tags, labels) for Docker
         id: meta_dockerhub
-        uses: docker/metadata-action@0de3687b53cd804b63dd87819f7bda043569ce4a
+        uses: docker/metadata-action@032a4b3bda1b716928481836ac5bfe36e1feaad6
         with:
           tags: |
             type=ref,event=pr
@@ -76,7 +76,7 @@ jobs:
             bmcclure89/${{ env.JUST_IMAGE_NAME }}
         if: github.ref == 'refs/heads/main'
       - name: Build Docker image (non main branch)
-        uses: docker/build-push-action@5e99dacf67635c4f273e532b9266ddb609b3025a
+        uses: docker/build-push-action@ccc2b40e9ea6518f9252a22a990f8e868370f62e
         if: github.ref != 'refs/heads/main'
         with:
           context: .
@@ -85,7 +85,7 @@ jobs:
           tags: ${{ steps.meta_github.outputs.tags }}
           labels: ${{ steps.meta_github.outputs.labels }} 
       - name: Build and push Docker image (main branch)
-        uses: docker/build-push-action@5e99dacf67635c4f273e532b9266ddb609b3025a
+        uses: docker/build-push-action@ccc2b40e9ea6518f9252a22a990f8e868370f62e
         if: github.ref == 'refs/heads/main'
         with:
           context: .
@@ -94,7 +94,7 @@ jobs:
           tags: ${{ steps.meta_dockerhub.outputs.tags }}
           labels: ${{ steps.meta_dockerhub.outputs.labels }}
       - name: Build and push Docker image (main branch)
-        uses: docker/build-push-action@5e99dacf67635c4f273e532b9266ddb609b3025a
+        uses: docker/build-push-action@ccc2b40e9ea6518f9252a22a990f8e868370f62e
         if: github.ref == 'refs/heads/main'
         with:
           context: .

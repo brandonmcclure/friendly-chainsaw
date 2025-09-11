@@ -5,13 +5,13 @@ else
 endif
 .SHELLFLAGS := -NoProfile -Command 
 
-REGISTRY_NAME := 
-REPOSITORY_NAME := bmcclure89/
+REGISTRY_NAME := forgejo.themongoose.xyz/
+REPOSITORY_NAME := brandon/
 IMAGE_NAME := fc_powershell
 TAG := :latest
 PLATFORMS := linux/amd64,linux/arm64,linux/arm/v7
 
-.PHONY: all clean test run lint test_image_pull
+.PHONY: all clean test run lint test_image_pull build
 all: build docker_build
 
 getcommitid: 
@@ -20,18 +20,18 @@ getbranchname:
 	$(eval BRANCH_NAME = $(shell (git branch --show-current ) -replace '/','.'))
 
 build: 
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build'
+	docker run --rm -it -w /build -v $${PWD}:/build forgejo.themongoose.xyz/brandon/fc_pwsh_build:main -pathToSearch '/build'
 build_%:
-	docker run --rm -it -w /build -v $${PWD}:/build bmcclure89/fc_pwsh_build:main -pathToSearch '/build' -moduleName @('$*.psm1')
+	docker run --rm -it -w /build -v $${PWD}:/build forgejo.themongoose.xyz/brandon/fc_pwsh_build:main -pathToSearch '/build' -moduleName @('$*.psm1')
 
 test_image_pull:
-	docker pull bmcclure89/fc_pwsh_test:main
+	docker pull forgejo.themongoose.xyz/brandon/fc_pwsh_test:main
 	
 test: test_image_pull
-	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:main
+	docker run --rm -it -w /tests -v $${PWD}:/tests forgejo.themongoose.xyz/brandon/fc_pwsh_test:main
 
 test_%: test_image_pull
-	docker run --rm -it -w /tests -v $${PWD}:/tests bmcclure89/fc_pwsh_test:main pwsh -c Invoke-Pester -Path '/tests/Modules/**/$*.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
+	docker run --rm -it -w /tests -v $${PWD}:/tests forgejo.themongoose.xyz/brandon/fc_pwsh_test:main pwsh -c Invoke-Pester -Path '/tests/Modules/**/$*.Tests.ps1' -OutputFile /tests/PesterResults.xml -OutputFormat NUnitXml;
 
 publish_%:
 	./Modules/Publish-FCModules.ps1 -moduleName $*

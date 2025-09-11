@@ -1,0 +1,61 @@
+---
+name: Sonarqube scan
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - bmcclure/main
+  pull_request:
+    branches:
+      - main 
+      - bmcclure/main
+
+env:
+  SONAR_USER_HOME: /mnt/sonarqube_cache
+  SONAR_PROJECT_KEY: ${{ github.repository }}
+  SONAR_PULLREQUEST_KEY: ${{ github.ref_name }}
+  SONAR_PULLREQUEST_BRANCH: ${{ github.head_ref }}
+  SONAR_PULLREQUEST_BASE: ${{ github.base_ref }}
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+jobs:
+  sonarscan:
+    runs-on: docker
+
+    steps:
+      - name: Checkout repository
+        uses: https://forgejo.themongoose.xyz/actions/checkout@v4
+      - name: set SONAR_SRC_VOLUME variable
+        run: |
+          echo "SONAR_SRC_VOLUME=$(echo "sonarqube_${{ github.repository }}_${{ env.SONAR_PULLREQUEST_KEY}}" | sed 's/\//./g'| sed 's/\./_/g')" >> $GITHUB_ENV
+      - name: set SONAR_CONTAINER_NAME variable
+        run: |
+          echo "SONAR_CONTAINER_NAME=$(echo "${SONAR_SRC_VOLUME}_container")" >> $GITHUB_ENV
+          
+      - name: copy the src files to a docker container and set 1000 ownership
+        run: |
+          mkdir hackyworkaround
+          echo $SONAR_SRC_VOLUME
+          echo $SONAR_CONTAINER_NAME
+          echo ${{ github.head_ref }}
+          echo ${{ github.base_ref }}
+          chown 1000:1000 -R ${{ github.workspace }}
+          ls -la ${{ github.workspace }}
+          echo "docker run -d -v $SONAR_SRC_VOLUME:/usr/src --name $SONAR_CONTAINER_NAME busybox tail -f /dev/null"
+          docker run -d -v $SONAR_SRC_VOLUME:/usr/src --name $SONAR_CONTAINER_NAME busybox tail -f /dev/null 
+          echo "copying files into volume"
+          tar -c -C ${{ github.workspace }}/ . | docker exec -i $SONAR_CONTAINER_NAME tar -x -C /usr/src/
+      - name: run sonar-scanner-cli
+        uses: https://forgejo.themongoose.xyz/actions/docker-run-action@v3
+        with:
+          image: sonarsource/sonar-scanner-cli:10.0
+          options: --user 1000:1000 -e SONAR_TOKEN=${{ secrets.SONAR_TOKEN }} -e GITHUB_ACTIONS=false -v ${{ env.SONAR_SRC_VOLUME }}:/usr/src -v sonarscan_conf:/opt/sonar-scanner/conf:ro
+          run: |
+            sonar-scanner -Dsonar.log.level=INFO -Dsonar.verbose=false -Dsonar.host.url=https://sonarqube.themongoose.xyz -Dsonar.sources=. -Dproject.settings=./sonar-project.properties
+      - name: Remove the helper volume
+        if: always()
+        run: |
+          docker stop $SONAR_CONTAINER_NAME
+          docker rm $SONAR_CONTAINER_NAME
